@@ -3,7 +3,7 @@ let currentOptions = 4;
 let MCQA_DATA = [];
 
 // --- 1. Load CSV ---
-Papa.parse("Decarbonization_MCQA.csv", {
+Papa.parse("https://github.com/starfriend10/WaterScope-AI-demo/blob/main/Decarbonization_MCQA.csv", {
     download: true,
     header: true,
     skipEmptyLines: true,
