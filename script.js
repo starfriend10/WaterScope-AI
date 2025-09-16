@@ -105,13 +105,31 @@ document.getElementById('add-option').addEventListener('click', ()=>{
     return;
   }
   const container=document.getElementById('option-container');
-  const input=document.createElement('input');
-  input.type='text';
-  input.id='opt'+currentOptions;
-  input.placeholder='Option '+String.fromCharCode(65+currentOptions);
-  container.appendChild(input);
+  
+  // Create a new option row with label and input
+  const optionRow = document.createElement('div');
+  optionRow.className = 'option-row';
+  
+  // Create the option label
+  const label = document.createElement('span');
+  label.className = 'option-label';
+  label.textContent = String.fromCharCode(65 + currentOptions) + ':';
+  
+  // Create the input field
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'opt' + currentOptions;
+  input.placeholder = 'Option ' + String.fromCharCode(65 + currentOptions);
+  
+  // Add label and input to the row
+  optionRow.appendChild(label);
+  optionRow.appendChild(input);
+  
+  // Add the row to the container
+  container.appendChild(optionRow);
+  
   currentOptions++;
-  updateStatus("Added option " + String.fromCharCode(65+currentOptions-1));
+  updateStatus("Added option " + String.fromCharCode(65 + currentOptions - 1));
 });
 
 // --- 5. Clear All ---
