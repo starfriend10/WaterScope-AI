@@ -34,80 +34,118 @@ body {
 .nav-menu {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
-  gap: 10px;
+  margin-bottom: 25px;
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .nav-item {
   padding: 10px 20px;
-  background: #f0f0f0;
-  border-radius: 4px;
+  margin: 0 5px;
   cursor: pointer;
-  transition: all 0.3s;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  font-weight: 500;
 }
 
 .nav-item:hover {
-  background: #e0e0e0;
+  background-color: #f0f0f0;
 }
 
 .nav-item.active {
-  background: #6eb1ff;
+  background-color: #6eb1ff;
   color: white;
 }
 
 /* Rows for layout */
 .row {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   width: 100%;
 }
 
 .input-panel{
   background: white;
-  padding: 20px;
+  padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.input-panel textarea, .input-panel input[type="text"]{
+.input-panel label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.input-panel textarea{
   width:100%;
-  margin-bottom:10px;
-  padding:10px;
+  margin-bottom:15px;
+  padding:12px;
   font-size:14px;
   border: 1px solid #ddd;
   border-radius: 4px;
-}
-
-.input-panel textarea {
   min-height: 100px;
   resize: vertical;
 }
 
 .options {
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 #option-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.option-label {
+  font-weight: bold;
+  min-width: 20px;
+}
+
+.option-row input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
 .controls{
-  margin-top:15px;
+  margin-top:20px;
   display:flex;
+  flex-direction: column;
+  gap:15px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button-group {
+  display: flex;
   flex-wrap: wrap;
-  gap:10px;
-  align-items:center;
+  gap: 10px;
 }
 
 button{
-  padding:8px 16px;
+  padding:10px 16px;
   font-size:14px;
   cursor:pointer;
   border: none;
   border-radius: 4px;
   background: #6eb1ff;
   color: white;
+  font-weight: 500;
 }
 
 button:hover {
@@ -123,9 +161,10 @@ button:hover {
 
 .output-panel{
   background:#f8f9fa;
-  padding:15px;
+  padding:20px;
   border-radius:8px;
   box-shadow:0 2px 4px rgba(0,0,0,0.1);
+  border-left: 4px solid #6eb1ff;
 }
 
 .output-panel h3{
@@ -135,20 +174,32 @@ button:hover {
   padding-bottom: 10px;
 }
 
-.output-panel pre{
-  background:#fff;
-  padding:10px;
-  border-radius:4px;
-  margin-bottom:10px;
+.output-content {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.output-content label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.output-content pre{
+  margin: 0;
   white-space:pre-wrap;
-  min-height: 60px;
+  font-family: 'Consolas', monospace;
 }
 
 /* Status and time displays */
 #time-display {
   margin-top: 15px;
   padding: 10px;
-  background: #f5f5f5;
+  background: #f8f9fa;
   border-radius: 4px;
   display: none;
 }
@@ -156,32 +207,41 @@ button:hover {
 #status-message {
   margin-top: 10px;
   padding: 10px;
-  background: #f5f5f5;
+  background: #f8f9fa;
   border-radius: 4px;
   font-style: italic;
 }
 
-/* MCQA table */
-.mcqa-container {
+/* MCQA table - Fixed to have title above scrollable area */
+.mcqa-section {
   background: white;
-  padding: 20px;
+  padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 100%;
 }
 
-.mcqa-container h3 {
+.mcqa-section h3 {
   margin-top: 0;
+  margin-bottom: 15px;
+  color: #6eb1ff;
+}
+
+.mcqa-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
 
 .mcqa-container table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
 }
 
 .mcqa-container th, .mcqa-container td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 10px;
   text-align: left;
 }
 
@@ -199,7 +259,7 @@ button:hover {
 
 .footer{
   text-align:center;
-  padding:15px;
+  padding:20px;
   margin-top:30px;
   color:#666;
   font-size:0.9em;
@@ -212,12 +272,17 @@ button:hover {
     grid-template-columns: 1fr;
   }
   
-  #option-container {
-    grid-template-columns: 1fr;
+  .button-group {
+    flex-direction: column;
   }
   
-  .controls {
+  .nav-menu {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .nav-item {
+    text-align: center;
+    margin: 0;
   }
 }
