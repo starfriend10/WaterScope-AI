@@ -6,7 +6,8 @@ body {
 }
 
 .container {
-  max-width: 1400px;
+  width: 95%; /* Use percentage for responsiveness */
+  max-width: 1400px; /* Increase this value for wider layout */
   margin: 0 auto;
 }
 
