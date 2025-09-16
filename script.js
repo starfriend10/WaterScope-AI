@@ -4,7 +4,6 @@ let currentOptions = 4;
 let MCQA_DATA = [];
 let gradioApp = null;
 
-
 // Timer functionality
 let timerInterval = null;
 let startTime = null;
@@ -26,14 +25,15 @@ function stopTimer() {
         clearInterval(timerInterval);
         timerInterval = null;
     }
-    // Keep the time display visible but stop updating it
 }
 
-// In your runComparison function, add these calls:
-// - Call startTimer() when you begin processing
-// - Call stopTimer() when processing completes (both success and error cases)
-
-
+// Remove the updateStatus function as it's trying to update a non-existent element
+// function updateStatus(message) {
+//   const statusElement = document.getElementById('status');
+//   if (statusElement) {
+//     statusElement.innerText = message;
+//   }
+// }
 
 // --- 1. Load CSV ---
 Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
@@ -126,6 +126,9 @@ document.getElementById('clear').addEventListener('click', ()=>{
   while(container.children.length>4){
     container.removeChild(container.lastChild);
   }
+  
+  // Also hide the time display when clearing
+  document.getElementById('time-display').style.display = 'none';
 });
 
 // --- 6. Initialize Gradio Client ---
@@ -138,10 +141,8 @@ async function initializeGradioClient() {
     gradioApp = await Client.connect("EnvironLLM/EnvironLLM");
     
     console.log("Gradio client initialized successfully");
-    updateStatus("Connected to AI API successfully");
   } catch (error) {
     console.error("Failed to initialize Gradio client:", error);
-    updateStatus("Failed to connect to AI API. Please check console for details.");
   }
 }
 
@@ -164,7 +165,6 @@ document.getElementById('send').addEventListener('click', async ()=>{
 
   // Initialize client if not already done
   if (!gradioApp) {
-    updateStatus("Initializing connection to AI API...");
     await initializeGradioClient();
     if (!gradioApp) {
       alert("Failed to connect to AI API. Please try again.");
@@ -175,7 +175,6 @@ document.getElementById('send').addEventListener('click', async ()=>{
   try {
     // Start the timer
     startTimer();
-    updateStatus("Processing your question...");
     
     // Call the API with correct parameter names
     const result = await gradioApp.predict("/run_mcqa_comparison", {
@@ -200,26 +199,15 @@ document.getElementById('send').addEventListener('click', async ()=>{
     document.getElementById('dpo_letter').innerText = outputs[4] || "";
     document.getElementById('dpo_raw').innerText = outputs[5] || "";
     
-    updateStatus("Evaluation completed successfully");
     // Stop the timer on success
     stopTimer();
   } catch (err) {
     // Stop the timer on error
     stopTimer();
     console.error('API Error:', err);
-    updateStatus('Error: ' + err.message);
     alert('Error calling API: ' + err.message);
   }
 });
-
-// --- 8. Utility Functions ---
-function updateStatus(message) {
-  const statusElement = document.getElementById('status');
-  if (statusElement) {
-    statusElement.innerText = message;
-  }
-}
-
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
