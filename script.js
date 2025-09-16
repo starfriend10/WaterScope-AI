@@ -4,6 +4,37 @@ let currentOptions = 4;
 let MCQA_DATA = [];
 let gradioApp = null;
 
+
+// Timer functionality
+let timerInterval = null;
+let startTime = null;
+
+function startTimer() {
+    startTime = Date.now();
+    document.getElementById('time-display').style.display = 'block';
+    
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('elapsed-time').textContent = elapsedSeconds;
+    }, 1000);
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    // Keep the time display visible but stop updating it
+}
+
+// In your runComparison function, add these calls:
+// - Call startTimer() when you begin processing
+// - Call stopTimer() when processing completes (both success and error cases)
+
+
+
 // --- 1. Load CSV ---
 Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
   download: true,
@@ -142,6 +173,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
   }
 
   try {
+    // Start the timer
+    startTimer();
     updateStatus("Processing your question...");
     
     // Call the API with correct parameter names
@@ -168,7 +201,11 @@ document.getElementById('send').addEventListener('click', async ()=>{
     document.getElementById('dpo_raw').innerText = outputs[5] || "";
     
     updateStatus("Evaluation completed successfully");
+    // Stop the timer on success
+    stopTimer();
   } catch (err) {
+    // Stop the timer on error
+    stopTimer();
     console.error('API Error:', err);
     updateStatus('Error: ' + err.message);
     alert('Error calling API: ' + err.message);
@@ -182,6 +219,7 @@ function updateStatus(message) {
     statusElement.innerText = message;
   }
 }
+
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
