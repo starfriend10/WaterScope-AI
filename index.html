@@ -8,96 +8,103 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>Water/Wastewater Sector MCQA Evaluator</h1>
-    <p>Compare fine-tuned Llama 3.1 8B models in the water/wastewater engineering and sustainability domain.</p>
-  </div>
+  <div class="container">
+    <div class="header">
+      <h1>Water/Wastewater Sector MCQA Evaluator</h1>
+      <p>Compare fine-tuned Llama 3.1 8B models in the water/wastewater engineering and sustainability domain.</p>
+    </div>
 
-  <!-- Navigation menu -->
-  <div class="nav-menu">
-    <div class="nav-item active">Home</div>
-    <div class="nav-item">Demo</div>
-    <div class="nav-item">Publication</div>
-  </div>
+    <!-- Navigation menu -->
+    <div class="nav-menu">
+      <div class="nav-item active">Home</div>
+      <div class="nav-item">Demo</div>
+      <div class="nav-item">Publication</div>
+    </div>
 
-  <div class="section">
-    <div class="input-panel">
-      <label for="question">Question:</label>
-      <textarea id="question" rows="3" placeholder="Enter your question..."></textarea>
+    <!-- First row: Input panel -->
+    <div class="row">
+      <div class="input-panel">
+        <label for="question">Question:</label>
+        <textarea id="question" rows="3" placeholder="Enter your question..."></textarea>
 
-      <div class="options">
-        <label>Options:</label>
-        <div id="option-container">
-          <input type="text" id="opt0" placeholder="Option A">
-          <input type="text" id="opt1" placeholder="Option B">
-          <input type="text" id="opt2" placeholder="Option C">
-          <input type="text" id="opt3" placeholder="Option D">
+        <div class="options">
+          <label>Options:</label>
+          <div id="option-container">
+            <input type="text" id="opt0" placeholder="Option A">
+            <input type="text" id="opt1" placeholder="Option B">
+            <input type="text" id="opt2" placeholder="Option C">
+            <input type="text" id="opt3" placeholder="Option D">
+          </div>
+        </div>
+
+        <div class="controls">
+          <label><input type="checkbox" id="explanation"> Generate Explanation</label>
+          <button id="add-option">Add Option</button>
+          <button id="send">Run Comparison</button>
+          <button id="clear">Clear All</button>
+        </div>
+        
+        <!-- Time display -->
+        <div id="time-display">
+          <span>Processing time: </span>
+          <span id="elapsed-time">0.0</span>
+          <span> seconds</span>
+        </div>
+        
+        <!-- Status message display -->
+        <div id="status-message">
+          Ready to connect
         </div>
       </div>
+    </div>
 
-      <div class="controls">
-        <label><input type="checkbox" id="explanation"> Generate Explanation</label>
-        <button id="add-option">Add Option</button>
-        <button id="send">Run Comparison</button>
-        <button id="clear">Clear All</button>
-      </div>
-      
-      <!-- Time display -->
-      <div id="time-display">
-        <span>Processing time: </span>
-        <span id="elapsed-time">0.0</span>
-        <span> seconds</span>
-      </div>
-      
-      <!-- Status message display -->
-      <div id="status-message">
-        Ready to connect
+    <!-- Second row: Output panels -->
+    <div class="row">
+      <div class="output-panel-container">
+        <div class="output-panel">
+          <h3>Base Model</h3>
+          <pre id="base_letter">-</pre>
+          <pre id="base_raw">Waiting for input...</pre>
+        </div>
+
+        <div class="output-panel">
+          <h3>IT-Adapter</h3>
+          <pre id="it_letter">-</pre>
+          <pre id="it_raw">Waiting for input...</pre>
+        </div>
+
+        <div class="output-panel">
+          <h3>DPO-Adapter</h3>
+          <pre id="dpo_letter">-</pre>
+          <pre id="dpo_raw">Waiting for input...</pre>
+        </div>
       </div>
     </div>
 
-    <div class="output-panel-container">
-      <div class="output-panel">
-        <h3>Base Model</h3>
-        <pre id="base_letter"></pre>
-        <pre id="base_raw"></pre>
-      </div>
-
-      <div class="output-panel">
-        <h3>IT-Adapter</h3>
-        <pre id="it_letter"></pre>
-        <pre id="it_raw"></pre>
-      </div>
-
-      <div class="output-panel">
-        <h3>DPO-Adapter</h3>
-        <pre id="dpo_letter"></pre>
-        <pre id="dpo_raw"></pre>
+    <!-- Third row: MCQA table -->
+    <div class="row">
+      <div class="mcqa-container">
+        <h3>MCQA Dataset</h3>
+        <table id="mcqa-table">
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>A</th>
+              <th>B</th>
+              <th>C</th>
+              <th>D</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Table rows dynamically added by JS -->
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
 
-  <div class="section">
-    <h3>MCQA Dataset</h3>
-    <div class="mcqa-container">
-      <table id="mcqa-table">
-        <thead>
-          <tr>
-            <th>Question</th>
-            <th>A</th>
-            <th>B</th>
-            <th>C</th>
-            <th>D</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Table rows dynamically added by JS -->
-        </tbody>
-      </table>
+    <div class="footer">
+      © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
     </div>
-  </div>
-
-  <div class="footer">
-    © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
   </div>
 
   <script src="script.js"></script>
