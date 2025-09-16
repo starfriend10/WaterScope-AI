@@ -85,6 +85,15 @@ function populateTable() {
 document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
   const tr = e.target.closest('tr');
   if(!tr) return;
+  
+  // Remove highlight from all rows
+  document.querySelectorAll('#mcqa-table tr').forEach(row => {
+    row.classList.remove('highlighted');
+  });
+  
+  // Add highlight to clicked row
+  tr.classList.add('highlighted');
+  
   const row = MCQA_DATA[tr.dataset.index];
   document.getElementById('question').value = row.Question;
   document.getElementById('opt0').value = row.A;
@@ -148,6 +157,11 @@ document.getElementById('clear').addEventListener('click', ()=>{
   while(container.children.length>4){
     container.removeChild(container.lastChild);
   }
+  
+  // Remove highlights from table rows
+  document.querySelectorAll('#mcqa-table tr').forEach(row => {
+    row.classList.remove('highlighted');
+  });
   
   // Also hide the time display when clearing
   document.getElementById('time-display').style.display = 'none';
