@@ -6,125 +6,387 @@
 <title>Water/Wastewater Sector MCQA Evaluator</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  /* Only adding the minimal CSS needed for new elements */
+  #time-display {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    display: none;
+    font-size: 14px;
+  }
+  
+  #status-message {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-style: italic;
+    font-size: 14px;
+  }
+  
+  .nav-menu {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+    gap: 10px;
+  }
+  
+  .nav-item {
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .nav-item.active {
+    background: #6eb1ff;
+    color: white;
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Water/Wastewater Sector MCQA Evaluator</h1>
-      <p>Compare fine-tuned Llama 3.1 8B models in the water/wastewater engineering and sustainability domain.</p>
-    </div>
+  <div class="header">
+    <h1>Water/Wastewater Sector MCQA Evaluator</h1>
+    <p>Compare fine-tuned Llama 3.1 8B models in the water/wastewater engineering and sustainability domain.</p>
+  </div>
 
-    <!-- Navigation menu -->
-    <div class="nav-menu">
-      <div class="nav-item active">Home</div>
-      <div class="nav-item">Demo</div>
-      <div class="nav-item">Publication</div>
-    </div>
+  <!-- Navigation menu -->
+  <div class="nav-menu">
+    <div class="nav-item active">Home</div>
+    <div class="nav-item">Demo</div>
+    <div class="nav-item">Publication</div>
+  </div>
 
-    <!-- First row: Input panel -->
-    <div class="row">
-      <div class="input-panel">
-        <label for="question">Question:</label>
-        <textarea id="question" rows="3" placeholder="Enter your question..."></textarea>
+  <div class="section">
+    <div class="input-panel">
+      <label for="question">Question:</label>
+      <textarea id="question" rows="3" placeholder="Enter your question..."></textarea>
 
-        <div>
-          <label>Options:</label>
-          <div class="options-grid" id="option-container">
-            <input type="text" id="opt0" placeholder="Option A">
-            <input type="text" id="opt1" placeholder="Option B">
-            <input type="text" id="opt2" placeholder="Option C">
-            <input type="text" id="opt3" placeholder="Option D">
-          </div>
+      <div class="options">
+        <label>Options:</label>
+        <div id="option-container">
+          <input type="text" id="opt0" placeholder="Option A">
+          <input type="text" id="opt1" placeholder="Option B">
+          <input type="text" id="opt2" placeholder="Option C">
+          <input type="text" id="opt3" placeholder="Option D">
         </div>
+      </div>
 
-        <div class="controls">
-          <label><input type="checkbox" id="explanation"> Generate Explanation</label>
-          <button id="add-option" class="btn-secondary">Add Option</button>
-          <button id="send" class="btn-primary">Run Comparison</button>
-          <button id="clear" class="btn-secondary">Clear All</button>
-        </div>
-        
-        <!-- Time display -->
-        <div id="time-display">
-          <span>Processing time: </span>
-          <span id="elapsed-time">0.0</span>
-          <span> seconds</span>
-        </div>
-        
-        <!-- Status message display -->
-        <div id="status-message">
-          Ready to connect
-        </div>
+      <div class="controls">
+        <label><input type="checkbox" id="explanation"> Generate Explanation</label>
+        <button id="add-option">Add Option</button>
+        <button id="send">Run Comparison</button>
+        <button id="clear">Clear All</button>
+      </div>
+      
+      <!-- Time display -->
+      <div id="time-display">
+        <span>Processing time: </span>
+        <span id="elapsed-time">0.0</span>
+        <span> seconds</span>
+      </div>
+      
+      <!-- Status message display -->
+      <div id="status-message">
+        Ready to connect
       </div>
     </div>
 
-    <!-- Second row: Output panels -->
-    <div class="row">
-      <div class="output-panel-container">
-        <div class="output-panel">
-          <h3>Base Model</h3>
-          <div class="output-content">
-            <label>Predicted Letter:</label>
-            <pre id="base_letter">-</pre>
-          </div>
-          <div class="output-content">
-            <label>Raw Answer:</label>
-            <pre id="base_raw">Waiting for input...</pre>
-          </div>
-        </div>
-
-        <div class="output-panel">
-          <h3>IT-Adapter</h3>
-          <div class="output-content">
-            <label>Predicted Letter:</label>
-            <pre id="it_letter">-</pre>
-          </div>
-          <div class="output-content">
-            <label>Raw Answer:</label>
-            <pre id="it_raw">Waiting for input...</pre>
-          </div>
-        </div>
-
-        <div class="output-panel">
-          <h3>DPO-Adapter</h3>
-          <div class="output-content">
-            <label>Predicted Letter:</label>
-            <pre id="dpo_letter">-</pre>
-          </div>
-          <div class="output-content">
-            <label>Raw Answer:</label>
-            <pre id="dpo_raw">Waiting for input...</pre>
-          </div>
-        </div>
+    <div class="output-panel-container">
+      <div class="output-panel">
+        <h3>Base Model</h3>
+        <pre id="base_letter"></pre>
+        <pre id="base_raw"></pre>
       </div>
-    </div>
 
-    <!-- Third row: MCQA table -->
-    <div class="row">
-      <div class="mcqa-container">
-        <h3>MCQA Dataset</h3>
-        <table class="mcqa-table">
-          <thead>
-            <tr>
-              <th>Question</th>
-              <th>A</th>
-              <th>B</th>
-              <th>C</th>
-              <th>D</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Table rows dynamically added by JS -->
-          </tbody>
-        </table>
+      <div class="output-panel">
+        <h3>IT-Adapter</h3>
+        <pre id="it_letter"></pre>
+        <pre id="it_raw"></pre>
       </div>
-    </div>
 
-    <div class="footer">
-      © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
+      <div class="output-panel">
+        <h3>DPO-Adapter</h3>
+        <pre id="dpo_letter"></pre>
+        <pre id="dpo_raw"></pre>
+      </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <div class="section">
+    <h3>MCQA Dataset</h3>
+    <div class="mcqa-container">
+      <table id="mcqa-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>A</th>
+            <th>B</th>
+            <th>C</th>
+            <th>D</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Table rows dynamically added by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
+  </div>
+
+  <script>
+    // mcqa-evaluator.js
+    const MAX_OPTIONS = 8;
+    let currentOptions = 4;
+    let MCQA_DATA = [];
+    let gradioApp = null;
+
+    // Timer functionality
+    let timerInterval = null;
+    let startTime = null;
+
+    function startTimer() {
+        startTime = Date.now();
+        document.getElementById('time-display').style.display = 'block';
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
+        }, 100);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // Status update function
+    function updateStatus(message) {
+        document.getElementById('status-message').textContent = message;
+    }
+
+    // Navigation menu functionality
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        // Remove active class from all items
+        document.querySelectorAll('.nav-item').forEach(i => {
+          i.classList.remove('active');
+        });
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        updateStatus(`Navigated to ${this.textContent}`);
+      });
+    });
+
+    // --- 1. Load CSV ---
+    Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        console.log("CSV loaded:", results.data);
+        MCQA_DATA = results.data;
+        populateTable();
+        updateStatus("Dataset loaded successfully");
+      },
+      error: function(err) {
+        console.error("CSV loading error:", err);
+        // Fallback to sample data if CSV fails
+        MCQA_DATA = [
+          {
+            Question: "What role do wastewater utilities play in the water sector?",
+            A: "They primarily focus on desalination.",
+            B: "They collect and treat generated wastewater to ensure the effluent can be safely discharged or reused.",
+            C: "They distribute bottled water to homes and industries.",
+            D: "They only monitor water purity in natural bodies of water."
+          },
+          {
+            Question: "What main challenges are facing the water sector due to climate change?",
+            A: "Global trade fluctuations",
+            B: "Regulatory changes",
+            C: "Lack of research and new technologies",
+            D: "Extreme weather events, frequent floods or prolonged droughts"
+          }
+        ];
+        populateTable();
+        updateStatus("Using sample data (CSV load failed)");
+      }
+    });
+
+    // --- 2. Populate MCQA Table ---
+    function populateTable() {
+      const tableBody = document.querySelector('#mcqa-table tbody');
+      if (!tableBody) return;
+      
+      tableBody.innerHTML = "";
+      MCQA_DATA.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = idx;
+        tr.innerHTML = `<td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // --- 3. Click row to autofill ---
+    document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
+      const tr = e.target.closest('tr');
+      if(!tr) return;
+      const row = MCQA_DATA[tr.dataset.index];
+      document.getElementById('question').value = row.Question;
+      document.getElementById('opt0').value = row.A;
+      document.getElementById('opt1').value = row.B;
+      document.getElementById('opt2').value = row.C;
+      document.getElementById('opt3').value = row.D;
+      for(let i=4;i<MAX_OPTIONS;i++){
+        const el=document.getElementById('opt'+i);
+        if(el) el.value="";
+      }
+      updateStatus("Form filled from dataset");
+    });
+
+    // --- 4. Add Option ---
+    document.getElementById('add-option').addEventListener('click', ()=>{
+      if(currentOptions>=MAX_OPTIONS) {
+        updateStatus("Maximum options reached");
+        return;
+      }
+      const container=document.getElementById('option-container');
+      const input=document.createElement('input');
+      input.type='text';
+      input.id='opt'+currentOptions;
+      input.placeholder='Option '+String.fromCharCode(65+currentOptions);
+      container.appendChild(input);
+      currentOptions++;
+      updateStatus("Added option " + String.fromCharCode(65+currentOptions-1));
+    });
+
+    // --- 5. Clear All ---
+    document.getElementById('clear').addEventListener('click', ()=>{
+      document.getElementById('question').value="";
+      for(let i=0;i<MAX_OPTIONS;i++){
+        const el=document.getElementById('opt'+i);
+        if(el) el.value="";
+      }
+      document.getElementById('explanation').checked=false;
+      ['base_letter','base_raw','it_letter','it_raw','dpo_letter','dpo_raw'].forEach(id=>{
+        document.getElementById(id).innerText="";
+      });
+      currentOptions=4;
+      const container=document.getElementById('option-container');
+      while(container.children.length>4){
+        container.removeChild(container.lastChild);
+      }
+      
+      // Also hide the time display when clearing
+      document.getElementById('time-display').style.display = 'none';
+      updateStatus("Form cleared");
+    });
+
+    // --- 6. Initialize Gradio Client ---
+    async function initializeGradioClient() {
+      try {
+        updateStatus("Initializing connection to AI API...");
+        
+        // Import the Gradio client
+        const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
+        
+        // Connect to your Hugging Face Space
+        gradioApp = await Client.connect("EnvironLLM/EnvironLLM");
+        
+        console.log("Gradio client initialized successfully");
+        updateStatus("Connected to AI API successfully");
+      } catch (error) {
+        console.error("Failed to initialize Gradio client:", error);
+        updateStatus("Failed to connect to AI API. Please check console for details.");
+      }
+    }
+
+    // --- 7. Run Comparison (using Gradio Client) ---
+    document.getElementById('send').addEventListener('click', async ()=>{
+      const question=document.getElementById('question').value;
+      const options=[];
+      for(let i=0;i<MAX_OPTIONS;i++){
+        const el=document.getElementById('opt'+i);
+        options.push(el?el.value:"");
+      }
+      const explanation=document.getElementById('explanation').checked;
+
+      // Validate inputs
+      const activeOptions = options.filter(opt => opt && opt.trim());
+      if (!question || activeOptions.length < 2) {
+        updateStatus("Please enter a question and at least two options");
+        alert("Please enter a question and at least two options");
+        return;
+      }
+
+      // Initialize client if not already done
+      if (!gradioApp) {
+        updateStatus("Initializing connection to AI API...");
+        await initializeGradioClient();
+        if (!gradioApp) {
+          updateStatus("Failed to connect to AI API. Please try again.");
+          alert("Failed to connect to AI API. Please try again.");
+          return;
+        }
+      }
+
+      try {
+        // Start the timer
+        startTimer();
+        updateStatus("Processing your question...");
+        
+        // Call the API with correct parameter names
+        const result = await gradioApp.predict("/run_mcqa_comparison", {
+          question: question,
+          opt_a: options[0],
+          opt_b: options[1],
+          opt_c: options[2],
+          opt_d: options[3],
+          opt_e: options[4],
+          opt_f: options[5],
+          opt_g: options[6],
+          opt_h: options[7],
+          generate_explanation: explanation
+        });
+
+        // Update results
+        const outputs = result.data;
+        document.getElementById('base_letter').innerText = outputs[0] || "";
+        document.getElementById('base_raw').innerText = outputs[1] || "";
+        document.getElementById('it_letter').innerText = outputs[2] || "";
+        document.getElementById('it_raw').innerText = outputs[3] || "";
+        document.getElementById('dpo_letter').innerText = outputs[4] || "";
+        document.getElementById('dpo_raw').innerText = outputs[5] || "";
+        
+        updateStatus("Evaluation completed successfully");
+        // Stop the timer on success
+        stopTimer();
+      } catch (err) {
+        // Stop the timer on error
+        stopTimer();
+        console.error('API Error:', err);
+        updateStatus('Error: ' + err.message);
+        alert('Error calling API: ' + err.message);
+      }
+    });
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStatus("Initializing application...");
+      // Initialize Gradio client when page loads
+      initializeGradioClient().catch(console.error);
+    });
+  </script>
 </body>
 </html>
