@@ -4,95 +4,630 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Water/Wastewater Sector MCQA Evaluator</title>
-<link rel="stylesheet" href="style.css">
+<style>
+  :root {
+    --primary-color: #6eb1ff;
+    --secondary-color: #88d3fe;
+    --accent-color: #4a90e2;
+    --light-bg: #f8f9fa;
+    --dark-text: #333;
+    --light-text: #666;
+    --border-radius: 8px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  body {
+    background-color: #f5f7fb;
+    color: var(--dark-text);
+    line-height: 1.6;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 1400px; /* Increased overall width */
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+  }
+
+  .header p {
+    margin: 10px 0 0;
+    font-size: 1.2rem;
+    opacity: 0.9;
+  }
+
+  /* Navigation menu */
+  .nav-menu {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-item {
+    padding: 10px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s;
+  }
+
+  .nav-item:hover {
+    background-color: var(--light-bg);
+  }
+
+  .nav-item.active {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  /* Three main rows */
+  .row {
+    display: flex;
+    margin-bottom: 25px;
+    gap: 25px;
+  }
+
+  .input-panel {
+    flex: 1;
+    background: white;
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .output-panel-container {
+    flex: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .mcqa-container {
+    background: white;
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Form elements */
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: var(--accent-color);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #f0f0f0;
+    color: var(--dark-text);
+  }
+
+  /* Output panels */
+  .output-panel {
+    background: var(--light-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--primary-color);
+  }
+
+  .output-panel h3 {
+    margin-top: 0;
+    color: var(--accent-color);
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+
+  .output-content {
+    background: white;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    min-height: 150px;
+    margin-bottom: 15px;
+  }
+
+  .output-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* Status and time displays */
+  #time-display {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    display: none;
+  }
+
+  #status-message {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    font-style: italic;
+  }
+
+  /* MCQA table */
+  .mcqa-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  .mcqa-table th, .mcqa-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .mcqa-table th {
+    background-color: var(--light-bg);
+    font-weight: 600;
+  }
+
+  .mcqa-table tr:hover {
+    background-color: #f1f7ff;
+    cursor: pointer;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+    color: var(--light-text);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 1200px) {
+    .output-panel-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .row {
+      flex-direction: column;
+    }
+    
+    .options-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>Water/Wastewater Sector MCQA Evaluator</h1>
-    <p>Compare fine-tuned Llama 3.1 8B models in the water/wastewater engineering and sustainability domain.</p>
-  </div>
+  <div class="container">
+    <div class="header">
+      <h1>Water/Wastewater Sector MCQA Evaluator</h1>
+      <p>Compare fine-tuned Llama 3.1 8B models in the water/wastewater engineering and sustainability domain.</p>
+    </div>
 
-  <div class="section">
-    <div class="input-panel">
-      <label for="question">Question:</label>
-      <textarea id="question" rows="3" placeholder="Enter your question..."></textarea>
+    <!-- Navigation menu -->
+    <div class="nav-menu">
+      <div class="nav-item active">Home</div>
+      <div class="nav-item">Demo</div>
+      <div class="nav-item">Publication</div>
+    </div>
 
-      <div class="options">
-        <label>Options:</label>
-        <div id="option-container">
-          <input type="text" id="opt0" placeholder="Option A">
-          <input type="text" id="opt1" placeholder="Option B">
-          <input type="text" id="opt2" placeholder="Option C">
-          <input type="text" id="opt3" placeholder="Option D">
+    <!-- First row: Input panel -->
+    <div class="row">
+      <div class="input-panel">
+        <label for="question">Question:</label>
+        <textarea id="question" rows="3" placeholder="Enter your question..."></textarea>
+
+        <div>
+          <label>Options:</label>
+          <div class="options-grid" id="option-container">
+            <input type="text" id="opt0" placeholder="Option A">
+            <input type="text" id="opt1" placeholder="Option B">
+            <input type="text" id="opt2" placeholder="Option C">
+            <input type="text" id="opt3" placeholder="Option D">
+          </div>
+        </div>
+
+        <div class="controls">
+          <label><input type="checkbox" id="explanation"> Generate Explanation</label>
+          <button id="add-option" class="btn-secondary">Add Option</button>
+          <button id="send" class="btn-primary">Run Comparison</button>
+          <button id="clear" class="btn-secondary">Clear All</button>
+        </div>
+        
+        <!-- Time display -->
+        <div id="time-display">
+          <span>Processing time: </span>
+          <span id="elapsed-time">0.0</span>
+          <span> seconds</span>
+        </div>
+        
+        <!-- Status message display -->
+        <div id="status-message">
+          Ready to connect
         </div>
       </div>
+    </div>
 
-      <div class="controls">
-        <label><input type="checkbox" id="explanation"> Generate Explanation</label>
-        <button id="add-option">Add Option</button>
-        <button id="send">Run Comparison</button>
-        <button id="clear">Clear All</button>
+    <!-- Second row: Output panels -->
+    <div class="row">
+      <div class="output-panel-container">
+        <div class="output-panel">
+          <h3>Base Model</h3>
+          <div class="output-content">
+            <label>Predicted Letter:</label>
+            <pre id="base_letter">-</pre>
+          </div>
+          <div class="output-content">
+            <label>Raw Answer:</label>
+            <pre id="base_raw">Waiting for input...</pre>
+          </div>
+        </div>
+
+        <div class="output-panel">
+          <h3>IT-Adapter</h3>
+          <div class="output-content">
+            <label>Predicted Letter:</label>
+            <pre id="it_letter">-</pre>
+          </div>
+          <div class="output-content">
+            <label>Raw Answer:</label>
+            <pre id="it_raw">Waiting for input...</pre>
+          </div>
+        </div>
+
+        <div class="output-panel">
+          <h3>DPO-Adapter</h3>
+          <div class="output-content">
+            <label>Predicted Letter:</label>
+            <pre id="dpo_letter">-</pre>
+          </div>
+          <div class="output-content">
+            <label>Raw Answer:</label>
+            <pre id="dpo_raw">Waiting for input...</pre>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Third row: MCQA table -->
+    <div class="row">
+      <div class="mcqa-container">
+        <h3>MCQA Dataset</h3>
+        <table class="mcqa-table">
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>A</th>
+              <th>B</th>
+              <th>C</th>
+              <th>D</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Table rows dynamically added by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer">
+      © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
+    </div>
+  </div>
+
+  <script>
+    // mcqa-evaluator.js
+    const MAX_OPTIONS = 8;
+    let currentOptions = 4;
+    let MCQA_DATA = [];
+    let gradioApp = null;
+
+    // Timer functionality
+    let timerInterval = null;
+    let startTime = null;
+
+    function startTimer() {
+        startTime = Date.now();
+        document.getElementById('time-display').style.display = 'block';
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
+        }, 100);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // Status update function
+    function updateStatus(message) {
+        document.getElementById('status-message').textContent = message;
+    }
+
+    // Navigation menu functionality
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        // Remove active class from all items
+        document.querySelectorAll('.nav-item').forEach(i => {
+          i.classList.remove('active');
+        });
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        // Here you would typically load different content based on the menu selection
+        // For now, we'll just update the status
+        updateStatus(`Navigated to ${this.textContent}`);
+      });
+    });
+
+    // --- 1. Load CSV ---
+    Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        console.log("CSV loaded:", results.data);
+        MCQA_DATA = results.data;
+        populateTable();
+        updateStatus("Dataset loaded successfully");
+      },
+      error: function(err) {
+        console.error("CSV loading error:", err);
+        // Fallback to sample data if CSV fails
+        MCQA_DATA = [
+          {
+            Question: "What role do wastewater utilities play in the water sector?",
+            A: "They primarily focus on desalination.",
+            B: "They collect and treat generated wastewater to ensure the effluent can be safely discharged or reused.",
+            C: "They distribute bottled water to homes and industries.",
+            D: "They only monitor water purity in natural bodies of water."
+          },
+          {
+            Question: "What main challenges are facing the water sector due to climate change?",
+            A: "Global trade fluctuations",
+            B: "Regulatory changes",
+            C: "Lack of research and new technologies",
+            D: "Extreme weather events, frequent floods or prolonged droughts"
+          }
+        ];
+        populateTable();
+        updateStatus("Using sample data (CSV load failed)");
+      }
+    });
+
+    // --- 2. Populate MCQA Table ---
+    function populateTable() {
+      const tableBody = document.querySelector('.mcqa-table tbody');
+      if (!tableBody) return;
       
-      <!-- Time display with decimal -->
-      <div id="time-display" style="margin-top: 10px; display: none;">
-        <span>Processing time: </span>
-        <span id="elapsed-time">0.0</span>
-        <span> seconds</span>
-      </div>
+      tableBody.innerHTML = "";
+      MCQA_DATA.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = idx;
+        tr.innerHTML = `<td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // --- 3. Click row to autofill ---
+    document.querySelector('.mcqa-table tbody').addEventListener('click', e => {
+      const tr = e.target.closest('tr');
+      if(!tr) return;
+      const row = MCQA_DATA[tr.dataset.index];
+      document.getElementById('question').value = row.Question;
+      document.getElementById('opt0').value = row.A;
+      document.getElementById('opt1').value = row.B;
+      document.getElementById('opt2').value = row.C;
+      document.getElementById('opt3').value = row.D;
+      for(let i=4;i<MAX_OPTIONS;i++){
+        const el=document.getElementById('opt'+i);
+        if(el) el.value="";
+      }
+      updateStatus("Form filled from dataset");
+    });
+
+    // --- 4. Add Option ---
+    document.getElementById('add-option').addEventListener('click', ()=>{
+      if(currentOptions>=MAX_OPTIONS) {
+        updateStatus("Maximum options reached");
+        return;
+      }
+      const container=document.getElementById('option-container');
+      const input=document.createElement('input');
+      input.type='text';
+      input.id='opt'+currentOptions;
+      input.placeholder='Option '+String.fromCharCode(65+currentOptions);
+      container.appendChild(input);
+      currentOptions++;
+      updateStatus("Added option " + String.fromCharCode(65+currentOptions-1));
+    });
+
+    // --- 5. Clear All ---
+    document.getElementById('clear').addEventListener('click', ()=>{
+      document.getElementById('question').value="";
+      for(let i=0;i<MAX_OPTIONS;i++){
+        const el=document.getElementById('opt'+i);
+        if(el) el.value="";
+      }
+      document.getElementById('explanation').checked=false;
+      ['base_letter','base_raw','it_letter','it_raw','dpo_letter','dpo_raw'].forEach(id=>{
+        document.getElementById(id).innerText="";
+      });
+      currentOptions=4;
+      const container=document.getElementById('option-container');
+      while(container.children.length>4){
+        container.removeChild(container.lastChild);
+      }
       
-      <!-- Status message display -->
-      <div id="status-message" style="margin-top: 10px; font-style: italic;">
-        Ready to connect
-      </div>
-    </div>
+      // Also hide the time display when clearing
+      document.getElementById('time-display').style.display = 'none';
+      updateStatus("Form cleared");
+    });
 
-    <div class="output-panel-container">
-      <div class="output-panel">
-        <h3>Base Model</h3>
-        <pre id="base_letter"></pre>
-        <pre id="base_raw"></pre>
-      </div>
+    // --- 6. Initialize Gradio Client ---
+    async function initializeGradioClient() {
+      try {
+        updateStatus("Initializing connection to AI API...");
+        
+        // Import the Gradio client
+        const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
+        
+        // Connect to your Hugging Face Space
+        gradioApp = await Client.connect("EnvironLLM/EnvironLLM");
+        
+        console.log("Gradio client initialized successfully");
+        updateStatus("Connected to AI API successfully");
+      } catch (error) {
+        console.error("Failed to initialize Gradio client:", error);
+        updateStatus("Failed to connect to AI API. Please check console for details.");
+      }
+    }
 
-      <div class="output-panel">
-        <h3>IT-Adapter</h3>
-        <pre id="it_letter"></pre>
-        <pre id="it_raw"></pre>
-      </div>
+    // --- 7. Run Comparison (using Gradio Client) ---
+    document.getElementById('send').addEventListener('click', async ()=>{
+      const question=document.getElementById('question').value;
+      const options=[];
+      for(let i=0;i<MAX_OPTIONS;i++){
+        const el=document.getElementById('opt'+i);
+        options.push(el?el.value:"");
+      }
+      const explanation=document.getElementById('explanation').checked;
 
-      <div class="output-panel">
-        <h3>DPO-Adapter</h3>
-        <pre id="dpo_letter"></pre>
-        <pre id="dpo_raw"></pre>
-      </div>
-    </div>
-  </div>
+      // Validate inputs
+      const activeOptions = options.filter(opt => opt && opt.trim());
+      if (!question || activeOptions.length < 2) {
+        updateStatus("Please enter a question and at least two options");
+        alert("Please enter a question and at least two options");
+        return;
+      }
 
-  <div class="section">
-    <h3>MCQA Dataset</h3>
-    <div class="mcqa-container">
-      <table id="mcqa-table">
-        <thead>
-          <tr>
-            <th>Question</th>
-            <th>A</th>
-            <th>B</th>
-            <th>C</th>
-            <th>D</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Table rows dynamically added by JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
+      // Initialize client if not already done
+      if (!gradioApp) {
+        updateStatus("Initializing connection to AI API...");
+        await initializeGradioClient();
+        if (!gradioApp) {
+          updateStatus("Failed to connect to AI API. Please try again.");
+          alert("Failed to connect to AI API. Please try again.");
+          return;
+        }
+      }
 
-  <div class="footer">
-    © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
-  </div>
+      try {
+        // Start the timer
+        startTimer();
+        updateStatus("Processing your question...");
+        
+        // Call the API with correct parameter names
+        const result = await gradioApp.predict("/run_mcqa_comparison", {
+          question: question,
+          opt_a: options[0],
+          opt_b: options[1],
+          opt_c: options[2],
+          opt_d: options[3],
+          opt_e: options[4],
+          opt_f: options[5],
+          opt_g: options[6],
+          opt_h: options[7],
+          generate_explanation: explanation
+        });
 
-  <script src="script.js"></script>
+        // Update results
+        const outputs = result.data;
+        document.getElementById('base_letter').innerText = outputs[0] || "";
+        document.getElementById('base_raw').innerText = outputs[1] || "";
+        document.getElementById('it_letter').innerText = outputs[2] || "";
+        document.getElementById('it_raw').innerText = outputs[3] || "";
+        document.getElementById('dpo_letter').innerText = outputs[4] || "";
+        document.getElementById('dpo_raw').innerText = outputs[5] || "";
+        
+        updateStatus("Evaluation completed successfully");
+        // Stop the timer on success
+        stopTimer();
+      } catch (err) {
+        // Stop the timer on error
+        stopTimer();
+        console.error('API Error:', err);
+        updateStatus('Error: ' + err.message);
+        alert('Error calling API: ' + err.message);
+      }
+    });
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStatus("Initializing application...");
+      // Initialize Gradio client when page loads
+      initializeGradioClient().catch(console.error);
+    });
+  </script>
 </body>
 </html>
