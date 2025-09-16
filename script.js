@@ -10,14 +10,14 @@ let startTime = null;
 
 function startTimer() {
     startTime = Date.now();
-    document.getElementById('time-display').style.display = 'block';
+    document.getElementById('time-display').style.display = 'flex';
     
     if (timerInterval) clearInterval(timerInterval);
     
     timerInterval = setInterval(() => {
         const elapsedTime = (Date.now() - startTime) / 1000;
-        document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1); // 1 decimal place
-    }, 100); // Update more frequently for smoother decimal display
+        document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
+    }, 100);
 }
 
 function stopTimer() {
