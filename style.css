@@ -40,7 +40,7 @@ body {
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  gap: 30px; /* Increased spacing between menu items */
+  gap: 50px; /* Increased spacing between menu items */
 }
 
 .nav-item {
@@ -266,6 +266,17 @@ button:hover {
   position: sticky;
   top: 0;
   font-size: 0.9em;
+}
+
+/* Question column styling */
+.mcqa-container th:first-child,
+.mcqa-container td:first-child {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+}
+
+/* Row highlighting */
+.mcqa-container tr.highlighted {
+  background-color: #e3f2fd !important;
 }
 
 .mcqa-container tr:hover {
