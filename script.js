@@ -163,7 +163,7 @@ async function initializeGradioClient() {
     const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
     
     // Connect to your Hugging Face Space
-    gradioApp = await Client.connect("EnvironLLM/EnvironLLM");
+    gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
     
     console.log("Gradio client initialized successfully");
     updateStatus("Connected to AI API successfully");
