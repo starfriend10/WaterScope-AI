@@ -35,10 +35,9 @@
         <button id="clear">Clear All</button>
       </div>
       
-      <!-- Minimal time display added here -->
-      <div id="timer" style="margin-top: 10px; display: none;">
-        <span>Elapsed time: </span>
-        <span id="time-display">0s</span>
+      <!-- Only change: Added time display -->
+      <div id="time-display" style="margin-top: 10px; font-style: italic; display: none;">
+        Processing time: <span id="elapsed-time">0</span> seconds
       </div>
     </div>
 
@@ -87,36 +86,6 @@
     © 2024 Water/Wastewater Sector MCQA Evaluator | Built with Hugging Face & Gradio
   </div>
 
-  <script>
-    // Add these timer functions to your existing script.js
-    let timerInterval = null;
-    let startTime = null;
-    
-    function startTimer() {
-      startTime = Date.now();
-      document.getElementById('timer').style.display = 'block';
-      
-      if (timerInterval) clearInterval(timerInterval);
-      
-      timerInterval = setInterval(() => {
-        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        document.getElementById('time-display').textContent = `${elapsedSeconds}s`;
-      }, 1000);
-    }
-    
-    function stopTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-      document.getElementById('timer').style.display = 'none';
-    }
-    
-    // In your runComparison function, add these calls:
-    // - Call startTimer() when you begin processing
-    // - Call stopTimer() when processing completes (both success and error cases)
-  </script>
-  
   <script src="script.js"></script>
 </body>
 </html>
