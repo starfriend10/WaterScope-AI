@@ -1,5 +1,5 @@
 body { 
-  font-family: Arial, sans-serif; 
+  font-family: "Times New Roman", Times, serif; 
   padding: 20px; 
   margin: 0;
   background-color: #f5f7fb;
@@ -23,12 +23,14 @@ body {
 .header h1{
   margin:0;
   font-size:2em;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .header p{
   margin:5px 0 0;
   font-size:1em;
   opacity:0.9;
+  font-family: "Times New Roman", Times, serif;
 }
 
 /* Navigation menu with increased spacing */
@@ -50,6 +52,7 @@ body {
   transition: background-color 0.3s;
   font-weight: 700; /* Bold font */
   font-size: 1.05em; /* Slightly larger font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .nav-item:hover {
@@ -72,12 +75,15 @@ body {
   padding: 25px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input-panel label {
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .input-panel textarea{
@@ -89,7 +95,8 @@ body {
   border-radius: 4px;
   min-height: 30px;
   resize: vertical;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
+  box-sizing: border-box;
 }
 
 .options {
@@ -111,6 +118,7 @@ body {
 .option-label {
   font-weight: bold;
   min-width: 20px;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .option-row input[type="text"] {
@@ -119,7 +127,8 @@ body {
   font-size: 14px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
+  box-sizing: border-box;
 }
 
 /* Reorganized controls to fit in one line */
@@ -140,6 +149,7 @@ body {
   height: 40px; /* Fixed height for alignment */
   align-items: center; /* Center alignment */
   padding-top: 4px; /* Added padding to fix alignment */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .button-group {
@@ -168,7 +178,7 @@ button{
   font-weight: 500;
   white-space: nowrap;
   height: fit-content; /* Ensure buttons align properly */
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 button:hover {
@@ -183,7 +193,7 @@ button:hover {
   display: none;
   white-space: nowrap;
   height: fit-content; /* Ensure proper alignment */
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 #status-message {
@@ -194,7 +204,7 @@ button:hover {
   white-space: nowrap;
   min-width: 150px;
   height: fit-content; /* Ensure proper alignment */
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 /* Output panels */
@@ -202,6 +212,7 @@ button:hover {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  width: 100%;
 }
 
 .output-panel{
@@ -210,7 +221,8 @@ button:hover {
   border-radius:8px;
   box-shadow:0 2px 4px rgba(0,0,0,0.1);
   border-left: 4px solid #6eb1ff;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
+  box-sizing: border-box;
 }
 
 .output-panel h3{
@@ -218,7 +230,7 @@ button:hover {
   color:#6eb1ff;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .output-content {
@@ -226,7 +238,7 @@ button:hover {
   padding: 15px;
   border-radius: 4px;
   margin-bottom: 15px;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .output-content label {
@@ -235,13 +247,13 @@ button:hover {
   font-weight: 600;
   font-size: 0.9em;
   color: #666;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .output-content pre{
   margin: 0;
   white-space:pre-wrap;
-  font-family: Arial, sans-serif; /* Changed from Consolas to Arial */
+  font-family: "Times New Roman", Times, serif;
 }
 
 /* MCQA table with smaller font size */
@@ -251,14 +263,15 @@ button:hover {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   width: 100%;
-  font-family: Arial, sans-serif; /* Consistent font */
+  box-sizing: border-box;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .mcqa-section h3 {
   margin-top: 0;
   margin-bottom: 15px;
   color: #6eb1ff;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .mcqa-container {
@@ -266,21 +279,24 @@ button:hover {
   overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mcqa-container table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85em; /* Reduced font size for MCQA data */
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
 .mcqa-container th, .mcqa-container td {
   border: 1px solid #ddd;
   padding: 8px 10px;
   text-align: left;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
+  color: #000; /* Black text color for all cells */
 }
 
 .mcqa-container th {
@@ -289,13 +305,14 @@ button:hover {
   position: sticky;
   top: 0;
   font-size: 0.9em;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
 }
 
-/* Question column styling with very light blue */
+/* Question column styling - removed background color */
 .mcqa-container th:first-child,
 .mcqa-container td:first-child {
-  background: linear-gradient(135deg, #f0f8ff 0%, #e1f5fe 100%);
+  background: transparent;
+  color: #000; /* Black text color for question column */
 }
 
 /* Row highlighting */
@@ -315,7 +332,9 @@ button:hover {
   color:#666;
   font-size:0.9em;
   border-top:1px solid #eee;
-  font-family: Arial, sans-serif; /* Consistent font */
+  font-family: "Times New Roman", Times, serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Responsive design */
