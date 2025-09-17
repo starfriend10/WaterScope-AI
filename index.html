@@ -3,40 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaterScope-AI | Nature Research Demo</title>
-    <link rel="stylesheet" href="style.css">
+    <title>WaterScope-AI | Research Platform</title>
+    <link rel="stylesheet" href="style-dark.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <h1>WaterScope-AI Research Platform</h1>
-            <p>Comparative analysis of fine-tuned Llama 3.1 8B models for water/wastewater engineering research</p>
+            <p>Advanced analysis of fine-tuned language models for water sustainability research</p>
             <div class="publication-badge">
-                <i class="fas fa-book-open"></i> Nature Publication Demo
+                <i class="fas fa-book-open"></i> Nature Research Edition
             </div>
         </div>
 
+        <!-- Navigation menu -->
         <div class="nav-menu">
-            <div class="nav-item active"><i class="fas fa-home"></i> Home</div>
-            <div class="nav-item"><i class="fas fa-table"></i> MCQA Dataset</div>
-            <div class="nav-item"><i class="fas fa-robot"></i> Model Comparison</div>
+            <div class="nav-item active"><i class="fas fa-home"></i> Dashboard</div>
+            <div class="nav-item"><i class="fas fa-table"></i> Dataset</div>
+            <div class="nav-item"><i class="fas fa-robot"></i> Models</div>
+            <div class="nav-item"><i class="fas fa-chart-bar"></i> Analytics</div>
             <div class="nav-item"><i class="fas fa-file-alt"></i> Publication</div>
         </div>
 
-        <div class="panel research-panel">
+        <!-- Input Panel -->
+        <div class="panel">
             <div class="panel-header">
-                <i class="fas fa-flask"></i> Research Query Input
+                <i class="fas fa-question-circle"></i> Research Query
             </div>
             <div class="panel-content">
                 <div class="input-group">
-                    <label for="question">Research Question:</label>
+                    <label for="question"><i class="fas fa-question"></i> Research Question:</label>
                     <textarea id="question" rows="2" placeholder="Enter your research question..."></textarea>
                 </div>
                 
                 <div class="input-group">
-                    <label>Experimental Options:</label>
+                    <label><i class="fas fa-list-ol"></i> Experimental Options:</label>
                     <div id="option-container">
                         <div class="option-row">
                             <span class="option-label">A:</span>
@@ -89,9 +93,10 @@
             </div>
         </div>
 
-        <div class="panel analysis-panel">
+        <!-- Output Analysis -->
+        <div class="panel">
             <div class="panel-header">
-                <i class="fas fa-chart-line"></i> Model Performance Analysis
+                <i class="fas fa-chart-line"></i> Model Performance
             </div>
             <div class="panel-content">
                 <div class="output-grid">
@@ -146,12 +151,13 @@
             </div>
         </div>
 
-        <div class="panel data-panel">
+        <!-- MCQA Dataset -->
+        <div class="panel">
             <div class="panel-header">
                 <i class="fas fa-database"></i> Research Dataset
             </div>
             <div class="panel-content">
-                <h3>Water Engineering MCQA Dataset</h3>
+                <h3><i class="fas fa-table"></i> Water Engineering MCQA Dataset</h3>
                 <p>Select a question from the dataset to automatically populate the input fields:</p>
                 
                 <div class="mcqa-container">
@@ -173,6 +179,7 @@
             </div>
         </div>
 
+        <!-- Footer -->
         <div class="footer">
             <p>© 2025 WaterScope-AI Research Team | Nature Publication | Built with GitHub, Hugging Face, & Gradio</p>
             <p>This interactive demo accompanies our Nature publication on AI applications in water sustainability research.</p>
