@@ -4,8 +4,9 @@ let currentOptions = 4;
 let MCQA_DATA = [];
 let gradioApp = null;
 let apiInitializing = false;
-let apiConnected = false; // Track API connection state
-let currentRequest = null; // Track current API request for cancellation
+let apiConnected = false;
+let currentRequest = null;
+let isProcessing = false; // Track if we're processing a request
 
 // Timer functionality
 let timerInterval = null;
@@ -167,6 +168,11 @@ document.getElementById('add-option').addEventListener('click', ()=>{
 
 // --- 5. Clear All ---
 document.getElementById('clear').addEventListener('click', ()=>{
+    // If a request is processing, stop it first
+    if (isProcessing) {
+        handleStopRequest();
+    }
+    
     document.getElementById('question').value="";
     for(let i=0;i<MAX_OPTIONS;i++){
         const el=document.getElementById('opt'+i);
@@ -232,20 +238,30 @@ async function initializeGradioClient() {
     }
 }
 
-// --- 7. Stop Current Request ---
-document.getElementById('stop').addEventListener('click', () => {
-    if (currentRequest) {
-        // Cancel the ongoing request
-        currentRequest.cancel();
-        currentRequest = null;
-        updateAPIStatus("Request cancelled");
-        stopTimer('processing');
+// --- 7. Handle Stop Request ---
+function handleStopRequest() {
+    if (isProcessing) {
+        // Set a flag to indicate we want to cancel
+        isProcessing = false;
+        
+        // Hide stop button and re-enable send button
         document.getElementById('stop').style.display = 'none';
         document.getElementById('send').disabled = false;
+        
+        // Stop the timer
+        stopTimer('processing');
+        
+        // Update status
+        updateAPIStatus("Request cancelled");
+        
+        console.log("Processing stopped by user");
     }
-});
+}
 
-// --- 8. Run Comparison (using Gradio Client) ---
+// --- 8. Stop Button Event Listener ---
+document.getElementById('stop').addEventListener('click', handleStopRequest);
+
+// --- 9. Run Comparison (using Gradio Client) ---
 document.getElementById('send').addEventListener('click', async ()=>{
     const question=document.getElementById('question').value;
     const options=[];
@@ -275,7 +291,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
     }
 
     try {
-        // Show stop button and disable send button
+        // Set processing flag and update UI
+        isProcessing = true;
         document.getElementById('stop').style.display = 'inline-block';
         document.getElementById('send').disabled = true;
         
@@ -284,7 +301,7 @@ document.getElementById('send').addEventListener('click', async ()=>{
         updateAPIStatus("Processing your question...");
         
         // Call the API with correct parameter names
-        currentRequest = gradioApp.predict("/run_mcqa_comparison", {
+        const result = await gradioApp.predict("/run_mcqa_comparison", {
             question: question,
             opt_a: options[0],
             opt_b: options[1],
@@ -297,11 +314,13 @@ document.getElementById('send').addEventListener('click', async ()=>{
             generate_explanation: explanation
         });
 
-        // Wait for the result
-        const result = await currentRequest;
+        // Check if processing was cancelled
+        if (!isProcessing) {
+            console.log("Processing was cancelled, ignoring results");
+            return;
+        }
         
-        // Update results - note: the API response structure might need adjustment
-        // since we removed the base model but the API might still return 6 values
+        // Update results
         const outputs = result.data;
         // Assuming the API returns [base_letter, base_raw, it_letter, it_raw, dpo_letter, dpo_raw]
         // We'll skip the base model outputs (index 0 and 1)
@@ -311,36 +330,32 @@ document.getElementById('send').addEventListener('click', async ()=>{
         document.getElementById('it_raw').innerText = outputs[3] || "";
         
         updateAPIStatus("Evaluation completed successfully");
-        // Stop the processing timer on success
-        stopTimer('processing');
         
-        // Hide stop button and re-enable send button
-        document.getElementById('stop').style.display = 'none';
-        document.getElementById('send').disabled = false;
-        currentRequest = null;
     } catch (err) {
-        // Stop the processing timer on error
-        stopTimer('processing');
-        
-        // Hide stop button and re-enable send button
-        document.getElementById('stop').style.display = 'none';
-        document.getElementById('send').disabled = false;
-        currentRequest = null;
-        
-        // Check if the error is due to cancellation
-        if (err.message && err.message.includes("cancelled")) {
-            console.log('Request was cancelled by user');
-            updateAPIStatus("Request cancelled");
-        } else {
+        // Only show error if we didn't cancel the request
+        if (isProcessing) {
             console.error('API Error:', err);
             updateAPIStatus('Error: ' + err.message);
             alert('Error calling API: ' + err.message);
+        }
+    } finally {
+        // Always clean up, even if there was an error
+        if (isProcessing) {
+            // Stop the processing timer
+            stopTimer('processing');
+            
+            // Hide stop button and re-enable send button
+            document.getElementById('stop').style.display = 'none';
+            document.getElementById('send').disabled = false;
+            
+            // Reset processing flag
+            isProcessing = false;
         }
     }
 });
 
 // Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Initializing API connection...");
     // Initialize Gradio client when page loads
