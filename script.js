@@ -50,7 +50,7 @@ function updateStatus(message) {
 }
 
 // --- 1. Load CSV ---
-Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
+Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Data/Decarbonization_MCQA.csv", {
     download: true,
     header: true,
     skipEmptyLines: true,
