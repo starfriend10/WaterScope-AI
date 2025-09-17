@@ -234,6 +234,16 @@ button {
     background: #dfe6e9;
 }
 
+/* Add this to your existing CSS file */
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #e67e22;
+}
+
 /* Output Section */
 .output-section {
     background: var(--card-bg);
