@@ -89,7 +89,7 @@ body {
   border-radius: 4px;
   min-height: 30px;
   resize: vertical;
-  font-family: Arial, sans-serif; /* Consistent font with options */
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .options {
@@ -119,7 +119,7 @@ body {
   font-size: 14px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-family: Arial, sans-serif; /* Consistent font with question */
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 /* Reorganized controls to fit in one line */
@@ -139,6 +139,7 @@ body {
   margin-right: 10px;
   height: 40px; /* Fixed height for alignment */
   align-items: center; /* Center alignment */
+  padding-top: 4px; /* Added padding to fix alignment */
 }
 
 .button-group {
@@ -167,6 +168,7 @@ button{
   font-weight: 500;
   white-space: nowrap;
   height: fit-content; /* Ensure buttons align properly */
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 button:hover {
@@ -181,6 +183,7 @@ button:hover {
   display: none;
   white-space: nowrap;
   height: fit-content; /* Ensure proper alignment */
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 #status-message {
@@ -191,6 +194,7 @@ button:hover {
   white-space: nowrap;
   min-width: 150px;
   height: fit-content; /* Ensure proper alignment */
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 /* Output panels */
@@ -206,6 +210,7 @@ button:hover {
   border-radius:8px;
   box-shadow:0 2px 4px rgba(0,0,0,0.1);
   border-left: 4px solid #6eb1ff;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .output-panel h3{
@@ -213,6 +218,7 @@ button:hover {
   color:#6eb1ff;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .output-content {
@@ -220,6 +226,7 @@ button:hover {
   padding: 15px;
   border-radius: 4px;
   margin-bottom: 15px;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .output-content label {
@@ -228,12 +235,13 @@ button:hover {
   font-weight: 600;
   font-size: 0.9em;
   color: #666;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .output-content pre{
   margin: 0;
   white-space:pre-wrap;
-  font-family: 'Consolas', monospace;
+  font-family: Arial, sans-serif; /* Changed from Consolas to Arial */
 }
 
 /* MCQA table with smaller font size */
@@ -243,12 +251,14 @@ button:hover {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   width: 100%;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .mcqa-section h3 {
   margin-top: 0;
   margin-bottom: 15px;
   color: #6eb1ff;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .mcqa-container {
@@ -256,18 +266,21 @@ button:hover {
   overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 6px;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .mcqa-container table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85em; /* Reduced font size for MCQA data */
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .mcqa-container th, .mcqa-container td {
   border: 1px solid #ddd;
   padding: 8px 10px;
   text-align: left;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 .mcqa-container th {
@@ -276,12 +289,13 @@ button:hover {
   position: sticky;
   top: 0;
   font-size: 0.9em;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
-/* Question column styling with light blue */
+/* Question column styling with very light blue */
 .mcqa-container th:first-child,
 .mcqa-container td:first-child {
-  background: linear-gradient(135deg, #e6f7ff 0%, #b3e0ff 100%);
+  background: linear-gradient(135deg, #f0f8ff 0%, #e1f5fe 100%);
 }
 
 /* Row highlighting */
@@ -301,6 +315,7 @@ button:hover {
   color:#666;
   font-size:0.9em;
   border-top:1px solid #eee;
+  font-family: Arial, sans-serif; /* Consistent font */
 }
 
 /* Responsive design */
