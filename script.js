@@ -3,6 +3,7 @@ const MAX_OPTIONS = 8;
 let currentOptions = 4;
 let MCQA_DATA = [];
 let gradioApp = null;
+let apiInitializing = false; // Track API initialization state
 
 // Timer functionality
 let timerInterval = null;
@@ -173,6 +174,11 @@ document.getElementById('clear').addEventListener('click', ()=>{
     // Removed base model references
     ['it_letter','it_raw','dpo_letter','dpo_raw'].forEach(id=>{
         document.getElementById(id).innerText="";
+        if (id.includes('raw')) {
+            document.getElementById(id).innerText = "Waiting for input...";
+        } else {
+            document.getElementById(id).innerText = "-";
+        }
     });
     currentOptions=4;
     const container=document.getElementById('option-container');
@@ -186,13 +192,19 @@ document.getElementById('clear').addEventListener('click', ()=>{
     });
     
     updateSystemStatus("Form cleared");
-    updateAPIStatus("Ready");
+    
+    // Only update API status if not initializing
+    if (!apiInitializing) {
+        updateAPIStatus("Ready");
+    }
+    
     document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
 // --- 6. Initialize Gradio Client ---
 async function initializeGradioClient() {
     try {
+        apiInitializing = true;
         updateAPIStatus("Initializing connection to AI API...");
         startTimer('warmup');
         
@@ -204,10 +216,12 @@ async function initializeGradioClient() {
         
         console.log("Gradio client initialized successfully");
         stopTimer('warmup');
+        apiInitializing = false;
         updateAPIStatus("Connected to AI API successfully");
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
         stopTimer('warmup');
+        apiInitializing = false;
         updateAPIStatus("Failed to connect to AI API");
     }
 }
