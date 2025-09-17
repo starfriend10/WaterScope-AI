@@ -170,7 +170,8 @@ document.getElementById('clear').addEventListener('click', ()=>{
         if(el) el.value="";
     }
     document.getElementById('explanation').checked=false;
-    ['base_letter','base_raw','it_letter','it_raw','dpo_letter','dpo_raw'].forEach(id=>{
+    // Removed base model references
+    ['it_letter','it_raw','dpo_letter','dpo_raw'].forEach(id=>{
         document.getElementById(id).innerText="";
     });
     currentOptions=4;
@@ -259,14 +260,15 @@ document.getElementById('send').addEventListener('click', async ()=>{
             generate_explanation: explanation
         });
 
-        // Update results
+        // Update results - note: the API response structure might need adjustment
+        // since we removed the base model but the API might still return 6 values
         const outputs = result.data;
-        document.getElementById('base_letter').innerText = outputs[0] || "";
-        document.getElementById('base_raw').innerText = outputs[1] || "";
-        document.getElementById('it_letter').innerText = outputs[2] || "";
-        document.getElementById('it_raw').innerText = outputs[3] || "";
+        // Assuming the API returns [base_letter, base_raw, it_letter, it_raw, dpo_letter, dpo_raw]
+        // We'll skip the base model outputs (index 0 and 1)
         document.getElementById('dpo_letter').innerText = outputs[4] || "";
         document.getElementById('dpo_raw').innerText = outputs[5] || "";
+        document.getElementById('it_letter').innerText = outputs[2] || "";
+        document.getElementById('it_raw').innerText = outputs[3] || "";
         
         updateAPIStatus("Evaluation completed successfully");
         // Stop the processing timer on success
