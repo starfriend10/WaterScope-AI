@@ -7,10 +7,13 @@ let gradioApp = null;
 // Timer functionality
 let timerInterval = null;
 let startTime = null;
+let warmupTimerInterval = null;
+let warmupStartTime = null;
 
 function startTimer() {
     startTime = Date.now();
     document.getElementById('time-display').style.display = 'flex';
+    document.getElementById('time-label').textContent = 'Processing time: ';
     
     if (timerInterval) clearInterval(timerInterval);
     
@@ -24,6 +27,26 @@ function stopTimer() {
     if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
+    }
+}
+
+function startWarmupTimer() {
+    warmupStartTime = Date.now();
+    document.getElementById('time-display').style.display = 'flex';
+    document.getElementById('time-label').textContent = 'Warm-up time: ';
+    
+    if (warmupTimerInterval) clearInterval(warmupTimerInterval);
+    
+    warmupTimerInterval = setInterval(() => {
+        const elapsedTime = (Date.now() - warmupStartTime) / 1000;
+        document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
+    }, 100);
+}
+
+function stopWarmupTimer() {
+    if (warmupTimerInterval) {
+        clearInterval(warmupTimerInterval);
+        warmupTimerInterval = null;
     }
 }
 
@@ -172,6 +195,7 @@ document.getElementById('clear').addEventListener('click', ()=>{
 async function initializeGradioClient() {
   try {
     updateStatus("Initializing connection to AI API...");
+    startWarmupTimer();
     
     // Import the Gradio client
     const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
@@ -180,9 +204,11 @@ async function initializeGradioClient() {
     gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
     
     console.log("Gradio client initialized successfully");
+    stopWarmupTimer();
     updateStatus("Connected to AI API successfully");
   } catch (error) {
     console.error("Failed to initialize Gradio client:", error);
+    stopWarmupTimer();
     updateStatus("Failed to connect to AI API. Please check console for details.");
   }
 }
@@ -192,8 +218,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
   const question=document.getElementById('question').value;
   const options=[];
   for(let i=0;i<MAX_OPTIONS;i++){
-  const el=document.getElementById('opt'+i);
-  options.push(el?el.value:"");
+    const el=document.getElementById('opt'+i);
+    options.push(el?el.value:"");
   }
   const explanation=document.getElementById('explanation').checked;
 
