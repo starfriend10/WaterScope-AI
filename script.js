@@ -3,7 +3,9 @@ const MAX_OPTIONS = 8;
 let currentOptions = 4;
 let MCQA_DATA = [];
 let gradioApp = null;
-let apiInitializing = false; // Track API initialization state
+let apiInitializing = false;
+let apiConnected = false; // Track API connection state
+let currentRequest = null; // Track current API request for cancellation
 
 // Timer functionality
 let timerInterval = null;
@@ -193,9 +195,11 @@ document.getElementById('clear').addEventListener('click', ()=>{
     
     updateSystemStatus("Form cleared");
     
-    // Only update API status if not initializing
-    if (!apiInitializing) {
+    // Only update API status if not connected
+    if (!apiConnected) {
         updateAPIStatus("Ready");
+    } else {
+        updateAPIStatus("Connected to AI API successfully");
     }
     
     document.getElementById('elapsed-time').textContent = "0.0s";
@@ -217,16 +221,31 @@ async function initializeGradioClient() {
         console.log("Gradio client initialized successfully");
         stopTimer('warmup');
         apiInitializing = false;
+        apiConnected = true;
         updateAPIStatus("Connected to AI API successfully");
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
         stopTimer('warmup');
         apiInitializing = false;
+        apiConnected = false;
         updateAPIStatus("Failed to connect to AI API");
     }
 }
 
-// --- 7. Run Comparison (using Gradio Client) ---
+// --- 7. Stop Current Request ---
+document.getElementById('stop').addEventListener('click', () => {
+    if (currentRequest) {
+        // Cancel the ongoing request
+        currentRequest.cancel();
+        currentRequest = null;
+        updateAPIStatus("Request cancelled");
+        stopTimer('processing');
+        document.getElementById('stop').style.display = 'none';
+        document.getElementById('send').disabled = false;
+    }
+});
+
+// --- 8. Run Comparison (using Gradio Client) ---
 document.getElementById('send').addEventListener('click', async ()=>{
     const question=document.getElementById('question').value;
     const options=[];
@@ -256,12 +275,16 @@ document.getElementById('send').addEventListener('click', async ()=>{
     }
 
     try {
+        // Show stop button and disable send button
+        document.getElementById('stop').style.display = 'inline-block';
+        document.getElementById('send').disabled = true;
+        
         // Start the processing timer
         startTimer('processing');
         updateAPIStatus("Processing your question...");
         
         // Call the API with correct parameter names
-        const result = await gradioApp.predict("/run_mcqa_comparison", {
+        currentRequest = gradioApp.predict("/run_mcqa_comparison", {
             question: question,
             opt_a: options[0],
             opt_b: options[1],
@@ -274,6 +297,9 @@ document.getElementById('send').addEventListener('click', async ()=>{
             generate_explanation: explanation
         });
 
+        // Wait for the result
+        const result = await currentRequest;
+        
         // Update results - note: the API response structure might need adjustment
         // since we removed the base model but the API might still return 6 values
         const outputs = result.data;
@@ -287,12 +313,29 @@ document.getElementById('send').addEventListener('click', async ()=>{
         updateAPIStatus("Evaluation completed successfully");
         // Stop the processing timer on success
         stopTimer('processing');
+        
+        // Hide stop button and re-enable send button
+        document.getElementById('stop').style.display = 'none';
+        document.getElementById('send').disabled = false;
+        currentRequest = null;
     } catch (err) {
         // Stop the processing timer on error
         stopTimer('processing');
-        console.error('API Error:', err);
-        updateAPIStatus('Error: ' + err.message);
-        alert('Error calling API: ' + err.message);
+        
+        // Hide stop button and re-enable send button
+        document.getElementById('stop').style.display = 'none';
+        document.getElementById('send').disabled = false;
+        currentRequest = null;
+        
+        // Check if the error is due to cancellation
+        if (err.message && err.message.includes("cancelled")) {
+            console.log('Request was cancelled by user');
+            updateAPIStatus("Request cancelled");
+        } else {
+            console.error('API Error:', err);
+            updateAPIStatus('Error: ' + err.message);
+            alert('Error calling API: ' + err.message);
+        }
     }
 });
 
