@@ -3,187 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaterScope-AI | Research Platform</title>
-    <link rel="stylesheet" href="style-dark.css">
+    <title>WaterScope-AI | Research Analysis</title>
+    <link rel="stylesheet" href="style-research.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>WaterScope-AI Research Platform</h1>
-            <p>Advanced analysis of fine-tuned language models for water sustainability research</p>
-            <div class="publication-badge">
-                <i class="fas fa-book-open"></i> Nature Research Edition
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
+                <p>Multi-Model Analysis for Water Engineering Research</p>
             </div>
-        </div>
-
-        <!-- Navigation menu -->
-        <div class="nav-menu">
-            <div class="nav-item active"><i class="fas fa-home"></i> Dashboard</div>
-            <div class="nav-item"><i class="fas fa-table"></i> Dataset</div>
-            <div class="nav-item"><i class="fas fa-robot"></i> Models</div>
-            <div class="nav-item"><i class="fas fa-chart-bar"></i> Analytics</div>
-            <div class="nav-item"><i class="fas fa-file-alt"></i> Publication</div>
-        </div>
-
-        <!-- Input Panel -->
-        <div class="panel">
-            <div class="panel-header">
-                <i class="fas fa-question-circle"></i> Research Query
+            <div class="header-badge">
+                <span class="badge"><i class="fas fa-flask"></i> Research Edition</span>
+                <span class="badge"><i class="fas fa-database"></i> v2.1.4</span>
             </div>
-            <div class="panel-content">
-                <div class="input-group">
-                    <label for="question"><i class="fas fa-question"></i> Research Question:</label>
-                    <textarea id="question" rows="2" placeholder="Enter your research question..."></textarea>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active"><i class="fas fa-play-circle"></i> Analysis</button>
+            <button class="tab"><i class="fas fa-table"></i> Dataset</button>
+            <button class="tab"><i class="fas fa-chart-bar"></i> Results</button>
+            <button class="tab"><i class="fas fa-cog"></i> Settings</button>
+        </nav>
+
+        <main class="main-content">
+            <section class="input-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-question-circle"></i> Research Query</h2>
+                    <button class="btn-help"><i class="fas fa-info-circle"></i></button>
                 </div>
                 
                 <div class="input-group">
-                    <label><i class="fas fa-list-ol"></i> Experimental Options:</label>
+                    <label for="question">Question:</label>
+                    <textarea id="question" rows="2" placeholder="Enter research question..."></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label>Options:</label>
                     <div id="option-container">
                         <div class="option-row">
-                            <span class="option-label">A:</span>
+                            <span class="option-label">A</span>
                             <input type="text" id="opt0" placeholder="Option A">
                         </div>
                         <div class="option-row">
-                            <span class="option-label">B:</span>
+                            <span class="option-label">B</span>
                             <input type="text" id="opt1" placeholder="Option B">
                         </div>
                         <div class="option-row">
-                            <span class="option-label">C:</span>
+                            <span class="option-label">C</span>
                             <input type="text" id="opt2" placeholder="Option C">
                         </div>
                         <div class="option-row">
-                            <span class="option-label">D:</span>
+                            <span class="option-label">D</span>
                             <input type="text" id="opt3" placeholder="Option D">
                         </div>
                     </div>
                 </div>
                 
-                <div class="controls">
-                    <div class="checkbox-group">
+                <div class="control-row">
+                    <div class="control-group">
                         <input type="checkbox" id="explanation">
                         <label for="explanation">Generate Explanation</label>
                     </div>
                     
                     <div class="button-group">
-                        <button class="btn-outline" id="add-option">
-                            <i class="fas fa-plus"></i> Add Option
-                        </button>
-                        <button class="btn-primary" id="send">
-                            <i class="fas fa-play"></i> Run Analysis
-                        </button>
-                        <button class="btn-outline" id="clear">
-                            <i class="fas fa-redo"></i> Clear
-                        </button>
+                        <button id="add-option" class="btn-secondary"><i class="fas fa-plus"></i> Option</button>
+                        <button id="clear" class="btn-secondary"><i class="fas fa-broom"></i> Clear</button>
+                        <button id="send" class="btn-primary"><i class="fas fa-play"></i> Run Analysis</button>
                     </div>
-                    
-                    <div class="status-area">
-                        <div class="time-display">
-                            <i class="fas fa-clock"></i> <span id="time-label">Warm-up: </span>
-                            <span id="elapsed-time">0.0</span>s
+                </div>
+            </section>
+
+            <section class="output-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Model Performance</h2>
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <span class="status-label">Status:</span>
+                            <span id="status-message" class="status-value">Ready</span>
                         </div>
-                        
-                        <div class="status-message" id="status-message">
-                            <i class="fas fa-check-circle"></i> Ready
+                        <div class="status-item">
+                            <span class="status-label">Time:</span>
+                            <span id="elapsed-time" class="status-value">0.0s</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Output Analysis -->
-        <div class="panel">
-            <div class="panel-header">
-                <i class="fas fa-chart-line"></i> Model Performance
-            </div>
-            <div class="panel-content">
+                
                 <div class="output-grid">
-                    <div class="output-card">
-                        <div class="output-card-header">
-                            <i class="fas fa-cube"></i> Base Model
+                    <div class="model-card">
+                        <div class="model-header">
+                            <h3><i class="fas fa-cube"></i> Base Model</h3>
+                            <span class="model-badge">Baseline</span>
                         </div>
-                        <div class="output-card-content">
-                            <div class="output-field">
-                                <label>Predicted Answer:</label>
-                                <pre id="base_letter">-</pre>
+                        <div class="model-output">
+                            <div class="output-row">
+                                <label>Prediction:</label>
+                                <span id="base_letter" class="prediction">-</span>
                             </div>
-                            <div class="output-field">
-                                <label>Model Output:</label>
+                            <div class="output-row">
+                                <label>Output:</label>
                                 <pre id="base_raw">Waiting for input...</pre>
                             </div>
                         </div>
                     </div>
-
-                    <div class="output-card">
-                        <div class="output-card-header">
-                            <i class="fas fa-puzzle-piece"></i> IT-Adapter
+                    
+                    <div class="model-card">
+                        <div class="model-header">
+                            <h3><i class="fas fa-puzzle-piece"></i> IT-Adapter</h3>
+                            <span class="model-badge">Enhanced</span>
                         </div>
-                        <div class="output-card-content">
-                            <div class="output-field">
-                                <label>Predicted Answer:</label>
-                                <pre id="it_letter">-</pre>
+                        <div class="model-output">
+                            <div class="output-row">
+                                <label>Prediction:</label>
+                                <span id="it_letter" class="prediction">-</span>
                             </div>
-                            <div class="output-field">
-                                <label>Model Output:</label>
+                            <div class="output-row">
+                                <label>Output:</label>
                                 <pre id="it_raw">Waiting for input...</pre>
                             </div>
                         </div>
                     </div>
-
-                    <div class="output-card">
-                        <div class="output-card-header">
-                            <i class="fas fa-tachometer-alt"></i> DPO-Adapter
+                    
+                    <div class="model-card">
+                        <div class="model-header">
+                            <h3><i class="fas fa-tachometer-alt"></i> DPO-Adapter</h3>
+                            <span class="model-badge">Optimized</span>
                         </div>
-                        <div class="output-card-content">
-                            <div class="output-field">
-                                <label>Predicted Answer:</label>
-                                <pre id="dpo_letter">-</pre>
+                        <div class="model-output">
+                            <div class="output-row">
+                                <label>Prediction:</label>
+                                <span id="dpo_letter" class="prediction">-</span>
                             </div>
-                            <div class="output-field">
-                                <label>Model Output:</label>
+                            <div class="output-row">
+                                <label>Output:</label>
                                 <pre id="dpo_raw">Waiting for input...</pre>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- MCQA Dataset -->
-        <div class="panel">
-            <div class="panel-header">
-                <i class="fas fa-database"></i> Research Dataset
-            </div>
-            <div class="panel-content">
-                <h3><i class="fas fa-table"></i> Water Engineering MCQA Dataset</h3>
-                <p>Select a question from the dataset to automatically populate the input fields:</p>
+            <section class="data-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-database"></i> Research Dataset</h2>
+                    <button class="btn-help"><i class="fas fa-info-circle"></i></button>
+                </div>
                 
-                <div class="mcqa-container">
-                    <table class="mcqa-table" id="mcqa-table">
+                <div class="table-container">
+                    <table id="mcqa-table">
                         <thead>
                             <tr>
-                                <th>Question</th>
-                                <th>A</th>
-                                <th>B</th>
-                                <th>C</th>
-                                <th>D</th>
+                                <th width="40%">Question</th>
+                                <th width="15%">A</th>
+                                <th width="15%">B</th>
+                                <th width="15%">C</th>
+                                <th width="15%">D</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Table rows will be dynamically added by JavaScript -->
+                            <!-- Data will be populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>© 2025 WaterScope-AI Research Team | Nature Publication | Built with GitHub, Hugging Face, & Gradio</p>
-            <p>This interactive demo accompanies our Nature publication on AI applications in water sustainability research.</p>
-        </div>
+        <footer class="footer">
+            <p>WaterScope-AI Research Platform © 2025 | Nature Sustainability</p>
+            <p>Department of Environmental Engineering, Stanford University</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>
