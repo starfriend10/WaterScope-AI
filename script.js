@@ -10,43 +10,39 @@ let startTime = null;
 let warmupTimerInterval = null;
 let warmupStartTime = null;
 
-function startTimer() {
-    startTime = Date.now();
-    document.getElementById('time-display').style.display = 'flex';
-    document.getElementById('time-label').textContent = 'Processing time: ';
-    
-    if (timerInterval) clearInterval(timerInterval);
-    
-    timerInterval = setInterval(() => {
-        const elapsedTime = (Date.now() - startTime) / 1000;
-        document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
-    }, 100);
-}
-
-function stopTimer() {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+function startTimer(type) {
+    if (type === 'warmup') {
+        warmupStartTime = Date.now();
+        document.getElementById('time-display').style.display = 'flex';
+        document.getElementById('time-label').textContent = 'Warm-up time: ';
+        
+        if (warmupTimerInterval) clearInterval(warmupTimerInterval);
+        
+        warmupTimerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - warmupStartTime) / 1000;
+            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
+        }, 100);
+    } else if (type === 'processing') {
+        startTime = Date.now();
+        document.getElementById('time-display').style.display = 'flex';
+        document.getElementById('time-label').textContent = 'Processing time: ';
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
+        }, 100);
     }
 }
 
-function startWarmupTimer() {
-    warmupStartTime = Date.now();
-    document.getElementById('time-display').style.display = 'flex';
-    document.getElementById('time-label').textContent = 'Warm-up time: ';
-    
-    if (warmupTimerInterval) clearInterval(warmupTimerInterval);
-    
-    warmupTimerInterval = setInterval(() => {
-        const elapsedTime = (Date.now() - warmupStartTime) / 1000;
-        document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1);
-    }, 100);
-}
-
-function stopWarmupTimer() {
-    if (warmupTimerInterval) {
+function stopTimer(type) {
+    if (type === 'warmup' && warmupTimerInterval) {
         clearInterval(warmupTimerInterval);
         warmupTimerInterval = null;
+    } else if (type === 'processing' && timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
     }
 }
 
@@ -195,7 +191,7 @@ document.getElementById('clear').addEventListener('click', ()=>{
 async function initializeGradioClient() {
   try {
     updateStatus("Initializing connection to AI API...");
-    startWarmupTimer();
+    startTimer('warmup');
     
     // Import the Gradio client
     const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
@@ -204,11 +200,11 @@ async function initializeGradioClient() {
     gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
     
     console.log("Gradio client initialized successfully");
-    stopWarmupTimer();
+    stopTimer('warmup');
     updateStatus("Connected to AI API successfully");
   } catch (error) {
     console.error("Failed to initialize Gradio client:", error);
-    stopWarmupTimer();
+    stopTimer('warmup');
     updateStatus("Failed to connect to AI API. Please check console for details.");
   }
 }
@@ -243,8 +239,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
   }
 
   try {
-    // Start the timer
-    startTimer();
+    // Start the processing timer
+    startTimer('processing');
     updateStatus("Processing your question...");
     
     // Call the API with correct parameter names
@@ -271,11 +267,11 @@ document.getElementById('send').addEventListener('click', async ()=>{
     document.getElementById('dpo_raw').innerText = outputs[5] || "";
     
     updateStatus("Evaluation completed successfully");
-    // Stop the timer on success
-    stopTimer();
+    // Stop the processing timer on success
+    stopTimer('processing');
   } catch (err) {
-    // Stop the timer on error
-    stopTimer();
+    // Stop the processing timer on error
+    stopTimer('processing');
     console.error('API Error:', err);
     updateStatus('Error: ' + err.message);
     alert('Error calling API: ' + err.message);
