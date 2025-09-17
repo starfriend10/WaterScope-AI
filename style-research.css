@@ -487,3 +487,162 @@ tr.highlighted {
         justify-content: center;
     }
 }
+
+
+/* Instruction Page Styles */
+.instruction-section {
+    background: var(--card-bg);
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+    margin-bottom: 30px;
+}
+
+.instruction-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.instruction-card {
+    background: var(--light);
+    border-radius: 6px;
+    padding: 20px;
+    border-left: 4px solid var(--accent);
+}
+
+.instruction-card h3 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instruction-step {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.step-number {
+    background: var(--primary);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-content h4 {
+    margin-bottom: 8px;
+    color: var(--dark);
+}
+
+.step-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.step-content li {
+    margin-bottom: 5px;
+}
+
+.model-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.model-detail {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.model-detail h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.result-guide {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.result-item {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.result-item h4 {
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.tip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tip i {
+    color: var(--success);
+    font-size: 1.1rem;
+}
+
+.troubleshooting {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.issue {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.issue h4 {
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .model-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-guide {
+        grid-template-columns: 1fr;
+    }
+    
+    .instruction-step {
+        flex-direction: column;
+    }
+}
