@@ -1,14 +1,15 @@
 :root {
-    --primary: #2c3e50;
-    --secondary: #3498db;
-    --accent: #1abc9c;
-    --light: #ecf0f1;
-    --dark: #2c3e50;
-    --success: #27ae60;
-    --warning: #f39c12;
-    --danger: #e74c3c;
-    --gray: #7f8c8d;
-    --light-gray: #bdc3c7;
+    --primary: #1a365d;
+    --secondary: #2a4365;
+    --accent: #3182ce;
+    --light: #e2e8f0;
+    --dark: #1a202c;
+    --success: #38a169;
+    --warning: #d69e2e;
+    --danger: #e53e3e;
+    --gray: #718096;
+    --light-gray: #cbd5e0;
+    --card-bg: rgba(26, 54, 93, 0.8);
 }
 
 * {
@@ -19,11 +20,12 @@
 }
 
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
-    color: #333;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: var(--light);
     line-height: 1.6;
     padding: 0;
     margin: 0;
+    min-height: 100vh;
 }
 
 .container {
@@ -36,18 +38,20 @@ body {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
     padding: 25px;
-    border-radius: 10px;
+    border-radius: 12px;
     margin-bottom: 25px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
     text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header h1 {
     font-size: 2.5rem;
     margin-bottom: 10px;
     font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .header p {
@@ -61,113 +65,125 @@ body {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 15px;
     border-radius: 20px;
     font-size: 0.8rem;
     display: flex;
     align-items: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-menu {
     display: flex;
     justify-content: center;
     margin-bottom: 30px;
-    background: white;
+    background: rgba(26, 54, 93, 0.7);
     border-radius: 10px;
     padding: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    gap: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    gap: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-item {
     padding: 12px 25px;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.3s ease;
     font-weight: 600;
-    color: var(--dark);
+    color: var(--light);
     display: flex;
     align-items: center;
 }
 
 .nav-item:hover {
-    background-color: rgba(52, 152, 219, 0.1);
-    color: var(--secondary);
+    background-color: rgba(49, 130, 206, 0.3);
 }
 
 .nav-item.active {
-    background-color: var(--secondary);
+    background-color: var(--accent);
     color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .panel {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     margin-bottom: 25px;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .panel-header {
-    background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, #2c5282 100%);
     color: white;
-    padding: 15px 20px;
+    padding: 18px 25px;
     font-weight: 600;
     font-size: 1.2rem;
     display: flex;
     align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .panel-header i {
-    margin-right: 10px;
+    margin-right: 12px;
+    font-size: 1.1rem;
 }
 
 .panel-content {
-    padding: 20px;
+    padding: 25px;
 }
 
 .input-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .input-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-weight: 600;
-    color: var(--dark);
+    color: var(--light);
+    font-size: 1.05rem;
 }
 
 .input-group textarea, .input-group input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid var(--light-gray);
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border 0.3s ease;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: rgba(26, 32, 44, 0.6);
+    color: var(--light);
 }
 
 .input-group textarea:focus, .input-group input:focus {
     outline: none;
-    border-color: var(--secondary);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.3);
 }
 
 .input-group textarea {
-    min-height: 100px;
+    min-height: 110px;
     resize: vertical;
 }
 
 .option-row {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .option-label {
     font-weight: bold;
-    min-width: 30px;
-    color: var(--dark);
+    min-width: 35px;
+    color: var(--light);
+    font-size: 1.1rem;
 }
 
 .controls {
@@ -175,54 +191,64 @@ body {
     flex-wrap: wrap;
     gap: 15px;
     align-items: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--light-gray);
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
 }
 
 .button-group {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 button {
-    padding: 10px 20px;
+    padding: 12px 22px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
+    font-size: 15px;
 }
 
 button i {
-    margin-right: 8px;
+    margin-right: 10px;
 }
 
 .btn-primary {
-    background: var(--secondary);
+    background: var(--accent);
     color: white;
 }
 
 .btn-primary:hover {
-    background: #2980b9;
+    background: #2c5282;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-outline {
     background: transparent;
     border: 1px solid var(--light-gray);
-    color: var(--dark);
+    color: var(--light);
 }
 
 .btn-outline:hover {
-    background: var(--light);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .status-area {
@@ -233,50 +259,55 @@ button i {
 }
 
 .time-display {
-    padding: 8px 12px;
-    background: var(--light);
-    border-radius: 6px;
-    font-size: 0.9rem;
+    padding: 10px 15px;
+    background: rgba(26, 32, 44, 0.6);
+    border-radius: 8px;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .status-message {
-    padding: 8px 12px;
-    background: var(--light);
-    border-radius: 6px;
+    padding: 10px 15px;
+    background: rgba(26, 32, 44, 0.6);
+    border-radius: 8px;
     font-style: italic;
-    min-width: 150px;
+    min-width: 160px;
     display: flex;
     align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .output-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 25px;
     margin-bottom: 25px;
 }
 
 .output-card {
-    background: white;
-    border-radius: 10px;
+    background: var(--card-bg);
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .output-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
 }
 
 .output-card-header {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--accent) 0%, #2c5282 100%);
     color: white;
-    padding: 15px;
+    padding: 18px;
     font-weight: 600;
     display: flex;
     align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .output-card-content {
@@ -284,31 +315,33 @@ button i {
 }
 
 .output-field {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .output-field label {
     display: block;
     font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--dark);
-    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: var(--light);
+    font-size: 0.95rem;
 }
 
 .output-field pre {
-    background: var(--light);
-    padding: 12px;
-    border-radius: 6px;
+    background: rgba(26, 32, 44, 0.6);
+    padding: 14px;
+    border-radius: 8px;
     overflow-x: auto;
     font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mcqa-container {
     max-height: 400px;
     overflow-y: auto;
-    border: 1px solid var(--light-gray);
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(26, 32, 44, 0.6);
 }
 
 .mcqa-table {
@@ -317,18 +350,19 @@ button i {
 }
 
 .mcqa-table th {
-    background: var(--primary);
+    background: var(--accent);
     color: white;
-    padding: 12px;
+    padding: 14px;
     text-align: left;
     position: sticky;
     top: 0;
     font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mcqa-table td {
-    padding: 12px;
-    border-bottom: 1px solid var(--light-gray);
+    padding: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mcqa-table tr:last-child td {
@@ -336,21 +370,21 @@ button i {
 }
 
 .mcqa-table tr:hover {
-    background: rgba(52, 152, 219, 0.05);
+    background: rgba(49, 130, 206, 0.1);
     cursor: pointer;
 }
 
 .mcqa-table tr.highlighted {
-    background: rgba(52, 152, 219, 0.1);
+    background: rgba(49, 130, 206, 0.2);
 }
 
 .footer {
     text-align: center;
-    padding: 20px;
+    padding: 25px;
     margin-top: 40px;
     color: var(--gray);
-    font-size: 0.9rem;
-    border-top: 1px solid var(--light-gray);
+    font-size: 0.95rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 1100px) {
@@ -383,14 +417,44 @@ button i {
     .nav-item {
         text-align: center;
         margin: 0;
+        justify-content: center;
     }
     
     .publication-badge {
         position: relative;
         top: 0;
         right: 0;
-        margin: 10px auto;
+        margin: 15px auto;
         justify-content: center;
         width: fit-content;
     }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2c5282;
 }
