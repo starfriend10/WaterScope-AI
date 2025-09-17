@@ -55,6 +55,7 @@ function updateStatus(message) {
 Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
   download: true,
   header: true,
+  encoding: "UTF-8", // Explicitly set encoding
   skipEmptyLines: true,
   complete: function(results) {
     console.log("CSV loaded:", results.data);
