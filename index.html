@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WaterScope-AI</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>WaterScope-AI</h1>
+      <p>Domain-Specific Small Language Models for Water Sustainability (Demo)</p>
+    </div>
+
+    <!-- Navigation menu -->
+    <div class="nav-menu">
+      <div class="nav-item active">Home</div>
+      <div class="nav-item">MCQA</div>
+      <div class="nav-item">Chatbot</div>
+      <div class="nav-item">Publication</div>
+    </div>
+
+    <!-- First row: Input panel -->
+    <div class="row">
+      <div class="input-panel">
+        <label for="question">Question:</label>
+        <textarea id="question" rows="1" placeholder="Enter your question..."></textarea>
+
+        <div class="options">
+          <label>Options:</label>
+          <div id="option-container">
+            <div class="option-row">
+              <span class="option-label">A:</span>
+              <input type="text" id="opt0" placeholder="Option A">
+            </div>
+            <div class="option-row">
+              <span class="option-label">B:</span>
+              <input type="text" id="opt1" placeholder="Option B">
+            </div>
+            <div class="option-row">
+              <span class="option-label">C:</span>
+              <input type="text" id="opt2" placeholder="Option C">
+            </div>
+            <div class="option-row">
+              <span class="option-label">D:</span>
+              <input type="text" id="opt3" placeholder="Option D">
+            </div>
+          </div>
+        </div>
+
+        <!-- Reorganized controls to fit in one line -->
+        <div class="controls">
+          <div class="checkbox-group">
+            <input type="checkbox" id="explanation">
+            <label for="explanation">Generate Explanation</label>
+          </div>
+          
+          <div class="button-group">
+            <button id="add-option">Add Option</button>
+            <button id="send">Run Comparison</button>
+            <button id="clear">Clear All</button>
+          </div>
+          
+          <div class="control-right">
+            <div id="time-display">
+              <span id="time-label">Warm-up time: </span>
+              <span id="elapsed-time">0.0</span>
+              <span> seconds</span>
+            </div>
+            
+            <div id="status-message">
+              Ready to connect
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second row: Output panels -->
+    <div class="row">
+      <div class="output-panel-container">
+        <div class="output-panel">
+          <h3>Base Model</h3>
+          <div class="output-content">
+            <label>Predicted Letter:</label>
+            <pre id="base_letter">-</pre>
+          </div>
+          <div class="output-content">
+            <label>Raw Answer:</label>
+            <pre id="base_raw">Waiting for input...</pre>
+          </div>
+        </div>
+
+        <div class="output-panel">
+          <h3>DA-IT model</h3>
+          <div class="output-content">
+            <label>Predicted Letter:</label>
+            <pre id="it_letter">-</pre>
+          </div>
+          <div class="output-content">
+            <label>Raw Answer:</label>
+            <pre id="it_raw">Waiting for input...</pre>
+          </div>
+        </div>
+
+        <div class="output-panel">
+          <h3>DA-DPO Model</h3>
+          <div class="output-content">
+            <label>Predicted Letter:</label>
+            <pre id="dpo_letter">-</pre>
+          </div>
+          <div class="output-content">
+            <label>Raw Answer:</label>
+            <pre id="dpo_raw">Waiting for input...</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Third row: MCQA table -->
+    <div class="row">
+      <div class="mcqa-section">
+        <h3>Book-sourced MCQA Data</h3>
+        <div class="mcqa-container">
+          <table id="mcqa-table">
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>A</th>
+                <th>B</th>
+                <th>C</th>
+                <th>D</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Table rows dynamically added by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      © 2025 WaterScope-AI | Built with GitHub, Hugging Face, & Gradio
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
