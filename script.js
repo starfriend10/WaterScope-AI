@@ -5,8 +5,7 @@ let MCQA_DATA = [];
 let gradioApp = null;
 let apiInitializing = false;
 let apiConnected = false;
-let currentRequest = null;
-let isProcessing = false; // Track if we're processing a request
+let isProcessing = false;
 
 // Timer functionality
 let timerInterval = null;
@@ -166,28 +165,16 @@ document.getElementById('add-option').addEventListener('click', ()=>{
     updateSystemStatus("Added option " + String.fromCharCode(65 + currentOptions - 1));
 });
 
-// --- 5. Clear All ---
+// --- 5. Clear All (Inputs Only) ---
 document.getElementById('clear').addEventListener('click', ()=>{
-    // If a request is processing, stop it first
-    if (isProcessing) {
-        handleStopRequest();
-    }
-    
+    // Only clear input fields, don't stop any ongoing processing
     document.getElementById('question').value="";
     for(let i=0;i<MAX_OPTIONS;i++){
         const el=document.getElementById('opt'+i);
         if(el) el.value="";
     }
     document.getElementById('explanation').checked=false;
-    // Removed base model references
-    ['it_letter','it_raw','dpo_letter','dpo_raw'].forEach(id=>{
-        document.getElementById(id).innerText="";
-        if (id.includes('raw')) {
-            document.getElementById(id).innerText = "Waiting for input...";
-        } else {
-            document.getElementById(id).innerText = "-";
-        }
-    });
+    
     currentOptions=4;
     const container=document.getElementById('option-container');
     while(container.children.length>4){
@@ -201,13 +188,7 @@ document.getElementById('clear').addEventListener('click', ()=>{
     
     updateSystemStatus("Form cleared");
     
-    // Only update API status if not connected
-    if (!apiConnected) {
-        updateAPIStatus("Ready");
-    } else {
-        updateAPIStatus("Connected to AI API successfully");
-    }
-    
+    // Don't modify API status as it might be in the middle of processing
     document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
@@ -241,19 +222,11 @@ async function initializeGradioClient() {
 // --- 7. Handle Stop Request ---
 function handleStopRequest() {
     if (isProcessing) {
-        // Set a flag to indicate we want to cancel
         isProcessing = false;
-        
-        // Hide stop button and re-enable send button
+        stopTimer('processing');
         document.getElementById('stop').style.display = 'none';
         document.getElementById('send').disabled = false;
-        
-        // Stop the timer
-        stopTimer('processing');
-        
-        // Update status
         updateAPIStatus("Request cancelled");
-        
         console.log("Processing stopped by user");
     }
 }
@@ -355,7 +328,7 @@ document.getElementById('send').addEventListener('click', async ()=>{
 });
 
 // Initialize when page loads
-document.addEventListener('DOMContentContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Initializing API connection...");
     // Initialize Gradio client when page loads
