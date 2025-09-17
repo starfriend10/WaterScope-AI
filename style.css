@@ -89,14 +89,16 @@ body {
 .input-panel textarea{
   width:100%;
   margin-bottom:15px;
-  padding:12px;
+  padding:10px;
   font-size:14px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  min-height: 30px;
+  min-height: 20px;
   resize: vertical;
   font-family: "Times New Roman", Times, serif;
   box-sizing: border-box;
+  height: 38px; /* Same height as option inputs */
+  line-height: 1.4;
 }
 
 .options {
@@ -129,6 +131,7 @@ body {
   border-radius: 4px;
   font-family: "Times New Roman", Times, serif;
   box-sizing: border-box;
+  height: 38px;
 }
 
 /* Reorganized controls to fit in one line */
@@ -190,7 +193,7 @@ button:hover {
   padding: 8px 12px;
   background: #f8f9fa;
   border-radius: 4px;
-  display: none;
+  display: flex;
   white-space: nowrap;
   height: fit-content; /* Ensure proper alignment */
   font-family: "Times New Roman", Times, serif;
@@ -308,10 +311,10 @@ button:hover {
   font-family: "Times New Roman", Times, serif;
 }
 
-/* Question column styling - removed background color */
+/* Question column styling with light blue background */
 .mcqa-container th:first-child,
 .mcqa-container td:first-child {
-  background: transparent;
+  background: #e6f7ff; /* Light blue background for question column */
   color: #000; /* Black text color for question column */
 }
 
