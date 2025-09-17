@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterScope-AI | Instructions</title>
+    <link rel="stylesheet" href="style-research.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
+                <p>Domain-Specific Small Language Models for Water Sustainability</p>
+            </div>
+            <div class="header-badge">
+                <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
+                <span class="badge"><i class="fas fa-database"></i> v1.0.0</span>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
+            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> Demo</button>
+            <button class="tab"><i class="fas fa-comments"></i> Chat</button>
+            <button class="tab active"><i class="fas fa-book"></i> Instructions</button>
+        </nav>
+
+        <main class="main-content">
+            <section class="instruction-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-info-circle"></i> WaterScope-AI MCQA Demo Instructions</h2>
+                </div>
+                
+                <div class="instruction-content">
+                    <div class="instruction-card">
+                        <h3><i class="fas fa-rocket"></i> Getting Started</h3>
+                        <p>Welcome to the WaterScope-AI Multiple Choice Question Answering (MCQA) demo. This tool allows you to compare the performance of two specialized language models on water sustainability questions.</p>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Load a Question</h4>
+                                <p>You can either:</p>
+                                <ul>
+                                    <li>Type your own question and options in the input fields</li>
+                                    <li>Click on any row in the example data table to automatically populate the form</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Add Options (Optional)</h4>
+                                <p>By default, 4 options (A-D) are available. You can add up to 8 options total using the "Add Option" button.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Generate Explanation (Optional)</h4>
+                                <p>Check the "Generate Explanation" box if you want the models to provide reasoning for their answers.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>Run Analysis</h4>
+                                <p>Click the "Run Analysis" button to process your question through both models. The system will display:</p>
+                                <ul>
+                                    <li>Predicted answer letter (A, B, C, etc.)</li>
+                                    <li>Raw model output</li>
+                                    <li>Processing time</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-card">
+                        <h3><i class="fas fa-cogs"></i> Model Information</h3>
+                        
+                        <div class="model-info">
+                            <div class="model-detail">
+                                <h4><i class="fas fa-tachometer-alt"></i> DA-DPO Model</h4>
+                                <span class="model-badge">Preference-Optimized</span>
+                                <p>This model has been fine-tuned using Direct Preference Optimization (DPO) to align with human preferences for water sustainability content.</p>
+                            </div>
+                            
+                            <div class="model-detail">
+                                <h4><i class="fas fa-puzzle-piece"></i> DA-IT Model</h4>
+                                <span class="model-badge">Instruction-Tuned</span>
+                                <p>This model has been instruction-tuned on a diverse set of water sustainability questions and answers to improve its performance on domain-specific tasks.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-card">
+                        <h3><i class="fas fa-chart-bar"></i> Interpreting Results</h3>
+                        
+                        <div class="result-guide">
+                            <div class="result-item">
+                                <h4>Prediction Letter</h4>
+                                <p>The letter (A, B, C, etc.) represents the model's chosen answer from the options provided.</p>
+                            </div>
+                            
+                            <div class="result-item">
+                                <h4>Raw Output</h4>
+                                <p>The complete text generated by the model. This may include explanations if the option was selected.</p>
+                            </div>
+                            
+                            <div class="result-item">
+                                <h4>Processing Time</h4>
+                                <p>The time taken to generate the response. This can vary based on question complexity and server load.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-card">
+                        <h3><i class="fas fa-lightbulb"></i> Tips for Best Results</h3>
+                        
+                        <div class="tips-list">
+                            <div class="tip">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Use clear, specific questions related to water sustainability</span>
+                            </div>
+                            <div class="tip">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Provide distinct options for better model discrimination</span>
+                            </div>
+                            <div class="tip">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Select "Generate Explanation" for insight into model reasoning</span>
+                            </div>
+                            <div class="tip">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Use the example data table for quick testing</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-card">
+                        <h3><i class="fas fa-question-circle"></i> Troubleshooting</h3>
+                        
+                        <div class="troubleshooting">
+                            <div class="issue">
+                                <h4>API Connection Issues</h4>
+                                <p>If the API status shows connection problems, try refreshing the page. The system will automatically attempt to reconnect.</p>
+                            </div>
+                            
+                            <div class="issue">
+                                <h4>No Response from Models</h4>
+                                <p>Ensure you've provided both a question and at least two options before running the analysis.</p>
+                            </div>
+                            
+                            <div class="issue">
+                                <h4>Clear Form</h4>
+                                <p>Use the "Clear" button to reset the input fields without affecting ongoing processing.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>WaterScope-AI Research Platform © 2025</p>
+            <p>Department of Civil and Environmental Engineering, Princeton University</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simple navigation handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Highlight current page in navigation
+            const currentPage = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.includes('Instructions') && currentPage === 'instructions.html') {
+                    tab.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
