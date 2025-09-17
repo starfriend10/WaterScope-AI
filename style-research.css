@@ -351,6 +351,8 @@ button {
     overflow-x: auto;
     border: 1px solid var(--border);
     border-radius: 4px;
+    max-height: 400px; /* Added for vertical scrolling */
+    overflow-y: auto; /* Added for vertical scrolling */
 }
 
 table {
