@@ -13,7 +13,7 @@ let warmupStartTime = null;
 function startTimer(type) {
     if (type === 'warmup') {
         warmupStartTime = Date.now();
-        document.getElementById('elapsed-time').textContent = '0.0s';
+        document.getElementById('elapsed-time').style.display = 'block';
         
         if (warmupTimerInterval) clearInterval(warmupTimerInterval);
         
@@ -23,7 +23,7 @@ function startTimer(type) {
         }, 100);
     } else if (type === 'processing') {
         startTime = Date.now();
-        document.getElementById('elapsed-time').textContent = '0.0s';
+        document.getElementById('elapsed-time').style.display = 'block';
         
         if (timerInterval) clearInterval(timerInterval);
         
@@ -44,13 +44,17 @@ function stopTimer(type) {
     }
 }
 
-// Status update function
-function updateStatus(message) {
-    document.getElementById('status-message').textContent = message;
+// Status update functions
+function updateSystemStatus(message) {
+    document.getElementById('system-status').textContent = message;
+}
+
+function updateAPIStatus(message) {
+    document.getElementById('api-status').textContent = message;
 }
 
 // --- 1. Load CSV ---
-Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Data/Decarbonization_MCQA.csv", {
+Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/main/Decarbonization_MCQA.csv", {
     download: true,
     header: true,
     skipEmptyLines: true,
@@ -58,7 +62,7 @@ Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/ma
         console.log("CSV loaded:", results.data);
         MCQA_DATA = results.data;
         populateTable();
-        updateStatus("Dataset loaded successfully");
+        updateSystemStatus("Dataset loaded successfully");
     },
     error: function(err) {
         console.error("CSV loading error:", err);
@@ -80,7 +84,7 @@ Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/ma
             }
         ];
         populateTable();
-        updateStatus("Using sample data (CSV load failed)");
+        updateSystemStatus("Using sample data (CSV load failed)");
     }
 });
 
@@ -99,9 +103,9 @@ function populateTable() {
 }
 
 // --- 3. Click row to autofill ---
-document.querySelector('#mcqa-table').addEventListener('click', e => {
+document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
     const tr = e.target.closest('tr');
-    if(!tr || !tr.dataset.index) return;
+    if(!tr) return;
     
     // Remove highlight from all rows
     document.querySelectorAll('#mcqa-table tr').forEach(row => {
@@ -121,13 +125,13 @@ document.querySelector('#mcqa-table').addEventListener('click', e => {
         const el=document.getElementById('opt'+i);
         if(el) el.value="";
     }
-    updateStatus("Form filled from dataset");
+    updateSystemStatus("Form filled from dataset");
 });
 
 // --- 4. Add Option ---
 document.getElementById('add-option').addEventListener('click', ()=>{
     if(currentOptions>=MAX_OPTIONS) {
-        updateStatus("Maximum options reached");
+        updateSystemStatus("Maximum options reached");
         return;
     }
     const container=document.getElementById('option-container');
@@ -155,7 +159,7 @@ document.getElementById('add-option').addEventListener('click', ()=>{
     container.appendChild(optionRow);
     
     currentOptions++;
-    updateStatus("Added option " + String.fromCharCode(65 + currentOptions - 1));
+    updateSystemStatus("Added option " + String.fromCharCode(65 + currentOptions - 1));
 });
 
 // --- 5. Clear All ---
@@ -180,15 +184,15 @@ document.getElementById('clear').addEventListener('click', ()=>{
         row.classList.remove('highlighted');
     });
     
-    // Reset timers
-    document.getElementById('elapsed-time').textContent = '0.0s';
-    updateStatus("Form cleared");
+    updateSystemStatus("Form cleared");
+    updateAPIStatus("Ready");
+    document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
 // --- 6. Initialize Gradio Client ---
 async function initializeGradioClient() {
     try {
-        updateStatus("Initializing connection to AI API...");
+        updateAPIStatus("Initializing connection to AI API...");
         startTimer('warmup');
         
         // Import the Gradio client
@@ -199,11 +203,11 @@ async function initializeGradioClient() {
         
         console.log("Gradio client initialized successfully");
         stopTimer('warmup');
-        updateStatus("Connected to AI API successfully");
+        updateAPIStatus("Connected to AI API successfully");
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
         stopTimer('warmup');
-        updateStatus("Failed to connect to AI API. Please check console for details.");
+        updateAPIStatus("Failed to connect to AI API");
     }
 }
 
@@ -220,17 +224,17 @@ document.getElementById('send').addEventListener('click', async ()=>{
     // Validate inputs
     const activeOptions = options.filter(opt => opt && opt.trim());
     if (!question || activeOptions.length < 2) {
-        updateStatus("Please enter a question and at least two options");
+        updateAPIStatus("Please enter a question and at least two options");
         alert("Please enter a question and at least two options");
         return;
     }
 
     // Initialize client if not already done
     if (!gradioApp) {
-        updateStatus("Initializing connection to AI API...");
+        updateAPIStatus("Initializing connection to AI API...");
         await initializeGradioClient();
         if (!gradioApp) {
-            updateStatus("Failed to connect to AI API. Please try again.");
+            updateAPIStatus("Failed to connect to AI API. Please try again.");
             alert("Failed to connect to AI API. Please try again.");
             return;
         }
@@ -239,7 +243,7 @@ document.getElementById('send').addEventListener('click', async ()=>{
     try {
         // Start the processing timer
         startTimer('processing');
-        updateStatus("Processing your question...");
+        updateAPIStatus("Processing your question...");
         
         // Call the API with correct parameter names
         const result = await gradioApp.predict("/run_mcqa_comparison", {
@@ -264,21 +268,22 @@ document.getElementById('send').addEventListener('click', async ()=>{
         document.getElementById('dpo_letter').innerText = outputs[4] || "";
         document.getElementById('dpo_raw').innerText = outputs[5] || "";
         
-        updateStatus("Evaluation completed successfully");
+        updateAPIStatus("Evaluation completed successfully");
         // Stop the processing timer on success
         stopTimer('processing');
     } catch (err) {
         // Stop the processing timer on error
         stopTimer('processing');
         console.error('API Error:', err);
-        updateStatus('Error: ' + err.message);
+        updateAPIStatus('Error: ' + err.message);
         alert('Error calling API: ' + err.message);
     }
 });
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    updateStatus("Initializing application...");
+    updateSystemStatus("Initializing application...");
+    updateAPIStatus("Initializing API connection...");
     // Initialize Gradio client when page loads
     initializeGradioClient().catch(console.error);
 });
