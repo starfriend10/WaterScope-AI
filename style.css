@@ -193,7 +193,7 @@ button:hover {
   padding: 8px 12px;
   background: #f8f9fa;
   border-radius: 4px;
-  display: flex;
+  display: none;
   white-space: nowrap;
   height: fit-content; /* Ensure proper alignment */
   font-family: "Times New Roman", Times, serif;
