@@ -192,8 +192,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
   const question=document.getElementById('question').value;
   const options=[];
   for(let i=0;i<MAX_OPTIONS;i++){
-    const el=document.getElementById('opt'+i);
-    options.push(el?el.value:"");
+  const el=document.getElementById('opt'+i);
+  options.push(el?el.value:"");
   }
   const explanation=document.getElementById('explanation').checked;
 
