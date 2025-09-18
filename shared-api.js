@@ -31,6 +31,10 @@ class SharedAPIConnection {
             this.apiInitializing = false;
             this.stopTimer();
             
+            // Store connection status in sessionStorage
+            sessionStorage.setItem('apiConnected', 'true');
+            sessionStorage.setItem('apiConnectionTime', (Date.now() - this.connectionStartTime) / 1000);
+            
             // Notify all callbacks
             this.connectionCallbacks.forEach(callback => callback(true));
             this.connectionCallbacks = [];
@@ -68,6 +72,9 @@ class SharedAPIConnection {
         this.timerInterval = setInterval(() => {
             const elapsedTime = (Date.now() - this.connectionStartTime) / 1000;
             this.updateTimerDisplay(elapsedTime.toFixed(1) + 's');
+            
+            // Store current time in sessionStorage for other pages
+            sessionStorage.setItem('apiConnectionTime', elapsedTime.toFixed(1));
         }, 100);
     }
 
@@ -80,6 +87,7 @@ class SharedAPIConnection {
             if (this.apiConnected && this.connectionStartTime) {
                 const totalTime = (Date.now() - this.connectionStartTime) / 1000;
                 this.updateTimerDisplay(totalTime.toFixed(1) + 's');
+                sessionStorage.setItem('apiConnectionTime', totalTime.toFixed(1));
             }
         }
     }
@@ -91,12 +99,6 @@ class SharedAPIConnection {
         if (timerElement) {
             timerElement.textContent = time;
         }
-        
-        // Store time in sessionStorage for other pages
-        sessionStorage.setItem('apiConnectionTime', time);
-        if (this.apiConnected) {
-            sessionStorage.setItem('apiConnected', 'true');
-        }
     }
 
     // Get the API client
@@ -107,6 +109,11 @@ class SharedAPIConnection {
     // Check connection status
     isConnected() {
         return this.apiConnected;
+    }
+
+    // Check if initializing
+    isInitializing() {
+        return this.apiInitializing;
     }
 
     // Get connection time
@@ -123,21 +130,40 @@ window.sharedAPIConnection = new SharedAPIConnection();
 
 // Initialize when the script loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we have a stored connection time
+    // Check if we have a stored connection status
+    const storedStatus = sessionStorage.getItem('apiConnected');
     const storedTime = sessionStorage.getItem('apiConnectionTime');
-    if (storedTime) {
-        const timerElement = document.getElementById('elapsed-time');
-        if (timerElement) {
-            timerElement.textContent = storedTime;
+    
+    if (storedStatus === 'true') {
+        window.sharedAPIConnection.apiConnected = true;
+        
+        // Update timer display if we have a stored time
+        if (storedTime) {
+            const timerElement = document.getElementById('elapsed-time');
+            if (timerElement) {
+                timerElement.textContent = storedTime + 's';
+            }
         }
     }
     
-    // Check if we have a stored connection status
-    const storedStatus = sessionStorage.getItem('apiConnected');
-    if (storedStatus === 'true') {
-        window.sharedAPIConnection.apiConnected = true;
+    // Check if we need to continue initialization from another page
+    const isInitializing = sessionStorage.getItem('apiInitializing') === 'true';
+    if (isInitializing && !window.sharedAPIConnection.apiConnected) {
+        window.sharedAPIConnection.apiInitializing = true;
+        window.sharedAPIConnection.connectionStartTime = parseInt(sessionStorage.getItem('apiInitStartTime') || Date.now());
+        window.sharedAPIConnection.startTimer();
     }
     
     // Initialize the API connection
     window.sharedAPIConnection.initialize().catch(console.error);
 });
+
+// Update sessionStorage when connection status changes
+setInterval(() => {
+    if (window.sharedAPIConnection.apiInitializing) {
+        sessionStorage.setItem('apiInitializing', 'true');
+        sessionStorage.setItem('apiInitStartTime', window.sharedAPIConnection.connectionStartTime);
+    } else if (window.sharedAPIConnection.apiConnected) {
+        sessionStorage.setItem('apiInitializing', 'false');
+    }
+}, 500);
