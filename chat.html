@@ -28,29 +28,19 @@
         </nav>
 
         <main class="main-content">
-            <!-- Status Indicators -->
-            <div class="status-indicators" style="margin-bottom: 20px;">
-                <div class="status-item">
-                    <span class="status-label">System:</span>
-                    <span id="system-status" class="status-value">Initializing...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">API:</span>
-                    <span id="api-status" class="status-value">Initializing...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Init Time:</span>
-                    <span id="initialization-time" class="status-value">0.0s</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Process Time:</span>
-                    <span id="processing-time" class="status-value">0.0s</span>
-                </div>
-            </div>
-
             <section class="chat-section">
                 <div class="section-header">
                     <h2><i class="fas fa-comments"></i> Chat with DA-DPO Model</h2>
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <span class="status-label">System:</span>
+                            <span id="system-status" class="status-value">Ready</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">API:</span>
+                            <span id="api-status" class="status-value">Ready</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="chat-container">
@@ -65,7 +55,6 @@
                     <div class="chat-input-container">
                         <textarea id="user-input" placeholder="Type your message here..." rows="2"></textarea>
                         <button id="send-chat" class="btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
-                        <button id="clear-chat" class="btn-secondary"><i class="fas fa-broom"></i> Clear Chat</button>
                     </div>
                 </div>
             </section>
@@ -77,7 +66,7 @@
         </footer>
     </div>
 
-    <script src="api-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
     <script src="chat.js"></script>
 </body>
 </html>
