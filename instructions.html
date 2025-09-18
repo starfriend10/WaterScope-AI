@@ -100,6 +100,22 @@
         </nav>
 
         <main class="main-content">
+            <!-- Status Indicators -->
+            <div class="status-indicators" style="margin-bottom: 20px;">
+                <div class="status-item">
+                    <span class="status-label">System:</span>
+                    <span id="system-status" class="status-value">Initializing...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">API:</span>
+                    <span id="api-status" class="status-value">Initializing...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Init Time:</span>
+                    <span id="initialization-time" class="status-value">0.0s</span>
+                </div>
+            </div>
+
             <section class="instruction-section">
                 <div class="section-header">
                     <h2><i class="fas fa-info-circle"></i> WaterScope-AI Instructions</h2>
@@ -286,5 +302,7 @@
             <p>Department of Civil and Environmental Engineering, Princeton University</p>
         </footer>
     </div>
+
+    <script src="api-manager.js"></script>
 </body>
 </html>
