@@ -82,13 +82,13 @@
         .instruction-step {
             display: flex;
             gap: 15px;
-            margin-bottom: 15px; /* Reduced from 20px */
+            margin-bottom: 15px;
             align-items: flex-start;
         }
         
         /* Improved text readability */
         .step-content p {
-            color: #444; /* Darker color for better readability */
+            color: #444;
             line-height: 1.5;
             margin-bottom: 0;
         }
@@ -101,6 +101,50 @@
         
         .note-box.loading h4 {
             color: #0b5b8a;
+        }
+        
+        /* Fix alignment for best practices list */
+        .best-practices {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .best-practices li {
+            margin-bottom: 8px;
+            color: #444;
+        }
+        
+        /* Ensure proper alignment for all steps */
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        /* Section dividers */
+        .section-divider {
+            height: 1px;
+            background: #ddd;
+            margin: 25px 0;
+            border: none;
+        }
+        
+        /* Sub-heading styles */
+        .sub-heading {
+            margin: 20px 0 15px 0;
+            color: var(--primary);
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -141,6 +185,8 @@
                         </ol>
                         <p>Please be patient during these processes, especially when using the system for the first time or after a period of inactivity.</p>
                     </div>
+                    
+                    <hr class="section-divider">
                     
                     <!-- MCQA Demo Instructions -->
                     <div class="instruction-card">
@@ -187,6 +233,8 @@
                         </div>
                     </div>
                     
+                    <hr class="section-divider">
+                    
                     <!-- Chat Instructions -->
                     <div class="instruction-card">
                         <h3><i class="fas fa-comments"></i> Chat Interface</h3>
@@ -229,8 +277,8 @@
                             </div>
                         </div>
                         
-                        <h4>Best Practices:</h4>
-                        <ul>
+                        <h4 class="sub-heading">Best Practices:</h4>
+                        <ul class="best-practices">
                             <li>Ask specific questions about water sustainability, decarbonization, or wastewater treatment</li>
                             <li>Keep questions concise and focused</li>
                             <li>For optimal results, use the MCQA interface for question-answering tasks</li>
@@ -268,6 +316,8 @@
                         </div>
                     </div>
                     
+                    <hr class="section-divider">
+                    
                     <!-- Model Information -->
                     <div class="instruction-card">
                         <h3><i class="fas fa-cogs"></i> Model Information</h3>
@@ -286,6 +336,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <hr class="section-divider">
                     
                     <!-- Troubleshooting -->
                     <div class="instruction-card">
