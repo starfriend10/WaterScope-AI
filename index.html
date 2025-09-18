@@ -28,18 +28,6 @@
         </nav>
 
         <main class="main-content">
-            <!-- Status Indicators -->
-            <div class="status-indicators" style="margin-bottom: 20px;">
-                <div class="status-item">
-                    <span class="status-label">System:</span>
-                    <span id="system-status" class="status-value">Ready</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">API:</span>
-                    <span id="api-status" class="status-value">Ready</span>
-                </div>
-            </div>
-
             <section class="hero-section">
                 <div class="hero-content">
                     <h2>Welcome to WaterScope-AI</h2>
@@ -66,14 +54,14 @@
                             <i class="fas fa-question-circle"></i>
                         </div>
                         <h3>MCQA Analysis</h3>
-                        <p>Experience AI models on water sustainability MCQs</p>
+                        <p>Compare multiple AI models on water sustainability multiple-choice questions</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-database"></i>
                         </div>
                         <h3>Research Dataset</h3>
-                        <p>Access to curated MCQs on decarbonization in water sector</p>
+                        <p>Access to 777 curated MCQs on decarbonization in water sector</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -117,33 +105,5 @@
             <p>Department of Civil and Environmental Engineering, Princeton University</p>
         </footer>
     </div>
-
-    <script>
-        // Simple status management for index page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if API is already initialized from session storage
-            const apiStatus = sessionStorage.getItem('apiStatus');
-            const systemStatus = sessionStorage.getItem('systemStatus');
-            
-            if (apiStatus) {
-                document.getElementById('api-status').textContent = apiStatus;
-            }
-            
-            if (systemStatus) {
-                document.getElementById('system-status').textContent = systemStatus;
-            }
-            
-            // If no status is stored, set default values
-            if (!apiStatus) {
-                document.getElementById('api-status').textContent = 'Ready';
-                sessionStorage.setItem('apiStatus', 'Ready');
-            }
-            
-            if (!systemStatus) {
-                document.getElementById('system-status').textContent = 'Ready';
-                sessionStorage.setItem('systemStatus', 'Ready');
-            }
-        });
-    </script>
 </body>
 </html>
