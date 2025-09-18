@@ -6,6 +6,78 @@
     <title>WaterScope-AI | Instructions</title>
     <link rel="stylesheet" href="style-research.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .note-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .note-box.important {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .note-box h4 {
+            margin-top: 0;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .note-box.important h4 {
+            color: #721c24;
+        }
+        
+        .feature-comparison {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .feature-comparison table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        .feature-comparison th, .feature-comparison td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        .feature-comparison th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .feature-comparison tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .fa-check-circle {
+            color: #28a745;
+        }
+        
+        .fa-info-circle {
+            color: #17a2b8;
+        }
+        
+        .fa-exclamation-circle {
+            color: #ffc107;
+        }
+        
+        .fa-bolt {
+            color: #ffc107;
+        }
+        
+        .fa-clock {
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -81,31 +153,69 @@
                     
                     <!-- Chat Instructions -->
                     <div class="instruction-card">
-                        <h3><i class="fas fa-comments"></i> Chat Feature (Coming Soon)</h3>
-                        <p>The chat functionality is currently under development and will be available in a future update.</p>
+                        <h3><i class="fas fa-comments"></i> Chat Interface</h3>
+                        <p>The chat interface allows you to interact with our specialized DA-DPO model for water sustainability topics.</p>
+                        
+                        <div class="note-box important">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Important Note</h4>
+                            <p>This AI model was primarily designed and optimized for <strong>Multiple Choice Question Answering (MCQA)</strong> tasks, not for open-ended chat conversations. While it can engage in dialogue, its responses may be less refined compared to its MCQA performance.</p>
+                        </div>
                         
                         <div class="instruction-step">
                             <div class="step-number">1</div>
                             <div class="step-content">
-                                <h4>Interactive Conversations</h4>
-                                <p>Once available, you'll be able to have interactive conversations with our specialized AI models about water sustainability topics.</p>
+                                <h4>Start a Conversation</h4>
+                                <p>Type your question in the input box and press Enter or click the Send button.</p>
                             </div>
                         </div>
                         
                         <div class="instruction-step">
                             <div class="step-number">2</div>
                             <div class="step-content">
-                                <h4>Research Assistance</h4>
-                                <p>The chat will help answer questions, provide explanations, and assist with research tasks.</p>
+                                <h4>Monitor Status</h4>
+                                <p>Watch the status indicators for system feedback and response timing information.</p>
                             </div>
                         </div>
                         
                         <div class="instruction-step">
                             <div class="step-number">3</div>
                             <div class="step-content">
-                                <h4>Domain Expertise</h4>
-                                <p>Our models are specifically trained on water sustainability content for accurate, relevant responses.</p>
+                                <h4>Clear Conversation</h4>
+                                <p>Use the Clear Chat button to start a new conversation at any time.</p>
                             </div>
+                        </div>
+                        
+                        <h4>Best Practices:</h4>
+                        <ul>
+                            <li>Ask specific questions about water sustainability, decarbonization, or wastewater treatment</li>
+                            <li>Keep questions concise and focused</li>
+                            <li>For optimal results, use the MCQA interface for question-answering tasks</li>
+                            <li>Be patient - responses may take several seconds to generate</li>
+                        </ul>
+                        
+                        <div class="feature-comparison">
+                            <table>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>MCQA Interface</th>
+                                    <th>Chat Interface</th>
+                                </tr>
+                                <tr>
+                                    <td>Primary Design Purpose</td>
+                                    <td><i class="fas fa-check-circle"></i> Optimized</td>
+                                    <td><i class="fas fa-info-circle"></i> Experimental</td>
+                                </tr>
+                                <tr>
+                                    <td>Response Quality</td>
+                                    <td><i class="fas fa-check-circle"></i> High Accuracy</td>
+                                    <td><i class="fas fa-exclamation-circle"></i> Variable</td>
+                                </tr>
+                                <tr>
+                                    <td>Response Time</td>
+                                    <td><i class="fas fa-bolt"></i> Faster</td>
+                                    <td><i class="fas fa-clock"></i> Slower</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                     
@@ -141,6 +251,11 @@
                             <div class="issue">
                                 <h4>No Response from Models</h4>
                                 <p>Ensure you've provided both a question and at least two options before running analysis.</p>
+                            </div>
+                            
+                            <div class="issue">
+                                <h4>Chat Response Quality</h4>
+                                <p>Remember that the model was designed for MCQA tasks. For best results, use the MCQA interface.</p>
                             </div>
                         </div>
                     </div>
