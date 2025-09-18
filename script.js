@@ -2,46 +2,7 @@
 const MAX_OPTIONS = 8;
 let currentOptions = 4;
 let MCQA_DATA = [];
-let gradioApp = null;
-let apiInitializing = false;
-let apiConnected = false;
 let isProcessing = false;
-
-// Timer functionality
-let timerInterval = null;
-let startTime = null;
-let warmupTimerInterval = null;
-let warmupStartTime = null;
-
-// Check if API is already connected from another page
-function checkExistingConnection() {
-    const connected = sessionStorage.getItem('apiConnected') === 'true';
-    const initStart = sessionStorage.getItem('apiInitStart');
-    const initPage = sessionStorage.getItem('apiInitPage');
-    
-    // If connected from another page, use that connection
-    if (connected && initPage && initPage !== 'demo') {
-        apiConnected = true;
-        updateAPIStatus("Connected to AI API successfully (from other page)");
-        
-        // If there's an initialization time, calculate total time
-        if (initStart) {
-            const totalTime = (Date.now() - parseInt(initStart)) / 1000;
-            document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
-        }
-        return true;
-    }
-    
-    // If another page is initializing, sync with that process
-    if (initStart && !connected) {
-        warmupStartTime = parseInt(initStart);
-        startTimer('warmup');
-        updateAPIStatus("Initializing connection to AI API...");
-        return true;
-    }
-    
-    return false;
-}
 
 // Freeze function for MCQA
 function freezeMCQAInputs() {
@@ -101,48 +62,6 @@ function unfreezeMCQAInputs() {
     });
     
     updateSystemStatus("Ready");
-}
-
-function startTimer(type) {
-    if (type === 'warmup') {
-        warmupStartTime = Date.now();
-        sessionStorage.setItem('apiInitStart', warmupStartTime);
-        sessionStorage.setItem('apiInitPage', 'demo');
-        document.getElementById('elapsed-time').style.display = 'block';
-        
-        if (warmupTimerInterval) clearInterval(warmupTimerInterval);
-        
-        warmupTimerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - warmupStartTime) / 1000;
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-        }, 100);
-    } else if (type === 'processing') {
-        startTime = Date.now();
-        document.getElementById('elapsed-time').style.display = 'block';
-        
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-        }, 100);
-    }
-}
-
-function stopTimer(type) {
-    if (type === 'warmup' && warmupTimerInterval) {
-        clearInterval(warmupTimerInterval);
-        warmupTimerInterval = null;
-        
-        // If API is now connected, store the final time
-        if (apiConnected) {
-            const totalTime = (Date.now() - warmupStartTime) / 1000;
-            document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
-        }
-    } else if (type === 'processing' && timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
 }
 
 // Status update functions
@@ -324,61 +243,20 @@ document.getElementById('clear').addEventListener('click', ()=>{
     document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
-// --- 6. Initialize Gradio Client ---
-async function initializeGradioClient() {
-    try {
-        // Check if already connected from another page
-        if (checkExistingConnection()) {
-            return;
-        }
-        
-        apiInitializing = true;
-        updateAPIStatus("Initializing connection to AI API...");
-        startTimer('warmup');
-        
-        // Import the Gradio client
-        const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
-        
-        // Connect to your Hugging Face Space
-        gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
-        
-        console.log("Gradio client initialized successfully");
-        stopTimer('warmup');
-        apiInitializing = false;
-        apiConnected = true;
-        
-        // Store connection status in sessionStorage
-        sessionStorage.setItem('apiConnected', 'true');
-        sessionStorage.setItem('apiInitPage', 'demo');
-        sessionStorage.removeItem('apiInitStart');
-        
-        updateAPIStatus("Connected to AI API successfully");
-    } catch (error) {
-        console.error("Failed to initialize Gradio client:", error);
-        stopTimer('warmup');
-        apiInitializing = false;
-        apiConnected = false;
-        sessionStorage.removeItem('apiInitStart');
-        sessionStorage.removeItem('apiInitPage');
-        updateAPIStatus("Failed to connect to AI API");
-    }
-}
-
-// --- 7. Handle Stop Request ---
+// --- 6. Handle Stop Request ---
 function handleStopRequest() {
     if (isProcessing) {
         isProcessing = false;
-        stopTimer('processing');
         unfreezeMCQAInputs(); // Unfreeze inputs when stopping
         updateAPIStatus("Request cancelled");
         console.log("Processing stopped by user");
     }
 }
 
-// --- 8. Stop Button Event Listener ---
+// --- 7. Stop Button Event Listener ---
 document.getElementById('stop').addEventListener('click', handleStopRequest);
 
-// --- 9. Run Comparison (using Gradio Client) ---
+// --- 8. Run Comparison (using Gradio Client) ---
 document.getElementById('send').addEventListener('click', async ()=>{
     const question=document.getElementById('question').value;
     const options=[];
@@ -396,11 +274,14 @@ document.getElementById('send').addEventListener('click', async ()=>{
         return;
     }
 
+    // Get the shared API connection
+    const gradioApp = window.sharedAPIConnection.getClient();
+    
     // Initialize client if not already done
     if (!gradioApp) {
         updateAPIStatus("Initializing connection to AI API...");
-        await initializeGradioClient();
-        if (!gradioApp) {
+        const success = await window.sharedAPIConnection.initialize();
+        if (!success) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             alert("Failed to connect to AI API. Please try again.");
             return;
@@ -414,8 +295,6 @@ document.getElementById('send').addEventListener('click', async ()=>{
         // Freeze inputs before processing
         freezeMCQAInputs();
         
-        // Start the processing timer
-        startTimer('processing');
         updateAPIStatus("Processing your question...");
         
         // Call the API with correct parameter names
@@ -459,9 +338,6 @@ document.getElementById('send').addEventListener('click', async ()=>{
     } finally {
         // Always clean up, even if there was an error
         if (isProcessing) {
-            // Stop the processing timer
-            stopTimer('processing');
-            
             // Unfreeze inputs
             unfreezeMCQAInputs();
             
@@ -476,24 +352,8 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Checking API connection...");
     
-    // Check for existing connection first
-    if (checkExistingConnection()) {
-        // If already connected, we're done
-        return;
-    }
-    
-    // Initialize Gradio client when page loads
-    initializeGradioClient().catch(console.error);
-});
-
-// Add event listener for page visibility change
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && apiConnected) {
-        // Page is visible again, update the timer if needed
-        const initStart = sessionStorage.getItem('apiInitStart');
-        if (initStart) {
-            const elapsedTime = (Date.now() - parseInt(initStart)) / 1000;
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-        }
+    // Check if API is already connected
+    if (window.sharedAPIConnection.isConnected()) {
+        updateAPIStatus("Connected to AI API successfully");
     }
 });
