@@ -1,4 +1,4 @@
-// chat.js - Complete solution using shared API connection
+// chat.js - Simplified solution using shared API connection
 let isProcessing = false;
 let chatHistory = [];
 
@@ -7,17 +7,11 @@ function updateSystemStatus(message) {
     const element = document.getElementById('system-status');
     if (element) {
         element.textContent = message;
-        
-        // Add visual status indicators
-        element.classList.remove('status-processing', 'status-ready', 'status-error');
-        
-        if (message.toLowerCase().includes('processing')) {
-            element.classList.add('status-processing');
-        } else if (message.toLowerCase().includes('ready')) {
-            element.classList.add('status-ready');
-        } else if (message.toLowerCase().includes('error')) {
-            element.classList.add('status-error');
-        }
+        element.className = 'status-value ' + (
+            message.toLowerCase().includes('processing') ? 'status-processing' :
+            message.toLowerCase().includes('ready') ? 'status-ready' :
+            message.toLowerCase().includes('error') ? 'status-error' : ''
+        );
     }
 }
 
@@ -25,17 +19,11 @@ function updateAPIStatus(message) {
     const element = document.getElementById('api-status');
     if (element) {
         element.textContent = message;
-        
-        // Add visual status indicators
-        element.classList.remove('status-processing', 'status-ready', 'status-error');
-        
-        if (message.toLowerCase().includes('processing')) {
-            element.classList.add('status-processing');
-        } else if (message.toLowerCase().includes('connected') || message.toLowerCase().includes('received')) {
-            element.classList.add('status-ready');
-        } else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
-            element.classList.add('status-error');
-        }
+        element.className = 'status-value ' + (
+            message.toLowerCase().includes('processing') ? 'status-processing' :
+            message.toLowerCase().includes('connected') || message.toLowerCase().includes('received') ? 'status-ready' :
+            message.toLowerCase().includes('error') || message.toLowerCase().includes('failed') ? 'status-error' : ''
+        );
     }
 }
 
@@ -45,19 +33,9 @@ function freezeInputPanel() {
     const sendButton = document.getElementById('send-chat');
     const clearButton = document.getElementById('clear-chat');
     
-    if (userInput) {
-        userInput.disabled = true;
-        userInput.setAttribute('readonly', 'readonly');
-        userInput.placeholder = 'Processing your request...';
-    }
-    
-    if (sendButton) {
-        sendButton.disabled = true;
-    }
-    
-    if (clearButton) {
-        clearButton.disabled = true;
-    }
+    if (userInput) userInput.disabled = true;
+    if (sendButton) sendButton.disabled = true;
+    if (clearButton) clearButton.disabled = true;
     
     updateSystemStatus("Processing your request...");
 }
@@ -68,20 +46,9 @@ function unfreezeInputPanel() {
     const sendButton = document.getElementById('send-chat');
     const clearButton = document.getElementById('clear-chat');
     
-    if (userInput) {
-        userInput.disabled = false;
-        userInput.removeAttribute('readonly');
-        userInput.placeholder = 'Type your message here...';
-        userInput.focus();
-    }
-    
-    if (sendButton) {
-        sendButton.disabled = false;
-    }
-    
-    if (clearButton) {
-        clearButton.disabled = false;
-    }
+    if (userInput) userInput.disabled = false;
+    if (sendButton) sendButton.disabled = false;
+    if (clearButton) clearButton.disabled = false;
     
     updateSystemStatus("Ready");
 }
@@ -93,12 +60,7 @@ function addMessage(text, isUser) {
     
     const messageDiv = document.createElement('div');
     messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
-    
-    messageDiv.innerHTML = `
-        <div class="message-content">
-            <p>${text}</p>
-        </div>
-    `;
+    messageDiv.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
     
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -107,14 +69,10 @@ function addMessage(text, isUser) {
 // Extract just the assistant's response from API result
 function extractAssistantResponse(apiResult) {
     try {
-        // The API returns [cleared_input, updated_chat_history]
-        // updated_chat_history is an array of [user_message, assistant_message] arrays
         if (apiResult && apiResult.data && Array.isArray(apiResult.data) && apiResult.data.length >= 2) {
             const chatHistory = apiResult.data[1];
             if (Array.isArray(chatHistory) && chatHistory.length > 0) {
-                // Get the last message in the history
                 const lastMessage = chatHistory[chatHistory.length - 1];
-                // Return the assistant's response (second element in the tuple)
                 if (Array.isArray(lastMessage) && lastMessage.length >= 2) {
                     return lastMessage[1] || "No response generated";
                 }
@@ -135,10 +93,7 @@ async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
     
-    // Freeze the input panel immediately
     freezeInputPanel();
-    
-    // Add user message to chat
     addMessage(message, true);
     userInput.value = '';
     userInput.style.height = 'auto';
@@ -153,7 +108,7 @@ async function sendMessage() {
         if (!success) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             addMessage("Sorry, I'm having trouble connecting to the AI service. Please try again later.", false);
-            unfreezeInputPanel(); // Unfreeze on error
+            unfreezeInputPanel();
             return;
         }
     }
@@ -162,19 +117,13 @@ async function sendMessage() {
         isProcessing = true;
         updateAPIStatus("Processing your message...");
         
-        // Call the correct endpoint - using /respond as shown in your API documentation
         const result = await gradioApp.predict("/respond", {
             message: message,
             chat_history: chatHistory
         });
         
-        // Extract just the assistant's response
         const assistantResponse = extractAssistantResponse(result);
-        
-        // Update chat history with the new interaction
         chatHistory.push([message, assistantResponse]);
-        
-        // Add bot response to chat
         addMessage(assistantResponse, false);
         updateAPIStatus("Response received");
         
@@ -184,7 +133,7 @@ async function sendMessage() {
         addMessage("Sorry, I encountered an error while processing your message. Please try again.", false);
     } finally {
         isProcessing = false;
-        unfreezeInputPanel(); // Always unfreeze regardless of success/error
+        unfreezeInputPanel();
     }
 }
 
@@ -219,11 +168,7 @@ function setupAutoResize() {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
-            
-            // Reset height after sending
-            setTimeout(() => {
-                this.style.height = 'auto';
-            }, 10);
+            setTimeout(() => { this.style.height = 'auto'; }, 10);
         }
     });
 }
@@ -247,10 +192,7 @@ function setupEventListeners() {
     const sendButton = document.getElementById('send-chat');
     const userInput = document.getElementById('user-input');
     
-    if (sendButton) {
-        sendButton.addEventListener('click', sendMessage);
-    }
-    
+    if (sendButton) sendButton.addEventListener('click', sendMessage);
     if (userInput) {
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -286,15 +228,4 @@ document.addEventListener('DOMContentLoaded', function() {
     addClearButton();
     setupAutoResize();
     setupEventListeners();
-    
-    // Set up timer update interval
-    setInterval(() => {
-        if (window.sharedAPIConnection.isInitializing()) {
-            const elapsedTime = window.sharedAPIConnection.getConnectionTime();
-            const timerElement = document.getElementById('elapsed-time');
-            if (timerElement) {
-                timerElement.textContent = elapsedTime.toFixed(1) + 's';
-            }
-        }
-    }, 100);
 });
