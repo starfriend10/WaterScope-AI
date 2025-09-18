@@ -8,28 +8,48 @@ let chatHistory = [];
 // Timer functionality
 let timerInterval = null;
 let startTime = null;
+let apiInitStartTime = null;
+let apiInitTimerInterval = null;
 
-function startTimer() {
-    startTime = Date.now();
+function startTimer(type = 'message') {
+    if (type === 'api-init') {
+        apiInitStartTime = Date.now();
+        
+        if (apiInitTimerInterval) clearInterval(apiInitTimerInterval);
+        
+        apiInitTimerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - apiInitStartTime) / 1000;
+            const elapsedTimeElement = document.getElementById('elapsed-time');
+            if (elapsedTimeElement) {
+                elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
+            }
+        }, 100);
+    } else {
+        startTime = Date.now();
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            const elapsedTimeElement = document.getElementById('elapsed-time');
+            if (elapsedTimeElement) {
+                elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
+            }
+        }, 100);
+    }
     
     // Show timer element
     const elapsedTimeElement = document.getElementById('elapsed-time');
     if (elapsedTimeElement) {
         elapsedTimeElement.style.display = 'block';
     }
-    
-    if (timerInterval) clearInterval(timerInterval);
-    
-    timerInterval = setInterval(() => {
-        const elapsedTime = (Date.now() - startTime) / 1000;
-        if (elapsedTimeElement) {
-            elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
-        }
-    }, 100);
 }
 
-function stopTimer() {
-    if (timerInterval) {
+function stopTimer(type = 'message') {
+    if (type === 'api-init' && apiInitTimerInterval) {
+        clearInterval(apiInitTimerInterval);
+        apiInitTimerInterval = null;
+    } else if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
     }
@@ -132,7 +152,7 @@ async function initializeGradioClient() {
         updateAPIStatus("Initializing connection to AI API...");
         
         // Start timer for API initialization
-        startTimer();
+        startTimer('api-init');
         
         // Import the Gradio client
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
@@ -146,8 +166,8 @@ async function initializeGradioClient() {
         updateAPIStatus("Connected to AI API successfully");
         updateSystemStatus("Ready");
         
-        // Stop timer after successful initialization
-        stopTimer();
+        // Stop API initialization timer
+        stopTimer('api-init');
         return true;
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
@@ -156,8 +176,8 @@ async function initializeGradioClient() {
         updateAPIStatus("Failed to connect to AI API");
         updateSystemStatus("Connection Error");
         
-        // Stop timer even if initialization fails
-        stopTimer();
+        // Stop API initialization timer even if it fails
+        stopTimer('api-init');
         return false;
     }
 }
@@ -234,7 +254,7 @@ async function sendMessage() {
     try {
         isProcessing = true;
         updateAPIStatus("Processing your message...");
-        startTimer();
+        startTimer('message');
         
         // Call the correct endpoint - using /respond as shown in your API documentation
         const result = await gradioApp.predict("/respond", {
@@ -258,7 +278,7 @@ async function sendMessage() {
         addMessage("Sorry, I encountered an error while processing your message. Please try again.", false);
     } finally {
         isProcessing = false;
-        stopTimer();
+        stopTimer('message');
         unfreezeInputPanel(); // Always unfreeze regardless of success/error
     }
 }
@@ -347,7 +367,11 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAPIStatus("Initializing API connection...");
     
     // Show timer immediately on page load
-    startTimer();
+    const elapsedTimeElement = document.getElementById('elapsed-time');
+    if (elapsedTimeElement) {
+        elapsedTimeElement.style.display = 'block';
+        elapsedTimeElement.textContent = "0.0s";
+    }
     
     // Add UI enhancements
     addClearButton();
