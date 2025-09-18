@@ -23,7 +23,7 @@
         <nav class="tabs">
             <button class="tab active"><i class="fas fa-home"></i> Home</button>
             <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
-            <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat [Experimental]</button>
+            <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat (for testing)</button>
             <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book"></i> Instructions</button>
         </nav>
 
@@ -32,15 +32,11 @@
             <div class="status-indicators" style="margin-bottom: 20px;">
                 <div class="status-item">
                     <span class="status-label">System:</span>
-                    <span id="system-status" class="status-value">Initializing...</span>
+                    <span id="system-status" class="status-value">Ready</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">API:</span>
-                    <span id="api-status" class="status-value">Initializing...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Init Time:</span>
-                    <span id="initialization-time" class="status-value">0.0s</span>
+                    <span id="api-status" class="status-value">Ready</span>
                 </div>
             </div>
 
@@ -84,7 +80,7 @@
                             <i class="fas fa-robot"></i>
                         </div>
                         <h3>Specialized Models</h3>
-                        <p>Ask domain models your own water sustainability questions</p>
+                        <p>DA-IT and DA-DPO models fine-tuned for water sustainability</p>
                     </div>
                 </div>
             </section>
@@ -122,6 +118,32 @@
         </footer>
     </div>
 
-    <script src="api-manager.js"></script>
+    <script>
+        // Simple status management for index page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if API is already initialized from session storage
+            const apiStatus = sessionStorage.getItem('apiStatus');
+            const systemStatus = sessionStorage.getItem('systemStatus');
+            
+            if (apiStatus) {
+                document.getElementById('api-status').textContent = apiStatus;
+            }
+            
+            if (systemStatus) {
+                document.getElementById('system-status').textContent = systemStatus;
+            }
+            
+            // If no status is stored, set default values
+            if (!apiStatus) {
+                document.getElementById('api-status').textContent = 'Ready';
+                sessionStorage.setItem('apiStatus', 'Ready');
+            }
+            
+            if (!systemStatus) {
+                document.getElementById('system-status').textContent = 'Ready';
+                sessionStorage.setItem('systemStatus', 'Ready');
+            }
+        });
+    </script>
 </body>
 </html>
