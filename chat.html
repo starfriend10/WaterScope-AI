@@ -6,6 +6,17 @@
     <title>WaterScope-AI | Chat</title>
     <link rel="stylesheet" href="style-research.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles to make chat box taller */
+        .chat-messages {
+            min-height: 400px; /* Increased from previous height */
+            max-height: 60vh;  /* Uses viewport height for better responsiveness */
+        }
+        
+        .chat-container {
+            height: auto; /* Allow container to expand */
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -39,6 +50,11 @@
                         <div class="status-item">
                             <span class="status-label">API:</span>
                             <span id="api-status" class="status-value">Ready</span>
+                        </div>
+                        <!-- Added time status indicator -->
+                        <div class="status-item">
+                            <span class="status-label">Time:</span>
+                            <span id="elapsed-time" class="status-value">0.0s</span>
                         </div>
                     </div>
                 </div>
