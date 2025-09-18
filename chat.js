@@ -1,4 +1,4 @@
-// chat.js - Complete solution for WaterScope-AI chat interface
+// chat.js - Complete solution with freezing functionality
 let gradioApp = null;
 let apiInitializing = false;
 let apiConnected = false;
@@ -47,12 +47,89 @@ function stopTimer() {
 // Status update functions
 function updateSystemStatus(message) {
     const element = document.getElementById('system-status');
-    if (element) element.textContent = message;
+    if (element) {
+        element.textContent = message;
+        
+        // Add visual status indicators
+        element.classList.remove('status-processing', 'status-ready', 'status-error');
+        
+        if (message.toLowerCase().includes('processing')) {
+            element.classList.add('status-processing');
+        } else if (message.toLowerCase().includes('ready')) {
+            element.classList.add('status-ready');
+        } else if (message.toLowerCase().includes('error')) {
+            element.classList.add('status-error');
+        }
+    }
 }
 
 function updateAPIStatus(message) {
     const element = document.getElementById('api-status');
-    if (element) element.textContent = message;
+    if (element) {
+        element.textContent = message;
+        
+        // Add visual status indicators
+        element.classList.remove('status-processing', 'status-ready', 'status-error');
+        
+        if (message.toLowerCase().includes('processing')) {
+            element.classList.add('status-processing');
+        } else if (message.toLowerCase().includes('connected') || message.toLowerCase().includes('received')) {
+            element.classList.add('status-ready');
+        } else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
+            element.classList.add('status-error');
+        }
+    }
+}
+
+// Function to freeze the input panel
+function freezeInputPanel() {
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-chat');
+    const clearButton = document.getElementById('clear-chat');
+    
+    console.log("Freezing input panel", {userInput, sendButton, clearButton});
+    
+    if (userInput) {
+        userInput.disabled = true;
+        userInput.setAttribute('readonly', 'readonly');
+        userInput.placeholder = 'Processing your request...';
+    }
+    
+    if (sendButton) {
+        sendButton.disabled = true;
+    }
+    
+    if (clearButton) {
+        clearButton.disabled = true;
+    }
+    
+    updateSystemStatus("Processing your request...");
+}
+
+// Function to unfreeze the input panel
+function unfreezeInputPanel() {
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-chat');
+    const clearButton = document.getElementById('clear-chat');
+    
+    console.log("Unfreezing input panel");
+    
+    if (userInput) {
+        userInput.disabled = false;
+        userInput.removeAttribute('readonly');
+        userInput.placeholder = 'Type your message here...';
+        userInput.focus();
+    }
+    
+    if (sendButton) {
+        sendButton.disabled = false;
+    }
+    
+    if (clearButton) {
+        clearButton.disabled = false;
+    }
+    
+    updateSystemStatus("Ready");
 }
 
 // Initialize Gradio Client
@@ -134,10 +211,13 @@ async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
     
-    // Add user message to chat UI
+    // Freeze the input panel immediately
+    freezeInputPanel();
+    
+    // Add user message to chat
     addMessage(message, true);
     userInput.value = '';
-    userInput.style.height = 'auto'; // Reset textarea height
+    userInput.style.height = 'auto';
     
     // Initialize client if not already done
     if (!gradioApp) {
@@ -146,6 +226,7 @@ async function sendMessage() {
         if (!success) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             addMessage("Sorry, I'm having trouble connecting to the AI service. Please try again later.", false);
+            unfreezeInputPanel(); // Unfreeze on error
             return;
         }
     }
@@ -154,10 +235,6 @@ async function sendMessage() {
         isProcessing = true;
         updateAPIStatus("Processing your message...");
         startTimer();
-        
-        // Disable send button during processing
-        const sendButton = document.getElementById('send-chat');
-        if (sendButton) sendButton.disabled = true;
         
         // Call the correct endpoint - using /respond as shown in your API documentation
         const result = await gradioApp.predict("/respond", {
@@ -182,10 +259,7 @@ async function sendMessage() {
     } finally {
         isProcessing = false;
         stopTimer();
-        
-        // Re-enable send button
-        const sendButton = document.getElementById('send-chat');
-        if (sendButton) sendButton.disabled = false;
+        unfreezeInputPanel(); // Always unfreeze regardless of success/error
     }
 }
 
