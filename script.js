@@ -22,7 +22,8 @@ function getTimerData() {
     const data = sessionStorage.getItem(API_TIMER_KEY);
     return data ? JSON.parse(data) : {
         startTime: null,
-        elapsed: 0
+        elapsed: 0,
+        running: false
     };
 }
 
@@ -63,13 +64,14 @@ function startApiTimer() {
     const timerData = getTimerData();
     if (!timerData.startTime) {
         timerData.startTime = Date.now();
+        timerData.running = true;
         saveTimerData(timerData);
     }
     
     // Update timer display every 100ms
     const timerInterval = setInterval(() => {
         const currentTimerData = getTimerData();
-        if (currentTimerData.startTime) {
+        if (currentTimerData.running && currentTimerData.startTime) {
             const elapsed = (Date.now() - currentTimerData.startTime) / 1000;
             updateTimerDisplay(elapsed);
         }
@@ -85,6 +87,7 @@ function stopApiTimer() {
         const elapsed = (Date.now() - timerData.startTime) / 1000;
         timerData.elapsed = elapsed;
         timerData.startTime = null;
+        timerData.running = false;
         saveTimerData(timerData);
         updateTimerDisplay(elapsed);
     }
@@ -94,7 +97,8 @@ function stopApiTimer() {
 function resetApiTimer() {
     const timerData = {
         startTime: null,
-        elapsed: 0
+        elapsed: 0,
+        running: false
     };
     saveTimerData(timerData);
     updateTimerDisplay(0);
@@ -285,7 +289,7 @@ function populateTable() {
     if (!tableBody) return;
     
     tableBody.innerHTML = "";
-    MCQA_DATA.forEach((row, idx) => {
+    MCQA_DATA.forEach((row, idx) {
         const tr = document.createElement('tr');
         tr.dataset.index = idx;
         tr.innerHTML = `<td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
@@ -421,6 +425,9 @@ async function initializeGradioClient() {
         saveApiState(apiState);
         updateApiStatusDisplay();
         
+        // Stop the API timer since connection is established
+        stopApiTimer();
+        
         updateAPIStatus("Connected to AI API successfully");
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
@@ -555,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if API timer is running
     const timerData = getTimerData();
-    if (timerData.startTime) {
+    if (timerData.running && timerData.startTime) {
         // Timer is running, update display
         const elapsed = (Date.now() - timerData.startTime) / 1000;
         updateTimerDisplay(elapsed);
@@ -567,6 +574,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Gradio client if not already initialized
     if (!apiState.initialized && !apiState.initializing) {
         updateAPIStatus("Initializing API connection...");
+        // Start the API timer
+        startApiTimer();
         initializeGradioClient().catch(console.error);
     }
 });
