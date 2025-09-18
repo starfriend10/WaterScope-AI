@@ -17,16 +17,17 @@ let warmupStartTime = null;
 function checkExistingConnection() {
     const connected = sessionStorage.getItem('apiConnected') === 'true';
     const initStart = sessionStorage.getItem('apiInitStart');
+    const initPage = sessionStorage.getItem('apiInitPage');
     
-    if (connected) {
+    // If connected from another page, use that connection
+    if (connected && initPage && initPage !== 'demo') {
         apiConnected = true;
-        updateAPIStatus("Connected to AI API successfully");
+        updateAPIStatus("Connected to AI API successfully (from other page)");
         
         // If there's an initialization time, calculate total time
         if (initStart) {
             const totalTime = (Date.now() - parseInt(initStart)) / 1000;
             document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
-            sessionStorage.removeItem('apiInitStart'); // Clean up
         }
         return true;
     }
@@ -106,6 +107,7 @@ function startTimer(type) {
     if (type === 'warmup') {
         warmupStartTime = Date.now();
         sessionStorage.setItem('apiInitStart', warmupStartTime);
+        sessionStorage.setItem('apiInitPage', 'demo');
         document.getElementById('elapsed-time').style.display = 'block';
         
         if (warmupTimerInterval) clearInterval(warmupTimerInterval);
@@ -136,7 +138,6 @@ function stopTimer(type) {
         if (apiConnected) {
             const totalTime = (Date.now() - warmupStartTime) / 1000;
             document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
-            sessionStorage.removeItem('apiInitStart'); // Clean up
         }
     } else if (type === 'processing' && timerInterval) {
         clearInterval(timerInterval);
@@ -348,6 +349,7 @@ async function initializeGradioClient() {
         
         // Store connection status in sessionStorage
         sessionStorage.setItem('apiConnected', 'true');
+        sessionStorage.setItem('apiInitPage', 'demo');
         sessionStorage.removeItem('apiInitStart');
         
         updateAPIStatus("Connected to AI API successfully");
@@ -357,6 +359,7 @@ async function initializeGradioClient() {
         apiInitializing = false;
         apiConnected = false;
         sessionStorage.removeItem('apiInitStart');
+        sessionStorage.removeItem('apiInitPage');
         updateAPIStatus("Failed to connect to AI API");
     }
 }
