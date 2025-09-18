@@ -180,6 +180,14 @@
                         <div class="instruction-step">
                             <div class="step-number">3</div>
                             <div class="step-content">
+                                <h4>Input Freezing During Processing</h4>
+                                <p>During API calls, the input panel will automatically freeze to prevent multiple submissions. You'll see visual indicators that the system is processing your request.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
                                 <h4>Clear Conversation</h4>
                                 <p>Use the Clear Chat button to start a new conversation at any time.</p>
                             </div>
@@ -215,6 +223,11 @@
                                     <td><i class="fas fa-bolt"></i> Faster</td>
                                     <td><i class="fas fa-clock"></i> Slower</td>
                                 </tr>
+                                <tr>
+                                    <td>Input Freezing</td>
+                                    <td><i class="fas fa-check-circle"></i> Yes</td>
+                                    <td><i class="fas fa-check-circle"></i> Yes</td>
+                                </tr>
                             </table>
                         </div>
                     </div>
@@ -227,13 +240,13 @@
                             <div class="model-detail">
                                 <h4><i class="fas fa-tachometer-alt"></i> DA-DPO Model</h4>
                                 <span class="model-badge">Preference-Optimized</span>
-                                <p>Fine-tuned using Direct Preference Optimization (DPO) for water sustainability content.</p>
+                                <p>Fine-tuned using Direct Preference Optimization (DPO) for water sustainability content. Used in both MCQA and Chat interfaces.</p>
                             </div>
                             
                             <div class="model-detail">
                                 <h4><i class="fas fa-puzzle-piece"></i> DA-IT Model</h4>
                                 <span class="model-badge">Instruction-Tuned</span>
-                                <p>Instruction-tuned on water sustainability questions and answers for domain-specific performance.</p>
+                                <p>Instruction-tuned on water sustainability questions and answers for domain-specific performance. Used only in MCQA interface.</p>
                             </div>
                         </div>
                     </div>
@@ -250,12 +263,17 @@
                             
                             <div class="issue">
                                 <h4>No Response from Models</h4>
-                                <p>Ensure you've provided both a question and at least two options before running analysis.</p>
+                                <p>Ensure you've provided both a question and at least two options before running analysis in the MCQA interface.</p>
                             </div>
                             
                             <div class="issue">
                                 <h4>Chat Response Quality</h4>
-                                <p>Remember that the model was designed for MCQA tasks. For best results, use the MCQA interface.</p>
+                                <p>Remember that the model was designed for MCQA tasks. For best results, use the MCQA interface for precise question-answering.</p>
+                            </div>
+                            
+                            <div class="issue">
+                                <h4>Input Panel Frozen</h4>
+                                <p>If the input panel remains frozen for an extended period, refresh the page to reset the interface.</p>
                             </div>
                         </div>
                     </div>
