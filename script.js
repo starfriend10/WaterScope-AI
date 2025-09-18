@@ -1,114 +1,10 @@
-// API State Management
-const API_STATE_KEY = 'waterscope_api_state';
-const API_TIMER_KEY = 'waterscope_api_timer';
-
-// Function to get API state from sessionStorage
-function getApiState() {
-    const state = sessionStorage.getItem(API_STATE_KEY);
-    return state ? JSON.parse(state) : {
-        initialized: false,
-        initializing: false,
-        connected: false
-    };
-}
-
-// Function to save API state to sessionStorage
-function saveApiState(state) {
-    sessionStorage.setItem(API_STATE_KEY, JSON.stringify(state));
-}
-
-// Function to get timer data from sessionStorage
-function getTimerData() {
-    const data = sessionStorage.getItem(API_TIMER_KEY);
-    return data ? JSON.parse(data) : {
-        startTime: null,
-        elapsed: 0,
-        running: false
-    };
-}
-
-// Function to save timer data to sessionStorage
-function saveTimerData(data) {
-    sessionStorage.setItem(API_TIMER_KEY, JSON.stringify(data));
-}
-
-// Function to update timer display
-function updateTimerDisplay(elapsedSeconds) {
-    const elapsedTimeElement = document.getElementById('elapsed-time');
-    if (elapsedTimeElement) {
-        elapsedTimeElement.textContent = elapsedSeconds.toFixed(1) + 's';
-    }
-}
-
-// Function to update API status display
-function updateApiStatusDisplay() {
-    const apiState = getApiState();
-    const apiStatusElement = document.getElementById('api-status');
-    
-    if (apiStatusElement) {
-        if (apiState.connected) {
-            apiStatusElement.textContent = 'Connected';
-            apiStatusElement.className = 'status-value status-ready';
-        } else if (apiState.initializing) {
-            apiStatusElement.textContent = 'Initializing...';
-            apiStatusElement.className = 'status-value status-processing';
-        } else {
-            apiStatusElement.textContent = 'Ready';
-            apiStatusElement.className = 'status-value status-ready';
-        }
-    }
-}
-
-// Function to start API initialization timer
-function startApiTimer() {
-    const timerData = getTimerData();
-    if (!timerData.startTime) {
-        timerData.startTime = Date.now();
-        timerData.running = true;
-        saveTimerData(timerData);
-    }
-    
-    // Update timer display every 100ms
-    const timerInterval = setInterval(() => {
-        const currentTimerData = getTimerData();
-        if (currentTimerData.running && currentTimerData.startTime) {
-            const elapsed = (Date.now() - currentTimerData.startTime) / 1000;
-            updateTimerDisplay(elapsed);
-        }
-    }, 100);
-    
-    return timerInterval;
-}
-
-// Function to stop API timer
-function stopApiTimer() {
-    const timerData = getTimerData();
-    if (timerData.startTime) {
-        const elapsed = (Date.now() - timerData.startTime) / 1000;
-        timerData.elapsed = elapsed;
-        timerData.startTime = null;
-        timerData.running = false;
-        saveTimerData(timerData);
-        updateTimerDisplay(elapsed);
-    }
-}
-
-// Function to reset API timer
-function resetApiTimer() {
-    const timerData = {
-        startTime: null,
-        elapsed: 0,
-        running: false
-    };
-    saveTimerData(timerData);
-    updateTimerDisplay(0);
-}
-
-// mcqa-evaluator.js with API state management
+// mcqa-evaluator.js
 const MAX_OPTIONS = 8;
 let currentOptions = 4;
 let MCQA_DATA = [];
 let gradioApp = null;
+let apiInitializing = false;
+let apiConnected = false;
 let isProcessing = false;
 
 // Timer functionality
@@ -116,6 +12,34 @@ let timerInterval = null;
 let startTime = null;
 let warmupTimerInterval = null;
 let warmupStartTime = null;
+
+// Check if API is already connected from another page
+function checkExistingConnection() {
+    const connected = sessionStorage.getItem('apiConnected') === 'true';
+    const initStart = sessionStorage.getItem('apiInitStart');
+    
+    if (connected) {
+        apiConnected = true;
+        updateAPIStatus("Connected to AI API successfully");
+        
+        // If there's an initialization time, calculate total time
+        if (initStart) {
+            const totalTime = (Date.now() - parseInt(initStart)) / 1000;
+            document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
+        }
+        return true;
+    }
+    
+    // If another page is initializing, sync with that process
+    if (initStart && !connected) {
+        warmupStartTime = parseInt(initStart);
+        startTimer('warmup');
+        updateAPIStatus("Initializing connection to AI API...");
+        return true;
+    }
+    
+    return false;
+}
 
 // Freeze function for MCQA
 function freezeMCQAInputs() {
@@ -180,6 +104,7 @@ function unfreezeMCQAInputs() {
 function startTimer(type) {
     if (type === 'warmup') {
         warmupStartTime = Date.now();
+        sessionStorage.setItem('apiInitStart', warmupStartTime);
         document.getElementById('elapsed-time').style.display = 'block';
         
         if (warmupTimerInterval) clearInterval(warmupTimerInterval);
@@ -205,6 +130,12 @@ function stopTimer(type) {
     if (type === 'warmup' && warmupTimerInterval) {
         clearInterval(warmupTimerInterval);
         warmupTimerInterval = null;
+        
+        // If API is now connected, store the final time
+        if (apiConnected) {
+            const totalTime = (Date.now() - warmupStartTime) / 1000;
+            document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
+        }
     } else if (type === 'processing' && timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
@@ -289,7 +220,7 @@ function populateTable() {
     if (!tableBody) return;
     
     tableBody.innerHTML = "";
-    MCQA_DATA.forEach((row, idx) {
+    MCQA_DATA.forEach((row, idx) => {
         const tr = document.createElement('tr');
         tr.dataset.index = idx;
         tr.innerHTML = `<td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
@@ -390,22 +321,15 @@ document.getElementById('clear').addEventListener('click', ()=>{
     document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
-// --- 6. Initialize Gradio Client with state management ---
+// --- 6. Initialize Gradio Client ---
 async function initializeGradioClient() {
     try {
-        // Check if already initialized
-        const apiState = getApiState();
-        if (apiState.initialized && gradioApp) {
-            console.log("Gradio client already initialized");
-            updateAPIStatus("Connected to AI API successfully");
+        // Check if already connected from another page
+        if (checkExistingConnection()) {
             return;
         }
         
-        // Update API state
-        apiState.initializing = true;
-        saveApiState(apiState);
-        updateApiStatusDisplay();
-        
+        apiInitializing = true;
         updateAPIStatus("Initializing connection to AI API...");
         startTimer('warmup');
         
@@ -417,29 +341,20 @@ async function initializeGradioClient() {
         
         console.log("Gradio client initialized successfully");
         stopTimer('warmup');
+        apiInitializing = false;
+        apiConnected = true;
         
-        // Update API state
-        apiState.initializing = false;
-        apiState.initialized = true;
-        apiState.connected = true;
-        saveApiState(apiState);
-        updateApiStatusDisplay();
-        
-        // Stop the API timer since connection is established
-        stopApiTimer();
+        // Store connection status in sessionStorage
+        sessionStorage.setItem('apiConnected', 'true');
+        sessionStorage.removeItem('apiInitStart');
         
         updateAPIStatus("Connected to AI API successfully");
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
         stopTimer('warmup');
-        
-        // Update API state
-        const apiState = getApiState();
-        apiState.initializing = false;
-        apiState.connected = false;
-        saveApiState(apiState);
-        updateApiStatusDisplay();
-        
+        apiInitializing = false;
+        apiConnected = false;
+        sessionStorage.removeItem('apiInitStart');
         updateAPIStatus("Failed to connect to AI API");
     }
 }
@@ -477,11 +392,10 @@ document.getElementById('send').addEventListener('click', async ()=>{
     }
 
     // Initialize client if not already done
-    const apiState = getApiState();
-    if (!apiState.initialized || !gradioApp) {
+    if (!gradioApp) {
         updateAPIStatus("Initializing connection to AI API...");
         await initializeGradioClient();
-        if (!apiState.initialized || !gradioApp) {
+        if (!gradioApp) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             alert("Failed to connect to AI API. Please try again.");
             return;
@@ -555,36 +469,14 @@ document.getElementById('send').addEventListener('click', async ()=>{
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
+    updateAPIStatus("Checking API connection...");
     
-    // Check if API is already initialized
-    const apiState = getApiState();
-    updateApiStatusDisplay();
-    
-    // Check if API timer is running
-    const timerData = getTimerData();
-    if (timerData.running && timerData.startTime) {
-        // Timer is running, update display
-        const elapsed = (Date.now() - timerData.startTime) / 1000;
-        updateTimerDisplay(elapsed);
-    } else if (timerData.elapsed > 0) {
-        // Timer was stopped, show elapsed time
-        updateTimerDisplay(timerData.elapsed);
+    // Check for existing connection first
+    if (checkExistingConnection()) {
+        // If already connected, we're done
+        return;
     }
     
-    // Initialize Gradio client if not already initialized
-    if (!apiState.initialized && !apiState.initializing) {
-        updateAPIStatus("Initializing API connection...");
-        // Start the API timer
-        startApiTimer();
-        initializeGradioClient().catch(console.error);
-    }
-});
-
-// Save API state before page unload
-window.addEventListener('beforeunload', function() {
-    const apiState = getApiState();
-    saveApiState(apiState);
-    
-    const timerData = getTimerData();
-    saveTimerData(timerData);
+    // Initialize Gradio client when page loads
+    initializeGradioClient().catch(console.error);
 });
