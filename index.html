@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaterScope-AI | Research Analysis</title>
+    <title>WaterScope-AI | Home</title>
     <link rel="stylesheet" href="style-research.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -22,14 +21,14 @@
         </header>
 
         <nav class="tabs">
-            <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
-            <button class="tab active"><i class="fas fa-play-circle"></i> MCQA Demo</button>
+            <button class="tab active"><i class="fas fa-home"></i> Home</button>
+            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
             <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat (for testing)</button>
             <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book"></i> Instructions</button>
         </nav>
 
         <main class="main-content">
-            <!-- Status Indicators -->
+            <!-- Status Indicators for Homepage -->
             <div class="status-indicators" style="margin-bottom: 20px;">
                 <div class="status-item">
                     <span class="status-label">System:</span>
@@ -43,123 +42,89 @@
                     <span class="status-label">Init Time:</span>
                     <span id="initialization-time" class="status-value">0.0s</span>
                 </div>
-                <div class="status-item">
-                    <span class="status-label">Process Time:</span>
-                    <span id="processing-time" class="status-value">0.0s</span>
-                </div>
             </div>
 
-            <section class="input-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-question-circle"></i> Research Query</h2>
-                    <button class="btn-help"><i class="fas fa-info-circle"></i></button>
-                </div>
-                
-                <div class="input-group">
-                    <label for="question">Question:</label>
-                    <textarea id="question" rows="2" placeholder="Enter research question..."></textarea>
-                </div>
-                
-                <div class="input-group">
-                    <label>Options:</label>
-                    <div id="option-container">
-                        <div class="option-row">
-                            <span class="option-label">A</span>
-                            <input type="text" id="opt0" placeholder="Option A">
-                        </div>
-                        <div class="option-row">
-                            <span class="option-label">B</span>
-                            <input type="text" id="opt1" placeholder="Option B">
-                        </div>
-                        <div class="option-row">
-                            <span class="option-label">C</span>
-                            <input type="text" id="opt2" placeholder="Option C">
-                        </div>
-                        <div class="option-row">
-                            <span class="option-label">D</span>
-                            <input type="text" id="opt3" placeholder="Option D">
-                        </div>
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h2>Advancing Water Sustainability with AI</h2>
+                    <p>WaterScope-AI is a research platform exploring domain-specific language models for water and wastewater treatment, with a focus on decarbonization and sustainability.</p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary" onclick="window.location.href='demo.html'">
+                            <i class="fas fa-play-circle"></i> Try MCQA Demo
+                        </button>
+                        <button class="btn-secondary" onclick="window.location.href='instructions.html'">
+                            <i class="fas fa-book"></i> View Instructions
+                        </button>
                     </div>
                 </div>
-                
-                <div class="control-row">
-                    <div class="control-group">
-                        <input type="checkbox" id="explanation">
-                        <label for="explanation">Generate Explanation</label>
+                <div class="hero-image">
+                    <i class="fas fa-water" style="font-size: 6rem; color: #3498db;"></i>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <h2>Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h3>Optimized Models</h3>
+                        <p>Specialized language models fine-tuned for water sustainability topics.</p>
                     </div>
-                    
-                    <div class="button-group">
-                        <button id="add-option" class="btn-secondary"><i class="fas fa-plus"></i> Option</button>
-                        <button id="clear" class="btn-secondary"><i class="fas fa-broom"></i> Clear</button>
-                        <button id="stop" class="btn-warning" style="display: none;"><i class="fas fa-stop"></i> Stop</button>
-                        <button id="send" class="btn-primary"><i class="fas fa-play"></i> Run Analysis</button>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Performance Analysis</h3>
+                        <p>Compare model outputs and analyze performance across different architectures.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>Research Dataset</h3>
+                        <p>Access to curated dataset of water sustainability questions and answers.</p>
                     </div>
                 </div>
             </section>
 
-            <section class="output-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-chart-line"></i> Model Performance</h2>
-                </div>
-                
-                <div class="output-grid">
-                    <div class="model-card">
-                        <div class="model-header">
-                            <h3><i class="fas fa-tachometer-alt"></i> DA-DPO Model</h3>
-                            <span class="model-badge">Preference-Optimized</span>
-                        </div>
-                        <div class="model-output">
-                            <div class="output-row">
-                                <label>Prediction:</label>
-                                <span id="dpo_letter" class="prediction">-</span>
-                            </div>
-                            <div class="output-row">
-                                <label>Output:</label>
-                                <pre id="dpo_raw">Waiting for input...</pre>
-                            </div>
+            <!-- Quick Start Section -->
+            <section class="quick-start-section">
+                <h2>Getting Started</h2>
+                <div class="quick-start-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Explore the MCQA Demo</h3>
+                            <p>Test our models with multiple-choice questions on water sustainability topics.</p>
+                            <button class="btn-secondary" onclick="window.location.href='demo.html'">
+                                <i class="fas fa-play-circle"></i> Launch Demo
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="model-card">
-                        <div class="model-header">
-                            <h3><i class="fas fa-puzzle-piece"></i> DA-IT Model</h3>
-                            <span class="model-badge">Instruction-Tuned</span>
-                        </div>
-                        <div class="model-output">
-                            <div class="output-row">
-                                <label>Prediction:</label>
-                                <span id="it_letter" class="prediction">-</span>
-                            </div>
-                            <div class="output-row">
-                                <label>Output:</label>
-                                <pre id="it_raw">Waiting for input...</pre>
-                            </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Try the Chat Interface</h3>
+                            <p>Have conversations with our specialized AI model about water sustainability.</p>
+                            <button class="btn-secondary" onclick="window.location.href='chat.html'">
+                                <i class="fas fa-comments"></i> Start Chat
+                            </button>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <section class="data-section">
-                <div class="section-header">
-                    <h2><i class="fas fa-database"></i> Research Example MCQA Data</h2>
-                    <button class="btn-help"><i class="fas fa-info-circle"></i></button>
-                </div>
-                
-                <div class="table-container">
-                    <table id="mcqa-table">
-                        <thead>
-                            <tr>
-                                <th width="40%">Question</th>
-                                <th width="15%">A</th>
-                                <th width="15%">B</th>
-                                <th width="15%">C</th>
-                                <th width="15%">D</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data will be populated by JavaScript -->
-                        </tbody>
-                    </table>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Read the Instructions</h3>
+                            <p>Learn how to make the most of WaterScope-AI's capabilities.</p>
+                            <button class="btn-secondary" onclick="window.location.href='instructions.html'">
+                                <i class="fas fa-book"></i> View Instructions
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -171,6 +136,5 @@
     </div>
 
     <script src="api-manager.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
