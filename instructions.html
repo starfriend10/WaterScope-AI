@@ -98,6 +98,7 @@
             background-color: #e8f4fd;
             border-left-color: #2196F3;
             padding: 15px;
+            margin-bottom: 20px; /* Reduced spacing after this section */
         }
         
         .note-box.loading h4 {
@@ -105,16 +106,17 @@
             margin-bottom: 10px;
         }
         
-        /* Numbered list for loading times */
+        /* Bullet list for loading times */
         .loading-list {
             margin: 10px 0;
-            padding-left: 5px;
+            padding-left: 20px;
         }
         
         .loading-list li {
             margin-bottom: 8px;
             color: #444;
             line-height: 1.5;
+            list-style-type: disc;
         }
         
         /* Fix alignment for best practices list */
@@ -148,7 +150,7 @@
         
         /* Reduced spacing between sections */
         .instruction-card {
-            margin-bottom: 25px; /* Reduced from larger value */
+            margin-bottom: 20px; /* Reduced spacing between sections */
         }
         
         /* Sub-heading styles */
@@ -190,10 +192,10 @@
                     <div class="note-box loading">
                         <h4><i class="fas fa-clock"></i> Important: Loading Times</h4>
                         <p>Please note that there are two types of loading times you may experience:</p>
-                        <ol class="loading-list">
+                        <ul class="loading-list">
                             <li><strong>API Initialization/Connection</strong> - This occurs on first use and can take 2-4 minutes. The API goes to sleep after 5 minutes of inactivity and will need to reinitialize if inactive.</li>
                             <li><strong>Model Processing</strong> - Once connected, model responses typically take 2-20 seconds depending on the complexity of your request.</li>
-                        </ol>
+                        </ul>
                         <p>Please be patient during these processes, especially when using the system for the first time or after a period of inactivity.</p>
                     </div>
                     
