@@ -9,7 +9,8 @@
     <style>
         /* Improved button colors with better contrast */
         .hero-buttons .btn-primary {
-            background: #1a5c8a; /* Darker blue */
+            background: #1a5c8a; /* Dark blue */
+            font-weight: 600;
         }
 
         .hero-buttons .btn-primary:hover {
@@ -18,6 +19,7 @@
 
         .hero-buttons .btn-secondary {
             background: #2c7dbb; /* Medium blue */
+            font-weight: 600;
         }
 
         .hero-buttons .btn-secondary:hover {
@@ -25,24 +27,37 @@
         }
 
         .hero-buttons .btn-third {
-            background: #8ac6f0; /* Light blue */
+            background: #c5e3fc; /* Much lighter blue */
             color: #000000; /* Black text for better contrast */
+            font-weight: 600;
         }
 
         .hero-buttons .btn-third:hover {
-            background: #7ab4e0; /* Slightly darker light blue */
+            background: #b0d4f0; /* Slightly darker light blue */
             color: #000000; /* Keep black text on hover */
         }
 
-        /* Quick Start section buttons - match the secondary button */
-        .quick-start-section .btn-secondary {
-            background: #2c7dbb; /* Same as hero's secondary button */
-            color: white; /* White text for consistency */
+        /* Quick Start section buttons - match the hero buttons */
+        .quick-start-steps .step:nth-child(1) .btn-secondary {
+            background: #2c7dbb; /* Same as hero's "View Instructions" button */
+            color: white;
+            font-weight: 600;
         }
 
-        .quick-start-section .btn-secondary:hover {
-            background: #2469a1; /* Same hover as hero's secondary button */
-            color: white; /* Keep white text on hover */
+        .quick-start-steps .step:nth-child(1) .btn-secondary:hover {
+            background: #2469a1; /* Same hover as hero's "View Instructions" button */
+            color: white;
+        }
+
+        .quick-start-steps .step:nth-child(2) .btn-secondary {
+            background: #1a5c8a; /* Same as hero's "Try the MCQA Demo" button */
+            color: white;
+            font-weight: 600;
+        }
+
+        .quick-start-steps .step:nth-child(2) .btn-secondary:hover {
+            background: #134466; /* Same hover as hero's "Try the MCQA Demo" button */
+            color: white;
         }
     </style>
 </head>
