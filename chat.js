@@ -11,28 +11,19 @@ let startTime = null;
 
 function startTimer() {
     startTime = Date.now();
-    // Ensure timer element exists
-    const statusIndicators = document.querySelector('.status-indicators');
-    if (statusIndicators && !document.getElementById('elapsed-time')) {
-        const timeItem = document.createElement('div');
-        timeItem.className = 'status-item';
-        timeItem.innerHTML = `
-            <span class="status-label">Time:</span>
-            <span id="elapsed-time" class="status-value">0.0s</span>
-        `;
-        statusIndicators.appendChild(timeItem);
-    }
     
-    if (document.getElementById('elapsed-time')) {
-        document.getElementById('elapsed-time').style.display = 'block';
+    // Show timer element
+    const elapsedTimeElement = document.getElementById('elapsed-time');
+    if (elapsedTimeElement) {
+        elapsedTimeElement.style.display = 'block';
     }
     
     if (timerInterval) clearInterval(timerInterval);
     
     timerInterval = setInterval(() => {
         const elapsedTime = (Date.now() - startTime) / 1000;
-        if (document.getElementById('elapsed-time')) {
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
+        if (elapsedTimeElement) {
+            elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
         }
     }, 100);
 }
@@ -140,6 +131,9 @@ async function initializeGradioClient() {
         apiInitializing = true;
         updateAPIStatus("Initializing connection to AI API...");
         
+        // Start timer for API initialization
+        startTimer();
+        
         // Import the Gradio client
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
         
@@ -151,6 +145,9 @@ async function initializeGradioClient() {
         apiConnected = true;
         updateAPIStatus("Connected to AI API successfully");
         updateSystemStatus("Ready");
+        
+        // Stop timer after successful initialization
+        stopTimer();
         return true;
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
@@ -158,6 +155,9 @@ async function initializeGradioClient() {
         apiConnected = false;
         updateAPIStatus("Failed to connect to AI API");
         updateSystemStatus("Connection Error");
+        
+        // Stop timer even if initialization fails
+        stopTimer();
         return false;
     }
 }
@@ -345,6 +345,9 @@ function setupEventListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Initializing API connection...");
+    
+    // Show timer immediately on page load
+    startTimer();
     
     // Add UI enhancements
     addClearButton();
