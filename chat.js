@@ -24,6 +24,7 @@ function checkExistingConnection() {
             if (document.getElementById('elapsed-time')) {
                 document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
             }
+            sessionStorage.removeItem('apiInitStart'); // Clean up
         }
         return true;
     }
@@ -77,6 +78,7 @@ function stopTimer() {
             if (document.getElementById('elapsed-time')) {
                 document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
             }
+            sessionStorage.removeItem('apiInitStart'); // Clean up
         }
     }
 }
@@ -185,6 +187,7 @@ async function initializeGradioClient() {
         // Store initialization start time
         startTime = Date.now();
         sessionStorage.setItem('apiInitStart', startTime);
+        startTimer();
         
         // Import the Gradio client
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
@@ -411,4 +414,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize Gradio client when page loads
     initializeGradioClient().catch(console.error);
+});
+
+// Add event listener for page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && apiConnected) {
+        // Page is visible again, update the timer if needed
+        const initStart = sessionStorage.getItem('apiInitStart');
+        if (initStart) {
+            const elapsedTime = (Date.now() - parseInt(initStart)) / 1000;
+            if (document.getElementById('elapsed-time')) {
+                document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
+            }
+        }
+    }
 });
