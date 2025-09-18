@@ -7,225 +7,38 @@
     <link rel="stylesheet" href="style-research.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Blue color scheme for buttons */
-        :root {
-            --primary-blue: #2c7dbb;
-            --secondary-blue: #5aa0ce;
-            --tertiary-blue: #8ac6f0;
-            --dark-blue: #1a5c8a;
-        }
-
-        /* Hero buttons styling */
+        /* Blue color scheme for buttons only */
         .hero-buttons .btn-primary {
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            font-weight: 600;
+            background: #2c7dbb;
         }
 
         .hero-buttons .btn-primary:hover {
-            background: var(--dark-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #1a5c8a;
         }
 
         .hero-buttons .btn-secondary {
-            background: var(--secondary-blue);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            font-weight: 600;
+            background: #5aa0ce;
         }
 
         .hero-buttons .btn-secondary:hover {
             background: #4a8fc4;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .hero-buttons .btn-third {
-            background: var(--tertiary-blue);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            font-weight: 600;
+            background: #8ac6f0;
         }
 
         .hero-buttons .btn-third:hover {
             background: #7ab4e0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        /* Quick Start section styling */
+        /* Quick Start section buttons */
         .quick-start-section .btn-secondary {
-            background: var(--secondary-blue);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s;
-            font-weight: 600;
+            background: #5aa0ce;
         }
 
         .quick-start-section .btn-secondary:hover {
             background: #4a8fc4;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        /* Step number styling */
-        .step-number {
-            background: var(--primary-blue);
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        /* Feature card styling */
-        .feature-card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #e1e4e8;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: all 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--primary-blue);
-            margin-bottom: 15px;
-        }
-
-        /* Hero section styling */
-        .hero-section {
-            background: linear-gradient(135deg, #f8fcff 0%, #e6f2ff 100%);
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 30px;
-            border: 1px solid #d1e0f0;
-        }
-
-        .hero-content h2 {
-            font-size: 2.2rem;
-            color: var(--primary-blue);
-            margin-bottom: 15px;
-        }
-
-        .hero-content p {
-            font-size: 1.2rem;
-            color: #5a6b7c;
-            margin-bottom: 30px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* Quick Start section */
-        .quick-start-section {
-            background: linear-gradient(135deg, #f8fcff 0%, #e6f2ff 100%);
-            border-radius: 12px;
-            padding: 35px;
-            margin-bottom: 30px;
-            border: 1px solid #d1e0f0;
-        }
-
-        .quick-start-section h2 {
-            color: var(--primary-blue);
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 1.8rem;
-        }
-
-        .step {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .step-content h3 {
-            margin-bottom: 12px;
-            color: var(--primary-blue);
-            font-size: 1.3rem;
-        }
-
-        .step-content p {
-            margin-bottom: 15px;
-            color: #5a6b7c;
-            line-height: 1.6;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .hero-buttons {
-                flex-direction: column;
-            }
-            
-            .hero-buttons button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .step {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .step-number {
-                align-self: center;
-            }
         }
     </style>
 </head>
@@ -267,7 +80,7 @@
                     </div>
                 </div>
                 <div class="hero-image">
-                    <i class="fas fa-water" style="font-size: 6rem; color: var(--primary-blue);"></i>
+                    <i class="fas fa-water" style="font-size: 6rem; color: #3498db;"></i>
                 </div>
             </section>
 
