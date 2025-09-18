@@ -6,6 +6,27 @@
     <title>WaterScope-AI | Home</title>
     <link rel="stylesheet" href="style-research.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styling for the publication button */
+        .btn-third {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-third:hover {
+            background: #219150;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -39,7 +60,7 @@
                         <button class="btn-secondary" onclick="window.location.href='instructions.html'">
                             <i class="fas fa-book"></i> View Instructions
                         </button>
-                        <button class="btn-thrid" onclick="window.open('https://pubs.acs.org/doi/full/10.1021/acs.est.3c01818', '_blank')">
+                        <button class="btn-third" onclick="window.open('https://pubs.acs.org/doi/full/10.1021/acs.est.3c01818', '_blank')">
                             <i class="fas fa-book"></i> Access Publication (to be updated)
                         </button>
                     </div>
@@ -82,20 +103,20 @@
                     <div class="step">
                         <div class="step-number">1</div>
                         <div class="step-content">
-                            <h3>Try the Demo</h3>
-                            <p>Test the MCQA analysis with our pre-loaded questions or your own inputs</p>
-                            <button class="btn-secondary" onclick="window.location.href='demo.html'">
-                                Open Demo <i class="fas fa-arrow-right"></i>
+                            <h3>Learn How to Use</h3>
+                            <p>Read the instructions to understand all features and capabilities</p>
+                            <button class="btn-secondary" onclick="window.location.href='instructions.html'">
+                                View Instructions <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
                     </div>
                     <div class="step">
                         <div class="step-number">2</div>
                         <div class="step-content">
-                            <h3>Learn How to Use</h3>
-                            <p>Read the instructions to understand all features and capabilities</p>
-                            <button class="btn-secondary" onclick="window.location.href='instructions.html'">
-                                View Instructions <i class="fas fa-arrow-right"></i>
+                            <h3>Try the Demo</h3>
+                            <p>Test the MCQA analysis with our pre-loaded questions or your own inputs</p>
+                            <button class="btn-secondary" onclick="window.location.href='demo.html'">
+                                Open Demo <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
                     </div>
