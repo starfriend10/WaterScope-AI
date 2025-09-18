@@ -1,4 +1,4 @@
-// Shared API connection and timer management
+// Simple shared API connection manager
 class SharedAPIConnection {
     constructor() {
         this.gradioApp = null;
@@ -6,14 +6,25 @@ class SharedAPIConnection {
         this.apiInitializing = false;
         this.connectionStartTime = null;
         this.timerInterval = null;
-        this.connectionCallbacks = [];
     }
 
     // Initialize the API connection
     async initialize() {
-        // Check if already connected or initializing
         if (this.apiConnected) return true;
-        if (this.apiInitializing) return this.waitForConnection();
+        if (this.apiInitializing) {
+            // Wait for the existing initialization to complete
+            return new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (this.apiConnected) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                    } else if (!this.apiInitializing) {
+                        clearInterval(checkInterval);
+                        resolve(false);
+                    }
+                }, 100);
+            });
+        }
         
         this.apiInitializing = true;
         this.connectionStartTime = Date.now();
@@ -31,13 +42,13 @@ class SharedAPIConnection {
             this.apiInitializing = false;
             this.stopTimer();
             
-            // Store connection status in sessionStorage
+            // Store connection status and time in sessionStorage
+            const connectionTime = ((Date.now() - this.connectionStartTime) / 1000).toFixed(1);
             sessionStorage.setItem('apiConnected', 'true');
-            sessionStorage.setItem('apiConnectionTime', (Date.now() - this.connectionStartTime) / 1000);
+            sessionStorage.setItem('apiConnectionTime', connectionTime);
             
-            // Notify all callbacks
-            this.connectionCallbacks.forEach(callback => callback(true));
-            this.connectionCallbacks = [];
+            // Update timer display on all pages
+            this.updateTimerDisplay(connectionTime + 's');
             
             return true;
         } catch (error) {
@@ -45,24 +56,8 @@ class SharedAPIConnection {
             this.apiConnected = false;
             this.apiInitializing = false;
             this.stopTimer();
-            
-            // Notify all callbacks
-            this.connectionCallbacks.forEach(callback => callback(false));
-            this.connectionCallbacks = [];
-            
             return false;
         }
-    }
-
-    // Wait for connection if it's being initialized by another page
-    waitForConnection() {
-        return new Promise((resolve) => {
-            if (this.apiConnected) {
-                resolve(true);
-            } else {
-                this.connectionCallbacks.push(resolve);
-            }
-        });
     }
 
     // Start the connection timer
@@ -70,11 +65,8 @@ class SharedAPIConnection {
         if (this.timerInterval) clearInterval(this.timerInterval);
         
         this.timerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - this.connectionStartTime) / 1000;
-            this.updateTimerDisplay(elapsedTime.toFixed(1) + 's');
-            
-            // Store current time in sessionStorage for other pages
-            sessionStorage.setItem('apiConnectionTime', elapsedTime.toFixed(1));
+            const elapsedTime = ((Date.now() - this.connectionStartTime) / 1000).toFixed(1);
+            this.updateTimerDisplay(elapsedTime + 's');
         }, 100);
     }
 
@@ -83,18 +75,11 @@ class SharedAPIConnection {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
-            
-            if (this.apiConnected && this.connectionStartTime) {
-                const totalTime = (Date.now() - this.connectionStartTime) / 1000;
-                this.updateTimerDisplay(totalTime.toFixed(1) + 's');
-                sessionStorage.setItem('apiConnectionTime', totalTime.toFixed(1));
-            }
         }
     }
 
-    // Update timer display on all pages
+    // Update timer display
     updateTimerDisplay(time) {
-        // Update timer on current page if it exists
         const timerElement = document.getElementById('elapsed-time');
         if (timerElement) {
             timerElement.textContent = time;
@@ -114,14 +99,6 @@ class SharedAPIConnection {
     // Check if initializing
     isInitializing() {
         return this.apiInitializing;
-    }
-
-    // Get connection time
-    getConnectionTime() {
-        if (this.connectionStartTime) {
-            return (Date.now() - this.connectionStartTime) / 1000;
-        }
-        return 0;
     }
 }
 
@@ -146,24 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Check if we need to continue initialization from another page
-    const isInitializing = sessionStorage.getItem('apiInitializing') === 'true';
-    if (isInitializing && !window.sharedAPIConnection.apiConnected) {
-        window.sharedAPIConnection.apiInitializing = true;
-        window.sharedAPIConnection.connectionStartTime = parseInt(sessionStorage.getItem('apiInitStartTime') || Date.now());
-        window.sharedAPIConnection.startTimer();
-    }
-    
     // Initialize the API connection
     window.sharedAPIConnection.initialize().catch(console.error);
 });
-
-// Update sessionStorage when connection status changes
-setInterval(() => {
-    if (window.sharedAPIConnection.apiInitializing) {
-        sessionStorage.setItem('apiInitializing', 'true');
-        sessionStorage.setItem('apiInitStartTime', window.sharedAPIConnection.connectionStartTime);
-    } else if (window.sharedAPIConnection.apiConnected) {
-        sessionStorage.setItem('apiInitializing', 'false');
-    }
-}, 500);
