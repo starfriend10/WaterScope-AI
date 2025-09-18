@@ -104,15 +104,11 @@
             <div class="status-indicators" style="margin-bottom: 20px;">
                 <div class="status-item">
                     <span class="status-label">System:</span>
-                    <span id="system-status" class="status-value">Initializing...</span>
+                    <span id="system-status" class="status-value">Ready</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">API:</span>
-                    <span id="api-status" class="status-value">Initializing...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Init Time:</span>
-                    <span id="initialization-time" class="status-value">0.0s</span>
+                    <span id="api-status" class="status-value">Ready</span>
                 </div>
             </div>
 
@@ -303,6 +299,32 @@
         </footer>
     </div>
 
-    <script src="api-manager.js"></script>
+    <script>
+        // Simple status management for instructions page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if API is already initialized from session storage
+            const apiStatus = sessionStorage.getItem('apiStatus');
+            const systemStatus = sessionStorage.getItem('systemStatus');
+            
+            if (apiStatus) {
+                document.getElementById('api-status').textContent = apiStatus;
+            }
+            
+            if (systemStatus) {
+                document.getElementById('system-status').textContent = systemStatus;
+            }
+            
+            // If no status is stored, set default values
+            if (!apiStatus) {
+                document.getElementById('api-status').textContent = 'Ready';
+                sessionStorage.setItem('apiStatus', 'Ready');
+            }
+            
+            if (!systemStatus) {
+                document.getElementById('system-status').textContent = 'Ready';
+                sessionStorage.setItem('systemStatus', 'Ready');
+            }
+        });
+    </script>
 </body>
 </html>
