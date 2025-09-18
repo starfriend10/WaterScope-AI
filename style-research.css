@@ -244,6 +244,22 @@ button {
     background: #e67e22;
 }
 
+
+.btn-third {
+    background: var(--success); /* Green tone */
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    height: 44px;
+}
+
+.btn-third:hover {
+    background: #219150; /* slightly darker green */
+}
+
 /* Output Section */
 .output-section {
     background: var(--card-bg);
