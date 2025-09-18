@@ -29,26 +29,6 @@
         </nav>
 
         <main class="main-content">
-            <!-- Status Indicators -->
-            <div class="status-indicators" style="margin-bottom: 20px;">
-                <div class="status-item">
-                    <span class="status-label">System:</span>
-                    <span id="system-status" class="status-value">Initializing...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">API:</span>
-                    <span id="api-status" class="status-value">Initializing...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Init Time:</span>
-                    <span id="initialization-time" class="status-value">0.0s</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Process Time:</span>
-                    <span id="processing-time" class="status-value">0.0s</span>
-                </div>
-            </div>
-
             <section class="input-section">
                 <div class="section-header">
                     <h2><i class="fas fa-question-circle"></i> Research Query</h2>
@@ -100,6 +80,20 @@
             <section class="output-section">
                 <div class="section-header">
                     <h2><i class="fas fa-chart-line"></i> Model Performance</h2>
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <span class="status-label">System:</span>
+                            <span id="system-status" class="status-value">Ready</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">API:</span>
+                            <span id="api-status" class="status-value">Ready</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Time:</span>
+                            <span id="elapsed-time" class="status-value">0.0s</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="output-grid">
@@ -141,7 +135,7 @@
 
             <section class="data-section">
                 <div class="section-header">
-                    <h2><i class="fas fa-database"></i> Example MCQA Data</h2>
+                    <h2><i class="fas fa-database"></i> Research Example MCQA Data</h2>
                     <button class="btn-help"><i class="fas fa-info-circle"></i></button>
                 </div>
                 
@@ -166,11 +160,10 @@
 
         <footer class="footer">
             <p>WaterScope-AI Research Platform © 2025</p>
-            <p>Department of Civil and Environmental Engineering, Princeton University, </p>
+            <p>Department of Civil and Environmental Engineering, Princeton University</p>
         </footer>
     </div>
 
-    <script src="api-manager.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
