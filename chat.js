@@ -13,10 +13,12 @@ let startTime = null;
 function checkExistingConnection() {
     const connected = sessionStorage.getItem('apiConnected') === 'true';
     const initStart = sessionStorage.getItem('apiInitStart');
+    const initPage = sessionStorage.getItem('apiInitPage');
     
-    if (connected) {
+    // If connected from another page, use that connection
+    if (connected && initPage && initPage !== 'chat') {
         apiConnected = true;
-        updateAPIStatus("Connected to AI API successfully");
+        updateAPIStatus("Connected to AI API successfully (from other page)");
         
         // If there's an initialization time, calculate total time
         if (initStart) {
@@ -24,7 +26,6 @@ function checkExistingConnection() {
             if (document.getElementById('elapsed-time')) {
                 document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
             }
-            sessionStorage.removeItem('apiInitStart'); // Clean up
         }
         return true;
     }
@@ -78,7 +79,6 @@ function stopTimer() {
             if (document.getElementById('elapsed-time')) {
                 document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
             }
-            sessionStorage.removeItem('apiInitStart'); // Clean up
         }
     }
 }
@@ -187,6 +187,7 @@ async function initializeGradioClient() {
         // Store initialization start time
         startTime = Date.now();
         sessionStorage.setItem('apiInitStart', startTime);
+        sessionStorage.setItem('apiInitPage', 'chat');
         startTimer();
         
         // Import the Gradio client
@@ -201,6 +202,7 @@ async function initializeGradioClient() {
         
         // Store connection status in sessionStorage
         sessionStorage.setItem('apiConnected', 'true');
+        sessionStorage.setItem('apiInitPage', 'chat');
         sessionStorage.removeItem('apiInitStart');
         
         updateAPIStatus("Connected to AI API successfully");
@@ -212,6 +214,7 @@ async function initializeGradioClient() {
         apiInitializing = false;
         apiConnected = false;
         sessionStorage.removeItem('apiInitStart');
+        sessionStorage.removeItem('apiInitPage');
         updateAPIStatus("Failed to connect to AI API");
         updateSystemStatus("Connection Error");
         stopTimer();
