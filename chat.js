@@ -1,4 +1,4 @@
-// chat.js - Simplified solution using shared API connection
+// chat.js - Complete solution using shared API connection
 let isProcessing = false;
 let chatHistory = [];
 
@@ -269,10 +269,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if API is already connected
     if (window.sharedAPIConnection.isConnected()) {
         updateAPIStatus("Connected to AI API successfully");
+        
+        // Update timer display
+        const storedTime = sessionStorage.getItem('apiConnectionTime');
+        if (storedTime) {
+            const timerElement = document.getElementById('elapsed-time');
+            if (timerElement) {
+                timerElement.textContent = storedTime + 's';
+            }
+        }
+    } else if (window.sharedAPIConnection.isInitializing()) {
+        updateAPIStatus("Initializing connection to AI API...");
     }
     
     // Add UI enhancements
     addClearButton();
     setupAutoResize();
     setupEventListeners();
+    
+    // Set up timer update interval
+    setInterval(() => {
+        if (window.sharedAPIConnection.isInitializing()) {
+            const elapsedTime = window.sharedAPIConnection.getConnectionTime();
+            const timerElement = document.getElementById('elapsed-time');
+            if (timerElement) {
+                timerElement.textContent = elapsedTime.toFixed(1) + 's';
+            }
+        }
+    }, 100);
 });
