@@ -2,7 +2,16 @@
 const MAX_OPTIONS = 8;
 let currentOptions = 4;
 let MCQA_DATA = [];
+let gradioApp = null;
+let apiInitializing = false;
+let apiConnected = false;
 let isProcessing = false;
+
+// Timer functionality
+let timerInterval = null;
+let startTime = null;
+let warmupTimerInterval = null;
+let warmupStartTime = null;
 
 // Freeze function for MCQA
 function freezeMCQAInputs() {
@@ -62,6 +71,40 @@ function unfreezeMCQAInputs() {
     });
     
     updateSystemStatus("Ready");
+}
+
+function startTimer(type) {
+    if (type === 'warmup') {
+        warmupStartTime = Date.now();
+        document.getElementById('elapsed-time').style.display = 'block';
+        
+        if (warmupTimerInterval) clearInterval(warmupTimerInterval);
+        
+        warmupTimerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - warmupStartTime) / 1000;
+            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
+        }, 100);
+    } else if (type === 'processing') {
+        startTime = Date.now();
+        document.getElementById('elapsed-time').style.display = 'block';
+        
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
+        }, 100);
+    }
+}
+
+function stopTimer(type) {
+    if (type === 'warmup' && warmupTimerInterval) {
+        clearInterval(warmupTimerInterval);
+        warmupTimerInterval = null;
+    } else if (type === 'processing' && timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
 }
 
 // Status update functions
@@ -243,20 +286,48 @@ document.getElementById('clear').addEventListener('click', ()=>{
     document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
-// --- 6. Handle Stop Request ---
+// --- 6. Initialize Gradio Client ---
+async function initializeGradioClient() {
+    try {
+        apiInitializing = true;
+        updateAPIStatus("Initializing connection to AI API...");
+        startTimer('warmup');
+        
+        // Import the Gradio client
+        const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
+        
+        // Connect to your Hugging Face Space
+        gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
+        
+        console.log("Gradio client initialized successfully");
+        stopTimer('warmup');
+        apiInitializing = false;
+        apiConnected = true;
+        updateAPIStatus("Connected to AI API successfully");
+    } catch (error) {
+        console.error("Failed to initialize Gradio client:", error);
+        stopTimer('warmup');
+        apiInitializing = false;
+        apiConnected = false;
+        updateAPIStatus("Failed to connect to AI API");
+    }
+}
+
+// --- 7. Handle Stop Request ---
 function handleStopRequest() {
     if (isProcessing) {
         isProcessing = false;
+        stopTimer('processing');
         unfreezeMCQAInputs(); // Unfreeze inputs when stopping
         updateAPIStatus("Request cancelled");
         console.log("Processing stopped by user");
     }
 }
 
-// --- 7. Stop Button Event Listener ---
+// --- 8. Stop Button Event Listener ---
 document.getElementById('stop').addEventListener('click', handleStopRequest);
 
-// --- 8. Run Comparison (using Gradio Client) ---
+// --- 9. Run Comparison (using Gradio Client) ---
 document.getElementById('send').addEventListener('click', async ()=>{
     const question=document.getElementById('question').value;
     const options=[];
@@ -274,14 +345,11 @@ document.getElementById('send').addEventListener('click', async ()=>{
         return;
     }
 
-    // Get the shared API connection
-    const gradioApp = window.sharedAPIConnection.getClient();
-    
     // Initialize client if not already done
     if (!gradioApp) {
         updateAPIStatus("Initializing connection to AI API...");
-        const success = await window.sharedAPIConnection.initialize();
-        if (!success) {
+        await initializeGradioClient();
+        if (!gradioApp) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             alert("Failed to connect to AI API. Please try again.");
             return;
@@ -295,6 +363,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
         // Freeze inputs before processing
         freezeMCQAInputs();
         
+        // Start the processing timer
+        startTimer('processing');
         updateAPIStatus("Processing your question...");
         
         // Call the API with correct parameter names
@@ -338,6 +408,9 @@ document.getElementById('send').addEventListener('click', async ()=>{
     } finally {
         // Always clean up, even if there was an error
         if (isProcessing) {
+            // Stop the processing timer
+            stopTimer('processing');
+            
             // Unfreeze inputs
             unfreezeMCQAInputs();
             
@@ -350,10 +423,7 @@ document.getElementById('send').addEventListener('click', async ()=>{
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
-    updateAPIStatus("Checking API connection...");
-    
-    // Check if API is already connected
-    if (window.sharedAPIConnection.isConnected()) {
-        updateAPIStatus("Connected to AI API successfully");
-    }
+    updateAPIStatus("Initializing API connection...");
+    // Initialize Gradio client when page loads
+    initializeGradioClient().catch(console.error);
 });
