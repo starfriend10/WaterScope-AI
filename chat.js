@@ -46,7 +46,7 @@ async function initializeGradioClient() {
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
         
         // Connect to your Hugging Face Space
-        gradioApp = await Client.connect("https://huggingface.co/spaces/EnvironmentalAI/WaterScopeAI");
+        gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
         
         console.log("Gradio client initialized successfully");
         apiInitializing = false;
@@ -106,7 +106,7 @@ async function sendMessage() {
         startTimer();
         
         // Call the correct endpoint - use the function name from your backend
-        const result = await gradioApp.predict("/chat_with_model", [message, []]);
+        const result = await gradioApp.predict("/respond", [message, []]);
         
         const botResponse = result.data;
         addMessage(botResponse, false);
