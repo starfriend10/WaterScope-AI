@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterScope-AI | Chat</title>
+    <link rel="stylesheet" href="style-research.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
+                <p>Domain-Specific Small Language Models for Water Sustainability</p>
+            </div>
+            <div class="header-badge">
+                <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
+                <span class="badge"><i class="fas fa-database"></i> v1.0.0</span>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
+            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
+            <button class="tab active"><i class="fas fa-comments"></i> Chat (for testing)</button>
+            <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book"></i> Instructions</button>
+        </nav>
+
+        <main class="main-content">
+            <section class="chat-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-comments"></i> Chat with DA-DPO Model</h2>
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <span class="status-label">System:</span>
+                            <span id="system-status" class="status-value">Ready</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">API:</span>
+                            <span id="api-status" class="status-value">Ready</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                <p>Hello! I'm a specialized AI model for water sustainability. How can I assist you today?</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <textarea id="user-input" placeholder="Type your message here..." rows="2"></textarea>
+                        <button id="send-chat" class="btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>WaterScope-AI Research Platform © 2025</p>
+            <p>Department of Civil and Environmental Engineering, Princeton University</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
+    <script>
+        // Global variables
+        let gradioApp = null;
+        let apiInitializing = false;
+        let apiConnected = false;
+
+        // Status update functions
+        function updateSystemStatus(message) {
+            document.getElementById('system-status').textContent = message;
+        }
+
+        function updateAPIStatus(message) {
+            document.getElementById('api-status').textContent = message;
+        }
+
+        // Initialize Gradio Client
+        async function initializeGradioClient() {
+            try {
+                apiInitializing = true;
+                updateAPIStatus("Initializing connection to AI API...");
+                
+                const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
+                gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
+                
+                console.log("Gradio client initialized successfully");
+                apiInitializing = false;
+                apiConnected = true;
+                updateAPIStatus("Connected to AI API successfully");
+            } catch (error) {
+                console.error("Failed to initialize Gradio client:", error);
+                apiInitializing = false;
+                apiConnected = false;
+                updateAPIStatus("Failed to connect to AI API");
+            }
+        }
+
+        // Function to add a message to the chat
+        function addMessage(text, isUser) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <p>${text}</p>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to send a message
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, true);
+            userInput.value = '';
+            
+            // Initialize client if not already done
+            if (!gradioApp) {
+                updateAPIStatus("Initializing connection to AI API...");
+                await initializeGradioClient();
+                if (!gradioApp) {
+                    updateAPIStatus("Failed to connect to AI API. Please try again.");
+                    addMessage("Sorry, I'm having trouble connecting to the AI service. Please try again later.", false);
+                    return;
+                }
+            }
+            
+            try {
+                updateAPIStatus("Processing your message...");
+                
+                // Call the chat endpoint - adjust the endpoint name as per your Hugging Face Space
+                const result = await gradioApp.predict("/chat", {
+                    message: message
+                });
+                
+                const botResponse = result.data;
+                addMessage(botResponse, false);
+                updateAPIStatus("Connected to AI API successfully");
+            } catch (err) {
+                console.error('API Error:', err);
+                updateAPIStatus('Error: ' + err.message);
+                addMessage("Sorry, I encountered an error while processing your message.", false);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('send-chat').addEventListener('click', sendMessage);
+        
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSystemStatus("Initializing application...");
+            updateAPIStatus("Initializing API connection...");
+            initializeGradioClient().catch(console.error);
+        });
+    </script>
+</body>
+</html>
