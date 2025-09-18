@@ -1,87 +1,6 @@
-// chat.js - Complete solution with freezing functionality and cross-page synchronization
-let gradioApp = null;
-let apiInitializing = false;
-let apiConnected = false;
+// chat.js - Simplified solution using shared API connection
 let isProcessing = false;
 let chatHistory = [];
-
-// Timer functionality
-let timerInterval = null;
-let startTime = null;
-
-// Check if API is already connected from another page
-function checkExistingConnection() {
-    const connected = sessionStorage.getItem('apiConnected') === 'true';
-    const initStart = sessionStorage.getItem('apiInitStart');
-    const initPage = sessionStorage.getItem('apiInitPage');
-    
-    // If connected from another page, use that connection
-    if (connected && initPage && initPage !== 'chat') {
-        apiConnected = true;
-        updateAPIStatus("Connected to AI API successfully (from other page)");
-        
-        // If there's an initialization time, calculate total time
-        if (initStart) {
-            const totalTime = (Date.now() - parseInt(initStart)) / 1000;
-            if (document.getElementById('elapsed-time')) {
-                document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
-            }
-        }
-        return true;
-    }
-    
-    // If another page is initializing, sync with that process
-    if (initStart && !connected) {
-        startTime = parseInt(initStart);
-        startTimer();
-        updateAPIStatus("Initializing connection to AI API...");
-        return true;
-    }
-    
-    return false;
-}
-
-function startTimer() {
-    // Ensure timer element exists
-    const statusIndicators = document.querySelector('.status-indicators');
-    if (statusIndicators && !document.getElementById('elapsed-time')) {
-        const timeItem = document.createElement('div');
-        timeItem.className = 'status-item';
-        timeItem.innerHTML = `
-            <span class="status-label">Time:</span>
-            <span id="elapsed-time" class="status-value">0.0s</span>
-        `;
-        statusIndicators.appendChild(timeItem);
-    }
-    
-    if (document.getElementById('elapsed-time')) {
-        document.getElementById('elapsed-time').style.display = 'block';
-    }
-    
-    if (timerInterval) clearInterval(timerInterval);
-    
-    timerInterval = setInterval(() => {
-        const elapsedTime = (Date.now() - startTime) / 1000;
-        if (document.getElementById('elapsed-time')) {
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-        }
-    }, 100);
-}
-
-function stopTimer() {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        
-        // If API is now connected, store the final time
-        if (apiConnected && startTime) {
-            const totalTime = (Date.now() - startTime) / 1000;
-            if (document.getElementById('elapsed-time')) {
-                document.getElementById('elapsed-time').textContent = totalTime.toFixed(1) + 's';
-            }
-        }
-    }
-}
 
 // Status update functions
 function updateSystemStatus(message) {
@@ -126,8 +45,6 @@ function freezeInputPanel() {
     const sendButton = document.getElementById('send-chat');
     const clearButton = document.getElementById('clear-chat');
     
-    console.log("Freezing input panel", {userInput, sendButton, clearButton});
-    
     if (userInput) {
         userInput.disabled = true;
         userInput.setAttribute('readonly', 'readonly');
@@ -151,8 +68,6 @@ function unfreezeInputPanel() {
     const sendButton = document.getElementById('send-chat');
     const clearButton = document.getElementById('clear-chat');
     
-    console.log("Unfreezing input panel");
-    
     if (userInput) {
         userInput.disabled = false;
         userInput.removeAttribute('readonly');
@@ -169,57 +84,6 @@ function unfreezeInputPanel() {
     }
     
     updateSystemStatus("Ready");
-}
-
-// Initialize Gradio Client
-async function initializeGradioClient() {
-    try {
-        // Check if already connected from another page
-        if (checkExistingConnection()) {
-            return true;
-        }
-        
-        if (gradioApp) return true; // Already initialized
-        
-        apiInitializing = true;
-        updateAPIStatus("Initializing connection to AI API...");
-        
-        // Store initialization start time
-        startTime = Date.now();
-        sessionStorage.setItem('apiInitStart', startTime);
-        sessionStorage.setItem('apiInitPage', 'chat');
-        startTimer();
-        
-        // Import the Gradio client
-        const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
-        
-        // Connect to your Hugging Face Space
-        gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
-        
-        console.log("Gradio client initialized successfully");
-        apiInitializing = false;
-        apiConnected = true;
-        
-        // Store connection status in sessionStorage
-        sessionStorage.setItem('apiConnected', 'true');
-        sessionStorage.setItem('apiInitPage', 'chat');
-        sessionStorage.removeItem('apiInitStart');
-        
-        updateAPIStatus("Connected to AI API successfully");
-        updateSystemStatus("Ready");
-        stopTimer();
-        return true;
-    } catch (error) {
-        console.error("Failed to initialize Gradio client:", error);
-        apiInitializing = false;
-        apiConnected = false;
-        sessionStorage.removeItem('apiInitStart');
-        sessionStorage.removeItem('apiInitPage');
-        updateAPIStatus("Failed to connect to AI API");
-        updateSystemStatus("Connection Error");
-        stopTimer();
-        return false;
-    }
 }
 
 // Function to add a message to the chat
@@ -279,10 +143,13 @@ async function sendMessage() {
     userInput.value = '';
     userInput.style.height = 'auto';
     
+    // Get the shared API connection
+    const gradioApp = window.sharedAPIConnection.getClient();
+    
     // Initialize client if not already done
     if (!gradioApp) {
         updateAPIStatus("Initializing connection to AI API...");
-        const success = await initializeGradioClient();
+        const success = await window.sharedAPIConnection.initialize();
         if (!success) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             addMessage("Sorry, I'm having trouble connecting to the AI service. Please try again later.", false);
@@ -336,11 +203,6 @@ function clearChat() {
     chatHistory = [];
     updateAPIStatus("Ready");
     updateSystemStatus("Ready");
-    
-    // Clear any timer display
-    if (document.getElementById('elapsed-time')) {
-        document.getElementById('elapsed-time').textContent = "0.0s";
-    }
 }
 
 // Auto-resize textarea as user types
@@ -404,31 +266,13 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Checking API connection...");
     
-    // Check for existing connection first
-    if (checkExistingConnection()) {
-        // If already connected, we're done
-        return;
+    // Check if API is already connected
+    if (window.sharedAPIConnection.isConnected()) {
+        updateAPIStatus("Connected to AI API successfully");
     }
     
     // Add UI enhancements
     addClearButton();
     setupAutoResize();
     setupEventListeners();
-    
-    // Initialize Gradio client when page loads
-    initializeGradioClient().catch(console.error);
-});
-
-// Add event listener for page visibility change
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && apiConnected) {
-        // Page is visible again, update the timer if needed
-        const initStart = sessionStorage.getItem('apiInitStart');
-        if (initStart) {
-            const elapsedTime = (Date.now() - parseInt(initStart)) / 1000;
-            if (document.getElementById('elapsed-time')) {
-                document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-            }
-        }
-    }
 });
