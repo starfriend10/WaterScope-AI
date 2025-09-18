@@ -13,6 +13,66 @@ let startTime = null;
 let warmupTimerInterval = null;
 let warmupStartTime = null;
 
+// Freeze function for MCQA
+function freezeMCQAInputs() {
+    console.log("Freezing MCQA inputs");
+    
+    // Disable all input elements
+    document.getElementById('question').disabled = true;
+    document.getElementById('send').disabled = true;
+    document.getElementById('add-option').disabled = true;
+    document.getElementById('clear').disabled = true;
+    document.getElementById('explanation').disabled = true;
+    
+    // Show the stop button
+    document.getElementById('stop').style.display = 'inline-block';
+    
+    // Disable all option inputs
+    for(let i = 0; i < MAX_OPTIONS; i++) {
+        const optInput = document.getElementById('opt' + i);
+        if (optInput) optInput.disabled = true;
+    }
+    
+    // Disable table interactions
+    const tableRows = document.querySelectorAll('#mcqa-table tr');
+    tableRows.forEach(row => {
+        row.style.pointerEvents = 'none';
+        row.style.opacity = '0.7';
+    });
+    
+    updateSystemStatus("Processing your request...");
+}
+
+// Unfreeze function for MCQA
+function unfreezeMCQAInputs() {
+    console.log("Unfreezing MCQA inputs");
+    
+    // Enable all input elements
+    document.getElementById('question').disabled = false;
+    document.getElementById('send').disabled = false;
+    document.getElementById('add-option').disabled = false;
+    document.getElementById('clear').disabled = false;
+    document.getElementById('explanation').disabled = false;
+    
+    // Hide the stop button
+    document.getElementById('stop').style.display = 'none';
+    
+    // Enable all option inputs
+    for(let i = 0; i < MAX_OPTIONS; i++) {
+        const optInput = document.getElementById('opt' + i);
+        if (optInput) optInput.disabled = false;
+    }
+    
+    // Enable table interactions
+    const tableRows = document.querySelectorAll('#mcqa-table tr');
+    tableRows.forEach(row => {
+        row.style.pointerEvents = 'auto';
+        row.style.opacity = '1';
+    });
+    
+    updateSystemStatus("Ready");
+}
+
 function startTimer(type) {
     if (type === 'warmup') {
         warmupStartTime = Date.now();
@@ -49,11 +109,39 @@ function stopTimer(type) {
 
 // Status update functions
 function updateSystemStatus(message) {
-    document.getElementById('system-status').textContent = message;
+    const element = document.getElementById('system-status');
+    if (element) {
+        element.textContent = message;
+        
+        // Add visual status indicators
+        element.classList.remove('status-processing', 'status-ready', 'status-error');
+        
+        if (message.toLowerCase().includes('processing')) {
+            element.classList.add('status-processing');
+        } else if (message.toLowerCase().includes('ready')) {
+            element.classList.add('status-ready');
+        } else if (message.toLowerCase().includes('error')) {
+            element.classList.add('status-error');
+        }
+    }
 }
 
 function updateAPIStatus(message) {
-    document.getElementById('api-status').textContent = message;
+    const element = document.getElementById('api-status');
+    if (element) {
+        element.textContent = message;
+        
+        // Add visual status indicators
+        element.classList.remove('status-processing', 'status-ready', 'status-error');
+        
+        if (message.toLowerCase().includes('processing')) {
+            element.classList.add('status-processing');
+        } else if (message.toLowerCase().includes('connected') || message.toLowerCase().includes('received')) {
+            element.classList.add('status-ready');
+        } else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
+            element.classList.add('status-error');
+        }
+    }
 }
 
 // --- 1. Load CSV ---
@@ -107,6 +195,8 @@ function populateTable() {
 
 // --- 3. Click row to autofill ---
 document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
+    if (isProcessing) return; // Don't allow row selection during processing
+    
     const tr = e.target.closest('tr');
     if(!tr) return;
     
@@ -133,6 +223,8 @@ document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
 
 // --- 4. Add Option ---
 document.getElementById('add-option').addEventListener('click', ()=>{
+    if (isProcessing) return; // Don't allow adding options during processing
+    
     if(currentOptions>=MAX_OPTIONS) {
         updateSystemStatus("Maximum options reached");
         return;
@@ -167,6 +259,8 @@ document.getElementById('add-option').addEventListener('click', ()=>{
 
 // --- 5. Clear All (Inputs Only) ---
 document.getElementById('clear').addEventListener('click', ()=>{
+    if (isProcessing) return; // Don't allow clearing during processing
+    
     // Only clear input fields, don't stop any ongoing processing
     document.getElementById('question').value="";
     for(let i=0;i<MAX_OPTIONS;i++){
@@ -224,8 +318,7 @@ function handleStopRequest() {
     if (isProcessing) {
         isProcessing = false;
         stopTimer('processing');
-        document.getElementById('stop').style.display = 'none';
-        document.getElementById('send').disabled = false;
+        unfreezeMCQAInputs(); // Unfreeze inputs when stopping
         updateAPIStatus("Request cancelled");
         console.log("Processing stopped by user");
     }
@@ -266,8 +359,9 @@ document.getElementById('send').addEventListener('click', async ()=>{
     try {
         // Set processing flag and update UI
         isProcessing = true;
-        document.getElementById('stop').style.display = 'inline-block';
-        document.getElementById('send').disabled = true;
+        
+        // Freeze inputs before processing
+        freezeMCQAInputs();
         
         // Start the processing timer
         startTimer('processing');
@@ -317,9 +411,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
             // Stop the processing timer
             stopTimer('processing');
             
-            // Hide stop button and re-enable send button
-            document.getElementById('stop').style.display = 'none';
-            document.getElementById('send').disabled = false;
+            // Unfreeze inputs
+            unfreezeMCQAInputs();
             
             // Reset processing flag
             isProcessing = false;
