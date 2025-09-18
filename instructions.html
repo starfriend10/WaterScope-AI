@@ -203,6 +203,11 @@
                     <div class="instruction-card">
                         <h3><i class="fas fa-play-circle"></i> MCQA Demo Instructions</h3>
                         
+                        <div class="note-box important">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Important Note</h4>
+                            <p>The AI models were developed using a Small Language Model (Llama-3.1-8B) as a <strong>Proof of Concept</strong>. The goal is to demonstrate that, with appropriate domain-specific post-training, an expert model can achieve competitive performance while maintaining high accessibility, portability, and flexibility for local deployment.</p>
+                        </div>
+                        
                         <div class="instruction-step">
                             <div class="step-number">1</div>
                             <div class="step-content">
@@ -223,7 +228,7 @@
                             <div class="step-number">3</div>
                             <div class="step-content">
                                 <h4>Generate Explanation (Optional)</h4>
-                                <p>Check the "Generate Explanation" box if you want the models to provide reasoning for their answers.</p>
+                                <p>Check the "Generate Explanation" box if you want the models to provide reasoning for their answers. Note that the model was developed for without explanation at this stage.</p>
                             </div>
                         </div>
                         
@@ -303,18 +308,18 @@
                                 </tr>
                                 <tr>
                                     <td>Primary Design Purpose</td>
-                                    <td><i class="fas fa-check-circle"></i> Optimized</td>
+                                    <td><i class="fas fa-check-circle"></i> Optimized Demo</td>
                                     <td><i class="fas fa-info-circle"></i> Experimental</td>
                                 </tr>
                                 <tr>
                                     <td>Response Quality</td>
-                                    <td><i class="fas fa-check-circle"></i> High Accuracy</td>
+                                    <td><i class="fas fa-check-circle"></i> Higher Accuracy</td>
                                     <td><i class="fas fa-exclamation-circle"></i> Variable</td>
                                 </tr>
                                 <tr>
-                                    <td>Response Time</td>
-                                    <td><i class="fas fa-bolt"></i> Faster</td>
-                                    <td><i class="fas fa-clock"></i> Slower</td>
+                                    <td>Example Questions</td>
+                                    <td><i class="fas fa-bolt"></i> Available+User-defined</td>
+                                    <td><i class="fas fa-clock"></i> User-defined</td>
                                 </tr>
                                 <tr>
                                     <td>Input Freezing</td>
@@ -333,13 +338,13 @@
                             <div class="model-detail">
                                 <h4><i class="fas fa-tachometer-alt"></i> DA-DPO Model</h4>
                                 <span class="model-badge">Preference-Optimized</span>
-                                <p>Fine-tuned using Direct Preference Optimization (DPO) for water sustainability content. Used in both MCQA and Chat interfaces.</p>
+                                <p>Domain-adaptation by domain-specific text corpora and Fine-tuned using Direct Preference Optimization (DPO) for water sustainability content. Used in both MCQA and Chat interfaces.</p>
                             </div>
                             
                             <div class="model-detail">
                                 <h4><i class="fas fa-puzzle-piece"></i> DA-IT Model</h4>
                                 <span class="model-badge">Instruction-Tuned</span>
-                                <p>Instruction-tuned on water sustainability questions and answers for domain-specific performance. Used only in MCQA interface.</p>
+                                <p>Domain-adaptation by domain-specific text corpora and Instruction-tuned on water sustainability questions and answers for domain-specific performance. Used only in MCQA interface.</p>
                             </div>
                         </div>
                     </div>
