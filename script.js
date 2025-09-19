@@ -190,7 +190,7 @@ function populateTable() {
     MCQA_DATA.forEach((row, idx) => {
         const tr = document.createElement('tr');
         tr.dataset.index = idx;
-        tr.innerHTML = `<td>${row.ID}</td><td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
+        tr.innerHTML = `<td>${row.ID || ''}</td><td>${row.Question || ''}</td><td>${row.A || ''}</td><td>${row.B || ''}</td><td>${row.C || ''}</td><td>${row.D || ''}</td>`;
         tableBody.appendChild(tr);
     });
 }
@@ -211,12 +211,12 @@ document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
     tr.classList.add('highlighted');
     
     const row = MCQA_DATA[tr.dataset.index];
-    document.getElementById('id').value = row.ID;
-    document.getElementById('question').value = row.Question;
-    document.getElementById('opt0').value = row.A;
-    document.getElementById('opt1').value = row.B;
-    document.getElementById('opt2').value = row.C;
-    document.getElementById('opt3').value = row.D;
+    // Removed the line that tries to set ID field since it doesn't exist in the form
+    document.getElementById('question').value = row.Question || '';
+    document.getElementById('opt0').value = row.A || '';
+    document.getElementById('opt1').value = row.B || '';
+    document.getElementById('opt2').value = row.C || '';
+    document.getElementById('opt3').value = row.D || '';
     for(let i=4;i<MAX_OPTIONS;i++){
         const el=document.getElementById('opt'+i);
         if(el) el.value="";
