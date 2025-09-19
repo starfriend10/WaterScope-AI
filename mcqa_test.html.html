@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQA Model Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fb;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #6eb1ff 0%, #88d3fe 100%);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .progress-container {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 20px;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .results {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 10px 15px;
+            background: #6eb1ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5a9de6;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e8f4fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MCQA Model Testing Interface</h1>
+        <p>Test your models against the 777 MCQA questions</p>
+    </div>
+
+    <div class="controls">
+        <h2>Test Controls</h2>
+        <div>
+            <button id="start-test">Start Test</button>
+            <button id="pause-test" disabled>Pause</button>
+            <button id="resume-test" disabled>Resume</button>
+            <button id="export-results" disabled>Export Results</button>
+        </div>
+        
+        <div class="progress-container">
+            <h3>Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-bar"></div>
+            </div>
+            <div id="progress-text">0/777 (0%)</div>
+        </div>
+        
+        <div class="status" id="status-message">Ready to start testing</div>
+    </div>
+
+    <div class="results">
+        <h2>Results Summary</h2>
+        <div id="results-summary">
+            <p>No tests run yet. Click "Start Test" to begin.</p>
+        </div>
+        
+        <h3>Detailed Results</h3>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Question ID</th>
+                        <th>Question</th>
+                        <th>Base Model</th>
+                        <th>IT Model</th>
+                        <th>DPO Model</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Results will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="mcqa_test.js"></script>
+</body>
+</html>
