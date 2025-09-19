@@ -160,6 +160,7 @@ Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/ma
         // Fallback to sample data if CSV fails
         MCQA_DATA = [
             {
+                ID: "1",
                 Question: "What role do wastewater utilities play in the water sector?",
                 A: "They primarily focus on desalination.",
                 B: "They collect and treat generated wastewater to ensure the effluent can be safely discharged or reused.",
@@ -167,6 +168,7 @@ Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/ma
                 D: "They only monitor water purity in natural bodies of water."
             },
             {
+                ID: "2",
                 Question: "What main challenges are facing the water sector due to climate change?",
                 A: "Global trade fluctuations",
                 B: "Regulatory changes",
@@ -188,7 +190,7 @@ function populateTable() {
     MCQA_DATA.forEach((row, idx) => {
         const tr = document.createElement('tr');
         tr.dataset.index = idx;
-        tr.innerHTML = `<td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
+        tr.innerHTML = `<td>${row.ID}</td><td>${row.Question}</td><td>${row.A}</td><td>${row.B}</td><td>${row.C}</td><td>${row.D}</td>`;
         tableBody.appendChild(tr);
     });
 }
@@ -209,6 +211,7 @@ document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
     tr.classList.add('highlighted');
     
     const row = MCQA_DATA[tr.dataset.index];
+    document.getElementById('id').value = row.ID;
     document.getElementById('question').value = row.Question;
     document.getElementById('opt0').value = row.A;
     document.getElementById('opt1').value = row.B;
