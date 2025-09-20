@@ -1137,10 +1137,11 @@ tr.highlighted {
 }
 
 
-##explanation checkbox
+/* Explanation checkbox note */
 .control-group {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* stack vertically */
+  align-items: flex-start;
 }
 
 .control-group label {
@@ -1150,8 +1151,8 @@ tr.highlighted {
 }
 
 .control-group .note {
-  font-size: 0.85em;   /* smaller text */
-  color: #666;         /* softer gray */
-  margin-left: 24px;   /* aligns under label text */
-  margin-top: 2px;     /* small gap */
+  font-size: 0.85em;
+  color: var(--gray);
+  margin-left: 24px;  /* lines up with text, not checkbox */
+  margin-top: 2px;
 }
