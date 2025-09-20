@@ -134,7 +134,7 @@ async function processNextQuestion() {
             opt_f: "",
             opt_g: "",
             opt_h: "",
-            generate_explanation: true
+            generate_explanation: true,
         });
 
         // Extract results
