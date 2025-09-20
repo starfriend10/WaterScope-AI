@@ -506,3 +506,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+
+##
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded, restoring demo state...");
+    const savedState = localStorage.getItem("demoState");
+    console.log("Saved state:", savedState);
+    if (savedState) {
+        setDemoState(JSON.parse(savedState));
+        console.log("State restored successfully");
+    }
+});
