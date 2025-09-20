@@ -1135,3 +1135,23 @@ tr.highlighted {
 .chat-messages::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+
+##explanation checkbox
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.control-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.control-group .note {
+  font-size: 0.85em;   /* smaller text */
+  color: #666;         /* softer gray */
+  margin-left: 24px;   /* aligns under label text */
+  margin-top: 2px;     /* small gap */
+}
