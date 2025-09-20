@@ -1153,6 +1153,6 @@ tr.highlighted {
 .control-group .note {
   font-size: 0.85em;
   color: #666;
-  margin-left: 0;   /* align with checkbox instead of label */
+  margin-left: 1.4em; /* shifts note so it aligns with checkbox edge */
   margin-top: 2px;
 }
