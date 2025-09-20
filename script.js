@@ -431,89 +431,26 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeGradioClient().catch(console.error);
 });
 
+
 // ===== Demo input persistence across page switches =====
 
-// Helper: serialize current input state
-function getDemoState() {
-    const state = {
-        question: document.getElementById('question')?.value || "",
-        explanation: document.getElementById('explanation')?.checked || false,
-        options: [],
-        currentOptions: currentOptions
-    };
-    for (let i = 0; i < MAX_OPTIONS; i++) {
-        const optInput = document.getElementById('opt' + i);
-        if (optInput) state.options.push(optInput.value);
-        else state.options.push("");
-    }
-    return state;
-}
-
-// Helper: restore input state
-function setDemoState(state) {
-    if (!state) return;
-
-    document.getElementById('question').value = state.question || "";
-    document.getElementById('explanation').checked = state.explanation || false;
-
-    const container = document.getElementById('option-container');
-    // Remove all dynamic rows beyond the first 4
-    while (container.children.length > 4) container.removeChild(container.lastChild);
-
-    currentOptions = 4;
-
-    for (let i = 0; i < state.options.length; i++) {
-        if (state.options[i] && i >= 4) {
-            // Dynamically add option row
-            const optionRow = document.createElement('div');
-            optionRow.className = 'option-row';
-            const label = document.createElement('span');
-            label.className = 'option-label';
-            label.textContent = String.fromCharCode(65 + i);
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.id = 'opt' + i;
-            input.placeholder = 'Option ' + String.fromCharCode(65 + i);
-            input.value = state.options[i];
-            optionRow.appendChild(label);
-            optionRow.appendChild(input);
-            container.appendChild(optionRow);
-            currentOptions++;
-        } else {
-            // Existing first 4 options
-            const optInput = document.getElementById('opt' + i);
-            if (optInput) optInput.value = state.options[i] || "";
-        }
-    }
-
-    // Ensure currentOptions matches the restored state
-    if (state.currentOptions && state.currentOptions > currentOptions) {
-        currentOptions = state.currentOptions;
-    }
-}
-
-// Save state before leaving page
-window.addEventListener("beforeunload", () => {
-    const state = getDemoState();
-    localStorage.setItem("demoState", JSON.stringify(state));
-});
-
-// Restore state after DOM is fully ready
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1️⃣ Restore demo state
     const savedState = localStorage.getItem("demoState");
     if (savedState) {
+        console.log("Restoring saved demo state...");
         setDemoState(JSON.parse(savedState));
+        console.log("Demo state restored successfully");
     }
-});
 
+    // 2️⃣ Initialize application status
+    updateSystemStatus("Initializing application...");
+    updateAPIStatus("Initializing API connection...");
 
-##
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM fully loaded, restoring demo state...");
-    const savedState = localStorage.getItem("demoState");
-    console.log("Saved state:", savedState);
-    if (savedState) {
-        setDemoState(JSON.parse(savedState));
-        console.log("State restored successfully");
+    // 3️⃣ Initialize Gradio client
+    try {
+        await initializeGradioClient();
+    } catch (err) {
+        console.error("Error initializing Gradio client:", err);
     }
 });
