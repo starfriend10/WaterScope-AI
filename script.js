@@ -430,3 +430,71 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Gradio client when page loads
     initializeGradioClient().catch(console.error);
 });
+
+// ===== Demo input persistence across page switches =====
+
+// Helper: serialize current input state
+function getDemoState() {
+    const state = {
+        question: document.getElementById('question')?.value || "",
+        explanation: document.getElementById('explanation')?.checked || false,
+        options: [],
+    };
+    for (let i = 0; i < MAX_OPTIONS; i++) {
+        const optInput = document.getElementById('opt' + i);
+        if (optInput) state.options.push(optInput.value);
+    }
+    return state;
+}
+
+// Helper: restore input state
+function setDemoState(state) {
+    if (!state) return;
+    document.getElementById('question').value = state.question || "";
+    document.getElementById('explanation').checked = state.explanation || false;
+
+    const container = document.getElementById('option-container');
+    // Remove extra dynamically added options first
+    while (container.children.length > 4) {
+        container.removeChild(container.lastChild);
+    }
+    currentOptions = 4;
+
+    for (let i = 0; i < state.options.length; i++) {
+        if (i < MAX_OPTIONS) {
+            let optInput = document.getElementById('opt' + i);
+            if (!optInput && i >= 4) {
+                // Dynamically add option row if it doesn't exist
+                const optionRow = document.createElement('div');
+                optionRow.className = 'option-row';
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = String.fromCharCode(65 + i);
+                optInput = document.createElement('input');
+                optInput.type = 'text';
+                optInput.id = 'opt' + i;
+                optInput.placeholder = 'Option ' + String.fromCharCode(65 + i);
+                optionRow.appendChild(label);
+                optionRow.appendChild(optInput);
+                container.appendChild(optionRow);
+                currentOptions++;
+            }
+            if (optInput) optInput.value = state.options[i] || "";
+        }
+    }
+}
+
+// Save state before leaving page
+window.addEventListener("beforeunload", () => {
+    const state = getDemoState();
+    localStorage.setItem("demoState", JSON.stringify(state));
+});
+
+// Restore state on page load
+document.addEventListener("DOMContentLoaded", () => {
+    const savedState = localStorage.getItem("demoState");
+    if (savedState) {
+        setDemoState(JSON.parse(savedState));
+    }
+});
+
