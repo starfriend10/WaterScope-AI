@@ -15,115 +15,209 @@ let warmupStartTime = null;
 
 // ===== Form persistence across page switches =====
 
+// Check if localStorage is available
+function isLocalStorageAvailable() {
+    try {
+        const test = 'test';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+    } catch (e) {
+        console.error("LocalStorage is not available:", e);
+        return false;
+    }
+}
+
+// Save form state
+function saveFormState() {
+    if (!isLocalStorageAvailable()) {
+        console.warn("LocalStorage is not available, cannot save form state");
+        return;
+    }
+    
+    try {
+        // Save input values
+        localStorage.setItem("demo_question", document.getElementById('question').value);
+        localStorage.setItem("demo_explanation", document.getElementById('explanation').checked);
+        
+        // Save options
+        const options = {};
+        for(let i = 0; i < MAX_OPTIONS; i++) {
+            const optInput = document.getElementById('opt' + i);
+            if (optInput) {
+                options['opt' + i] = optInput.value;
+            }
+        }
+        localStorage.setItem("demo_options", JSON.stringify(options));
+        localStorage.setItem("demo_currentOptions", currentOptions.toString());
+        
+        // Save output values
+        localStorage.setItem("demo_dpo_letter", document.getElementById('dpo_letter').innerText);
+        localStorage.setItem("demo_dpo_raw", document.getElementById('dpo_raw').innerText);
+        localStorage.setItem("demo_it_letter", document.getElementById('it_letter').innerText);
+        localStorage.setItem("demo_it_raw", document.getElementById('it_raw').innerText);
+        
+        // Save table selection
+        const highlightedRow = document.querySelector('#mcqa-table tr.highlighted');
+        if (highlightedRow) {
+            localStorage.setItem("demo_highlightedRow", highlightedRow.dataset.index);
+        }
+        
+        console.log("Form state saved successfully");
+    } catch (error) {
+        console.error("Error saving form state:", error);
+    }
+}
+
+// Clear saved form state
+function clearPersistence() {
+    if (!isLocalStorageAvailable()) return;
+    
+    localStorage.removeItem("demo_question");
+    localStorage.removeItem("demo_options");
+    localStorage.removeItem("demo_explanation");
+    localStorage.removeItem("demo_currentOptions");
+    localStorage.removeItem("demo_dpo_letter");
+    localStorage.removeItem("demo_dpo_raw");
+    localStorage.removeItem("demo_it_letter");
+    localStorage.removeItem("demo_it_raw");
+    localStorage.removeItem("demo_highlightedRow");
+    
+    // Also clear the form
+    document.getElementById('question').value = "";
+    for(let i = 0; i < MAX_OPTIONS; i++) {
+        const el = document.getElementById('opt' + i);
+        if (el) el.value = "";
+    }
+    document.getElementById('explanation').checked = false;
+    
+    // Reset options UI
+    currentOptions = 4;
+    const container = document.getElementById('option-container');
+    while (container.children.length > 4) {
+        container.removeChild(container.lastChild);
+    }
+    
+    // Clear outputs
+    document.getElementById('dpo_letter').innerText = "-";
+    document.getElementById('dpo_raw').innerText = "Waiting for input...";
+    document.getElementById('it_letter').innerText = "-";
+    document.getElementById('it_raw').innerText = "Waiting for input...";
+    
+    // Remove highlights from table rows
+    document.querySelectorAll('#mcqa-table tr').forEach(row => {
+        row.classList.remove('highlighted');
+    });
+    
+    alert("Saved data has been cleared and form reset.");
+}
+
+// Restore form state
+function restoreFormState() {
+    if (!isLocalStorageAvailable()) {
+        console.warn("LocalStorage is not available, cannot restore form state");
+        return;
+    }
+    
+    try {
+        // Restore input values
+        const savedQuestion = localStorage.getItem("demo_question");
+        const savedExplanation = localStorage.getItem("demo_explanation");
+        const savedOptions = localStorage.getItem("demo_options");
+        const savedCurrentOptions = localStorage.getItem("demo_currentOptions");
+        
+        if (savedQuestion) {
+            document.getElementById('question').value = savedQuestion;
+        }
+        
+        if (savedExplanation) {
+            document.getElementById('explanation').checked = (savedExplanation === 'true');
+        }
+        
+        if (savedOptions) {
+            const options = JSON.parse(savedOptions);
+            for (let i = 0; i < MAX_OPTIONS; i++) {
+                const optInput = document.getElementById('opt' + i);
+                if (optInput && options['opt' + i] !== undefined) {
+                    optInput.value = options['opt' + i];
+                }
+            }
+        }
+        
+        if (savedCurrentOptions) {
+            currentOptions = parseInt(savedCurrentOptions, 10);
+            // Recreate extra option rows if needed
+            const container = document.getElementById('option-container');
+            while (container.children.length > currentOptions) {
+                container.removeChild(container.lastChild);
+            }
+            while (container.children.length < currentOptions) {
+                const i = container.children.length;
+                const optionRow = document.createElement('div');
+                optionRow.className = 'option-row';
+                optionRow.innerHTML = `
+                    <span class="option-label">${String.fromCharCode(65 + i)}</span>
+                    <input type="text" id="opt${i}" placeholder="Option ${String.fromCharCode(65 + i)}">
+                `;
+                container.appendChild(optionRow);
+                
+                // Set the value if it exists in saved options
+                if (savedOptions) {
+                    const options = JSON.parse(savedOptions);
+                    if (options['opt' + i] !== undefined) {
+                        document.getElementById('opt' + i).value = options['opt' + i];
+                    }
+                }
+            }
+        }
+        
+        // Restore output values
+        const savedDpoLetter = localStorage.getItem("demo_dpo_letter");
+        const savedDpoRaw = localStorage.getItem("demo_dpo_raw");
+        const savedItLetter = localStorage.getItem("demo_it_letter");
+        const savedItRaw = localStorage.getItem("demo_it_raw");
+        
+        if (savedDpoLetter && savedDpoLetter !== "-") document.getElementById('dpo_letter').innerText = savedDpoLetter;
+        if (savedDpoRaw && savedDpoRaw !== "Waiting for input...") document.getElementById('dpo_raw').innerText = savedDpoRaw;
+        if (savedItLetter && savedItLetter !== "-") document.getElementById('it_letter').innerText = savedItLetter;
+        if (savedItRaw && savedItRaw !== "Waiting for input...") document.getElementById('it_raw').innerText = savedItRaw;
+        
+        console.log("Form state restored successfully");
+    } catch (error) {
+        console.error("Error restoring form state:", error);
+    }
+}
+
+// Restore table highlight after data is loaded
+function restoreTableHighlight() {
+    if (!isLocalStorageAvailable()) return;
+    
+    const savedHighlightedRow = localStorage.getItem("demo_highlightedRow");
+    if (savedHighlightedRow !== null) {
+        const rows = document.querySelectorAll('#mcqa-table tr');
+        if (rows[savedHighlightedRow]) {
+            rows[savedHighlightedRow].classList.add('highlighted');
+        }
+    }
+}
+
 // Save form state before leaving page
 window.addEventListener("beforeunload", () => {
-    // Save input values
-    localStorage.setItem("demo_question", document.getElementById('question').value);
-    localStorage.setItem("demo_explanation", document.getElementById('explanation').checked);
+    saveFormState();
+});
+
+// Set up auto-save on input changes
+function setupAutoSave() {
+    document.getElementById('question').addEventListener('input', saveFormState);
+    document.getElementById('explanation').addEventListener('change', saveFormState);
     
-    // Save options
-    const options = {};
     for(let i = 0; i < MAX_OPTIONS; i++) {
         const optInput = document.getElementById('opt' + i);
         if (optInput) {
-            options['opt' + i] = optInput.value;
+            optInput.addEventListener('input', saveFormState);
         }
     }
-    localStorage.setItem("demo_options", JSON.stringify(options));
-    localStorage.setItem("demo_currentOptions", currentOptions.toString());
-    
-    // Save output values
-    localStorage.setItem("demo_dpo_letter", document.getElementById('dpo_letter').innerText);
-    localStorage.setItem("demo_dpo_raw", document.getElementById('dpo_raw').innerText);
-    localStorage.setItem("demo_it_letter", document.getElementById('it_letter').innerText);
-    localStorage.setItem("demo_it_raw", document.getElementById('it_raw').innerText);
-    
-    // Save table selection
-    const highlightedRow = document.querySelector('#mcqa-table tr.highlighted');
-    if (highlightedRow) {
-        localStorage.setItem("demo_highlightedRow", highlightedRow.dataset.index);
-    }
-});
-
-// Restore form state on page load
-document.addEventListener("DOMContentLoaded", () => {
-    // Restore input values
-    const savedQuestion = localStorage.getItem("demo_question");
-    const savedExplanation = localStorage.getItem("demo_explanation");
-    const savedOptions = localStorage.getItem("demo_options");
-    const savedCurrentOptions = localStorage.getItem("demo_currentOptions");
-    
-    if (savedQuestion) {
-        document.getElementById('question').value = savedQuestion;
-    }
-    
-    if (savedExplanation) {
-        document.getElementById('explanation').checked = savedExplanation === 'true';
-    }
-    
-    if (savedOptions) {
-        const options = JSON.parse(savedOptions);
-        for (let i = 0; i < MAX_OPTIONS; i++) {
-            const optInput = document.getElementById('opt' + i);
-            if (optInput && options['opt' + i] !== undefined) {
-                optInput.value = options['opt' + i];
-            }
-        }
-    }
-    
-    if (savedCurrentOptions) {
-        currentOptions = parseInt(savedCurrentOptions, 10);
-        // Recreate extra option rows if needed
-        const container = document.getElementById('option-container');
-        while (container.children.length > currentOptions) {
-            container.removeChild(container.lastChild);
-        }
-        while (container.children.length < currentOptions) {
-            const i = container.children.length;
-            const optionRow = document.createElement('div');
-            optionRow.className = 'option-row';
-            optionRow.innerHTML = `
-                <span class="option-label">${String.fromCharCode(65 + i)}</span>
-                <input type="text" id="opt${i}" placeholder="Option ${String.fromCharCode(65 + i)}">
-            `;
-            container.appendChild(optionRow);
-        }
-    }
-    
-    // Restore output values
-    const savedDpoLetter = localStorage.getItem("demo_dpo_letter");
-    const savedDpoRaw = localStorage.getItem("demo_dpo_raw");
-    const savedItLetter = localStorage.getItem("demo_it_letter");
-    const savedItRaw = localStorage.getItem("demo_it_raw");
-    
-    if (savedDpoLetter) document.getElementById('dpo_letter').innerText = savedDpoLetter;
-    if (savedDpoRaw) document.getElementById('dpo_raw').innerText = savedDpoRaw;
-    if (savedItLetter) document.getElementById('it_letter').innerText = savedItLetter;
-    if (savedItRaw) document.getElementById('it_raw').innerText = savedItRaw;
-    
-    // Restore table selection after table is populated
-    const restoreHighlight = () => {
-        const savedHighlightedRow = localStorage.getItem("demo_highlightedRow");
-        if (savedHighlightedRow !== null) {
-            const rows = document.querySelectorAll('#mcqa-table tr');
-            if (rows[savedHighlightedRow]) {
-                rows[savedHighlightedRow].classList.add('highlighted');
-            }
-        }
-    };
-    
-    // If data is already loaded, restore highlight immediately
-    if (MCQA_DATA.length > 0) {
-        restoreHighlight();
-    } else {
-        // Otherwise, wait for data to load
-        const originalPopulateTable = populateTable;
-        populateTable = function() {
-            originalPopulateTable.apply(this, arguments);
-            setTimeout(restoreHighlight, 0);
-        };
-    }
-});
+}
 
 // Freeze function for MCQA
 function freezeMCQAInputs() {
@@ -265,6 +359,7 @@ Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/ma
         console.log("CSV loaded:", results.data);
         MCQA_DATA = results.data;
         populateTable();
+        restoreTableHighlight();
         updateSystemStatus("Dataset loaded successfully");
     },
     error: function(err) {
@@ -289,6 +384,7 @@ Papa.parse("https://raw.githubusercontent.com/starfriend10/WaterScope-AI-demo/ma
             }
         ];
         populateTable();
+        restoreTableHighlight();
         updateSystemStatus("Using sample data (CSV load failed)");
     }
 });
@@ -323,7 +419,6 @@ document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
     tr.classList.add('highlighted');
     
     const row = MCQA_DATA[tr.dataset.index];
-    // Removed the line that tries to set ID field since it doesn't exist in the form
     document.getElementById('question').value = row.Question || '';
     document.getElementById('opt0').value = row.A || '';
     document.getElementById('opt1').value = row.B || '';
@@ -334,6 +429,9 @@ document.querySelector('#mcqa-table tbody').addEventListener('click', e => {
         if(el) el.value="";
     }
     updateSystemStatus("Form filled from dataset");
+    
+    // Save the form state after autofill
+    saveFormState();
 });
 
 // --- 4. Add Option ---
@@ -361,6 +459,9 @@ document.getElementById('add-option').addEventListener('click', ()=>{
     input.id = 'opt' + currentOptions;
     input.placeholder = 'Option ' + String.fromCharCode(65 + currentOptions);
     
+    // Add event listener for auto-saving
+    input.addEventListener('input', saveFormState);
+    
     // Add label and input to the row
     optionRow.appendChild(label);
     optionRow.appendChild(input);
@@ -370,6 +471,9 @@ document.getElementById('add-option').addEventListener('click', ()=>{
     
     currentOptions++;
     updateSystemStatus("Added option " + String.fromCharCode(65 + currentOptions - 1));
+    
+    // Save the form state after adding option
+    saveFormState();
 });
 
 // --- 5. Clear All (Inputs Only) ---
@@ -395,18 +499,16 @@ document.getElementById('clear').addEventListener('click', ()=>{
         row.classList.remove('highlighted');
     });
     
-    // Clear saved data from localStorage
-    localStorage.removeItem("demo_question");
-    localStorage.removeItem("demo_options");
-    localStorage.removeItem("demo_explanation");
-    localStorage.removeItem("demo_currentOptions");
-    localStorage.removeItem("demo_dpo_letter");
-    localStorage.removeItem("demo_dpo_raw");
-    localStorage.removeItem("demo_it_letter");
-    localStorage.removeItem("demo_it_raw");
-    localStorage.removeItem("demo_highlightedRow");
+    // Clear outputs
+    document.getElementById('dpo_letter').innerText = "-";
+    document.getElementById('dpo_raw').innerText = "Waiting for input...";
+    document.getElementById('it_letter').innerText = "-";
+    document.getElementById('it_raw').innerText = "Waiting for input...";
     
-    updateSystemStatus("Form cleared and storage reset");
+    // Clear saved data from localStorage
+    clearPersistence();
+    
+    updateSystemStatus("Form cleared");
     
     // Don't modify API status as it might be in the middle of processing
     document.getElementById('elapsed-time').textContent = "0.0s";
@@ -524,6 +626,9 @@ document.getElementById('send').addEventListener('click', async ()=>{
         
         updateAPIStatus("Evaluation completed successfully");
         
+        // Save the form state after getting results
+        saveFormState();
+        
     } catch (err) {
         // Only show error if we didn't cancel the request
         if (isProcessing) {
@@ -550,6 +655,13 @@ document.getElementById('send').addEventListener('click', async ()=>{
 document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Initializing API connection...");
+    
+    // Restore form state after a short delay to ensure DOM is fully loaded
+    setTimeout(() => {
+        restoreFormState();
+        setupAutoSave();
+    }, 100);
+    
     // Initialize Gradio client when page loads
     initializeGradioClient().catch(console.error);
 });
