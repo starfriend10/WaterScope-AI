@@ -381,3 +381,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Gradio client when page loads
     initializeGradioClient().catch(console.error);
 });
+
+// ===== Chat history persistence across page switches =====
+
+// Save chat state before leaving page
+window.addEventListener("beforeunload", () => {
+    // Save chatHistory array
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+
+    // Also save the rendered HTML to restore scroll position etc.
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+        localStorage.setItem("chatMessagesHTML", chatMessages.innerHTML);
+        localStorage.setItem("chatScrollTop", chatMessages.scrollTop);
+    }
+});
+
+// Restore chat state on page load
+document.addEventListener("DOMContentLoaded", () => {
+    const savedHistory = localStorage.getItem("chatHistory");
+    const savedHTML = localStorage.getItem("chatMessagesHTML");
+    const savedScrollTop = localStorage.getItem("chatScrollTop");
+
+    if (savedHistory) {
+        chatHistory = JSON.parse(savedHistory);
+    }
+
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages && savedHTML) {
+        chatMessages.innerHTML = savedHTML;
+
+        // Restore scroll position
+        if (savedScrollTop) {
+            chatMessages.scrollTop = parseInt(savedScrollTop, 10);
+        }
+    }
+});
+
+
