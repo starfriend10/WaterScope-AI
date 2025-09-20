@@ -1147,12 +1147,12 @@ tr.highlighted {
 .control-group label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
 }
 
 .control-group .note {
   font-size: 0.85em;
   color: var(--gray);
-  margin-left: 20px;  /* lines up with text, not checkbox */
-  margin-top: 1px;
+  margin-left: 10px;  /* lines up with text, not checkbox */
+  margin-top: 0.5px;
 }
