@@ -283,7 +283,29 @@ async function sendMessage() {
     }
 }
 
-// Clear chat function
+// // Clear chat function
+// function clearChat() {
+//     const chatMessages = document.getElementById('chat-messages');
+//     if (chatMessages) {
+//         chatMessages.innerHTML = `
+//             <div class="message bot-message">
+//                 <div class="message-content">
+//                     <p>Hello! I'm a specialized AI model for water sustainability. How can I assist you today?</p>
+//                 </div>
+//             </div>
+//         `;
+//     }
+//     chatHistory = [];
+//     updateAPIStatus("Ready");
+//     updateSystemStatus("Ready");
+    
+//     // Clear any timer display
+//     if (document.getElementById('elapsed-time')) {
+//         document.getElementById('elapsed-time').textContent = "0.0s";
+//     }
+// }
+
+// Clear chat function - MODIFIED to preserve API status during initialization
 function clearChat() {
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
@@ -296,8 +318,16 @@ function clearChat() {
         `;
     }
     chatHistory = [];
-    updateAPIStatus("Ready");
-    updateSystemStatus("Ready");
+    
+    // Only update API status if not initializing
+    if (!apiInitializing) {
+        updateAPIStatus("Ready");
+    }
+    
+    // Only update system status if not initializing
+    if (!apiInitializing) {
+        updateSystemStatus("Ready");
+    }
     
     // Clear any timer display
     if (document.getElementById('elapsed-time')) {
