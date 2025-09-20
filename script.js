@@ -431,26 +431,3 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeGradioClient().catch(console.error);
 });
 
-
-// ===== Demo input persistence across page switches =====
-
-document.addEventListener("DOMContentLoaded", async () => {
-    // 1️⃣ Restore demo state
-    const savedState = localStorage.getItem("demoState");
-    if (savedState) {
-        console.log("Restoring saved demo state...");
-        setDemoState(JSON.parse(savedState));
-        console.log("Demo state restored successfully");
-    }
-
-    // 2️⃣ Initialize application status
-    updateSystemStatus("Initializing application...");
-    updateAPIStatus("Initializing API connection...");
-
-    // 3️⃣ Initialize Gradio client
-    try {
-        await initializeGradioClient();
-    } catch (err) {
-        console.error("Error initializing Gradio client:", err);
-    }
-});
