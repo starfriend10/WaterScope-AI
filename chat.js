@@ -448,30 +448,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-
-##
-//  fix chat panel
-document.addEventListener('DOMContentLoaded', function() {
-    // Your existing initialization code...
-    
-    // Add styles to control chat panel height
-    const chatMessages = document.getElementById('chat-messages');
-    if (chatMessages) {
-        chatMessages.style.maxHeight = '60vh';
-        chatMessages.style.overflowY = 'auto';
-        chatMessages.style.minHeight = '200px';
-    }
-    
-    const chatContainer = document.querySelector('.chat-container');
-    if (chatContainer) {
-        chatContainer.style.display = 'flex';
-        chatContainer.style.flexDirection = 'column';
-        chatContainer.style.height = '100%';
-    }
-    
-    const inputContainer = document.querySelector('.chat-input-container');
-    if (inputContainer) {
-        inputContainer.style.flexShrink = '0';
-        inputContainer.style.marginTop = 'auto';
-    }
-});
