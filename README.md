@@ -12,8 +12,8 @@ Water sustainability faces complex challenges requiring interdisciplinary expert
 ### Methodology
 We developed and fine-tuned two specialized language models:
 
-1. **DA-IT Model** (Domain-Adapted Instruction-Tuned): Instruction-tuned on water sustainability corpora
-2. **DA-DPO Model** (Domain-Adapted Direct Preference Optimization): Preference-optimized for expert-aligned responses
+1. **DA-IT Model** (Domain-Adaptation Instruction-Tuning): Instruction-tuned on water/wastewater sustainability corpora
+2. **DA-DPO Model** (Domain-Adaptation Direct Preference Optimization): Preference-optimized for expert-aligned responses
 
 ### Technical Architecture
 Frontend (GitHub Pages) → Gradio Client API → Hugging Face Inference → Specialized SLMs
@@ -39,7 +39,7 @@ Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI-d
 ## Installation and Deployment
 
 ### Local Development
-```bash
+
 # Clone repository
 git clone https://github.com/starfriend10/WaterScope-AI-demo.git
 
@@ -117,6 +117,7 @@ Research Focus: AI applications in environmental engineering, water sustainabili
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
 
 
