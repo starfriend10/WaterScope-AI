@@ -101,13 +101,11 @@ If you use WaterScope AI in your research, please cite:
 This research software is available for academic and research use.
 For commercial-use inquiries or licensing, please contact the authors.
 
----
 
 ## Research Team
 Affiliation: Department of Civil and Environmental Engineering, Princeton University
 Research Focus: AI applications in environmental engineering, water sustainability, and climate resilience
 
----
 
 
 ## Contact
@@ -117,6 +115,7 @@ Research Focus: AI applications in environmental engineering, water sustainabili
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
 
 
