@@ -70,9 +70,7 @@ git clone https://github.com/starfriend10/WaterScope-AI-demo.git
 - Integration with water system databases and sensor feeds
 - Real-time data processing capabilities
 
----
-
-## Contributing
+### Contributing
 We welcome research collaborations and contributions in:
 - Water domain expertise
 - Additional dataset contributions
@@ -102,19 +100,10 @@ This research software is available for academic and research use.
 For commercial-use inquiries or licensing, please contact the authors.
 
 
-## Research Team
-Affiliation: Department of Civil and Environmental Engineering, Princeton University
-Research Focus: AI applications in environmental engineering, water sustainability, and climate resilience
-
-
-
-## Contact
-- GitHub Issues: https://github.com/starfriend10/WaterScope-AI-demo/issues
-- Research Collaboration: Department of Civil and Environmental Engineering, Princeton University
-
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
 
 
