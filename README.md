@@ -99,7 +99,8 @@ This research software is available for academic and research use.
 For commercial-use inquiries or licensing, please contact the authors.
 
 
-WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+**WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.**
+
 
 
 
