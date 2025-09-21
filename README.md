@@ -1,6 +1,6 @@
 # WaterScope AI: Domain-Specific Small Language Models for Water Sustainability
 
-(WaterScope AI)[https://starfriend10.github.io/WaterScope-AI-demo] is an innovative research platform that leverages domain-specific small language models (SLMs) for advancing water sustainability research. This project demonstrates the application of instruction-tuned and preference-optimized language models specifically designed for multiple-choice question answering (MCQA) in the water sustainability domain. Our models provide researchers with specialized AI assistance for analyzing complex water-related challenges through an intuitive web interface connected to Hugging Face inference endpoints.
+[WaterScope AI](https://starfriend10.github.io/WaterScope-AI-demo) is an innovative research platform that leverages domain-specific small language models (SLMs) for advancing water sustainability research. This project demonstrates the application of instruction-tuned and preference-optimized language models specifically designed for multiple-choice question answering (MCQA) in the water sustainability domain. Our models provide researchers with specialized AI assistance for analyzing complex water-related challenges through an intuitive web interface connected to Hugging Face inference endpoints.
 
 
 ---
@@ -117,4 +117,5 @@ Research Focus: AI applications in environmental engineering, water sustainabili
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
