@@ -1,50 +1,48 @@
-# WaterScope AI Demo
+# WaterScope AI: Domain-Specific Small Language Models for Water Sustainability
 
-WaterScope AI is a research initiative at the intersection of artificial intelligence and environmental sustainability.
-This repository demonstrates domain-specific small language models (SLMs) for water sustainability research and education.
+(WaterScope AI)[https://starfriend10.github.io/WaterScope-AI-demo] is an innovative research platform that leverages domain-specific small language models (SLMs) for advancing water sustainability research. This project demonstrates the application of instruction-tuned and preference-optimized language models specifically designed for multiple-choice question answering (MCQA) in the water sustainability domain. Our models provide researchers with specialized AI assistance for analyzing complex water-related challenges through an intuitive web interface connected to Hugging Face inference endpoints.
 
----
-
-## Table of Contents
-- Requirements
-- Hugging Face Integration
-- Usage Instructions
-  - For Researchers
-  - For Developers
-- Research Applications
-  - Current Capabilities
-  - Future Directions
-- Model Performance
-- Contributing
-- Citation
-- License
-- Research Team
-- Acknowledgments
-- Contact
 
 ---
+## Research Overview
 
-## Requirements
-- Modern web browser with JavaScript support
-- Internet connectivity for API access
-- GitHub Pages (optional) for static deployment
+### Problem Statement
+Water sustainability faces complex challenges requiring interdisciplinary expertise. Traditional language models lack domain-specific knowledge in water systems, climate impacts, and environmental engineering, limiting their utility for researchers and practitioners in this critical field.
 
----
+### Methodology
+We developed and fine-tuned two specialized language models:
 
-## Hugging Face Integration
-The platform connects to our hosted models at:
-EnvironmentalAI/WaterScopeAI — https://huggingface.co/EnvironmentalAI/WaterScopeAI
+1. **DA-IT Model** (Domain-Adapted Instruction-Tuned): Instruction-tuned on water sustainability corpora
+2. **DA-DPO Model** (Domain-Adapted Direct Preference Optimization): Preference-optimized for expert-aligned responses
+
+### Technical Architecture
+Frontend (GitHub Pages) → Gradio Client API → Hugging Face Inference → Specialized SLMs
+
+### Technical Specifications
+- **Frontend**: HTML5, CSS3, JavaScript with responsive design
+- **API Integration**: Gradio client for Hugging Face space connectivity
+- **Data Handling**: PapaParse for CSV dataset integration
+- **Model Deployment**: Optimized inference on Hugging Face infrastructure
 
 ---
 
 ## Usage Instructions
 
-### For Researchers
-1. Open the MCQA demo interface.
-2. Select from pre-loaded research questions or enter a custom query.
-3. Configure options and explanation requirements.
-4. Run the analysis and compare model outputs.
-5. Use the results for research insights and decision support.
+### Research Interface
+
+- **MCQA Analysis**: Domain-specific multiple-choice question answering with model comparisons
+- **Real-time Processing**: Live API connectivity to Hugging Face inference endpoints
+- **Explanation Generation**: Option to receive detailed reasoning behind model predictions
+- **Research Dataset Integration**: Pre-loaded with water sustainability MCQA examples
+- **Chatbot**: Experience real-time conversation (this function is for an experimental purpose)
+
+## Installation and Deployment
+
+### Local Development
+```bash
+# Clone repository
+git clone https://github.com/starfriend10/WaterScope-AI-demo.git
+
 
 ### For Developers
     // API Integration Example
@@ -71,19 +69,6 @@ EnvironmentalAI/WaterScopeAI — https://huggingface.co/EnvironmentalAI/WaterSco
 - Additional model architectures and ensembles
 - Integration with water system databases and sensor feeds
 - Real-time data processing capabilities
-
----
-
-## Model Performance
-Our domain-adapted models demonstrate the following on MCQA tasks in water sustainability:
-
-| Metric           | DA-IT Model | DA-DPO Model | Baseline |
-|------------------|------------:|-------------:|---------:|
-| Accuracy         | 82%         | 89%          | 65%      |
-| Response Time    | 2.1 s       | 2.4 s        | 1.8 s    |
-| Expert Alignment | 76%         | 92%          | 58%      |
-
-*Table: Performance comparison on water sustainability MCQA tasks.*
 
 ---
 
@@ -124,14 +109,6 @@ Research Focus: AI applications in environmental engineering, water sustainabili
 
 ---
 
-## Acknowledgments
-This research was supported by:
-- Princeton University, Department of Civil and Environmental Engineering
-- The open-source AI research community
-- Hugging Face for model hosting infrastructure
-- GitHub for repository hosting and project management
-
----
 
 ## Contact
 - GitHub Issues: https://github.com/starfriend10/WaterScope-AI-demo/issues
@@ -139,4 +116,5 @@ This research was supported by:
 
 ---
 
-WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water challenges.
+WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
