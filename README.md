@@ -93,16 +93,14 @@ If you use WaterScope AI in your research, please cite:
       url = {https://github.com/starfriend10/WaterScope-AI-demo}
     }
 
----
 
 ## License
 This research software is available for academic and research use.
 For commercial-use inquiries or licensing, please contact the authors.
 
 
----
-
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
 
 
