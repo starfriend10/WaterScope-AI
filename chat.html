@@ -8,13 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Additional styles to make chat box taller */
-        .chat-messages {
-            min-height: 600px; /* Increased from previous height */
-            max-height: 80vh;  /* Uses viewport height for better responsiveness */
+        .chat-container {
+            height: 600px;           /* Use viewport height instead of auto */
+            display: flex;          /* Make it a flex container */
+            flex-direction: column; /* So messages expand vertically */
         }
         
-        .chat-container {
-            height: 600px; /* Allow container to expand */
+        .chat-messages {
+            flex: 1;                /* Fill available vertical space */
+            min-height: 400px;      /* Ensure minimum height */
+            overflow-y: auto;       /* Scroll if content exceeds height */
         }
     </style>
 </head>
