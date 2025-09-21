@@ -38,7 +38,7 @@ Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI-d
 
 ## Installation and Deployment
 
-### Local Development
+### Local Deployment
 ```bash
 # Clone repository
 git clone https://github.com/starfriend10/WaterScope-AI-demo.git
@@ -117,6 +117,7 @@ Research Focus: AI applications in environmental engineering, water sustainabili
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
 
 
