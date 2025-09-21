@@ -29,7 +29,7 @@ Frontend (GitHub Pages) → Gradio Client API → Hugging Face Inference → Spe
 ## Usage Instructions
 
 ### Research Interface
-
+Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI-demo)
 - **MCQA Analysis**: Domain-specific multiple-choice question answering with model comparisons
 - **Real-time Processing**: Live API connectivity to Hugging Face inference endpoints
 - **Explanation Generation**: Option to receive detailed reasoning behind model predictions
@@ -117,5 +117,6 @@ Research Focus: AI applications in environmental engineering, water sustainabili
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.
+
 
 
