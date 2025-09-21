@@ -5,65 +5,105 @@
 ![GitHub issues](https://img.shields.io/github/issues/starfriend10/WaterScope-AI-demo)
 ![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Space-blue)
 
-## Abstract
+## Overview
+WaterScope AI is a research-focused platform that utilizes specialized small language models (SLMs) optimized for water sustainability applications. This project provides an interactive web interface for multiple-choice question answering (MCQA) with domain-specific models fine-tuned on water sustainability literature and research data.
 
-WaterScope AI is an innovative research platform that leverages domain-specific small language models (SLMs) for advancing water sustainability research. This project demonstrates the application of instruction-tuned and preference-optimized language models specifically designed for multiple-choice question answering (MCQA) in the water sustainability domain. Our models provide researchers with specialized AI assistance for analyzing complex water-related challenges through an intuitive web interface connected to Hugging Face inference endpoints.
+## Technical Architecture
+- Frontend: GitHub Pages (HTML/CSS/JavaScript)
+- Backend: Hugging Face Inference API
+- Models: Domain-adapted instruction-tuned and preference-optimized SLMs
+- Data Handling: CSV integration via PapaParse library
 
-## Research Overview
+## Features
+- Real-time MCQA analysis with dual-model comparison
+- Interactive research dataset browsing and selection
+- Explanation generation capabilities
+- Cross-page API connection persistence
+- Responsive web design for research use cases
 
-### Problem Statement
-Water sustainability faces complex challenges requiring interdisciplinary expertise. Traditional language models lack domain-specific knowledge in water systems, climate impacts, and environmental engineering, limiting their utility for researchers and practitioners in this critical field.
-
-### Methodology
-We developed and fine-tuned two specialized language models:
-
-1. **DA-IT Model** (Domain-Adapted Instruction-Tuned): Instruction-tuned on water sustainability corpora
-2. **DA-DPO Model** (Domain-Adapted Direct Preference Optimization): Preference-optimized for expert-aligned responses
-
-### Technical Architecture
-Frontend (GitHub Pages) → Gradio Client API → Hugging Face Inference → Specialized SLMs
-
-
-## Key Features
-
-### Research Interface
-- **MCQA Analysis**: Domain-specific multiple-choice question answering with model comparisons
-- **Real-time Processing**: Live API connectivity to Hugging Face inference endpoints
-- **Explanation Generation**: Option to receive detailed reasoning behind model predictions
-- **Research Dataset Integration**: Pre-loaded with water sustainability MCQA examples
-
-### Technical Specifications
-- **Frontend**: HTML5, CSS3, JavaScript with responsive design
-- **API Integration**: Gradio client for Hugging Face space connectivity
-- **Data Handling**: PapaParse for CSV dataset integration
-- **Model Deployment**: Optimized inference on Hugging Face infrastructure
-
-## Dataset
-
-The platform utilizes the **Decarbonization_MCQA Dataset** containing:
-
-| Column | Description | Example |
-|--------|-------------|---------|
-| ID | Unique identifier | 1 |
-| Question | Research question | What role do wastewater utilities play in the water sector? |
-| A | Option A | They primarily focus on desalination |
-| B | Option B | They collect and treat generated wastewater... |
-| C | Option C | They distribute bottled water to homes... |
-| D | Option D | They only monitor water purity in natural bodies... |
-
-**Domain Coverage**: Wastewater management, climate impacts, sustainability practices  
-**Research-Grounded**: Questions derived from water sustainability literature  
-**Extensible Architecture**: Support for additional domain-specific datasets
-
-## Installation and Deployment
-
-### Local Development
-```bash
-# Clone repository
+## Installation & Setup
+1. Clone the repository:
 git clone https://github.com/starfriend10/WaterScope-AI-demo.git
 
-# Navigate to project directory
+2. Navigate to project directory:
 cd WaterScope-AI-demo
 
-# Open index.html in web browser or deploy to GitHub Pages
+3. Open demo.html in web browser or deploy to GitHub Pages
 
+## API Integration
+The platform connects to Hugging Face Space: EnvironmentalAI/WaterScopeAI
+Gradio client initialization happens automatically on page load
+
+## Dataset Structure
+The system uses Decarbonization_MCQA.csv with the following columns:
+- ID: Unique question identifier
+- Question: Research question text
+- A, B, C, D: Multiple choice options
+
+## Usage
+### For Researchers:
+1. Select questions from the research database
+2. Configure analysis parameters
+3. Run model comparison
+4. Review results and explanations
+
+### For Developers:
+JavaScript API example:
+const result = await gradioApp.predict("/run_mcqa_comparison", {
+    question: "Your research question",
+    opt_a: "Option A",
+    opt_b: "Option B",
+    opt_c: "Option C", 
+    opt_d: "Option D",
+    generate_explanation: true
+});
+
+## Model Performance
+The domain-adapted models show significant improvement over baseline models in water sustainability tasks, with enhanced accuracy and expert alignment.
+
+## Project Structure
+- demo.html: Main research interface
+- chat.html: Experimental chat interface  
+- script.js: MCQA evaluation logic
+- chat.js: Chat functionality
+- style-research.css: Styling
+- Data/Decarbonization_MCQA.csv: Research dataset
+
+## Dependencies
+- Gradio Client API
+- PapaParse CSV parser
+- Font Awesome icons
+- Modern web browser with JavaScript support
+
+## Contributing
+Research collaborations welcome in:
+- Water domain expertise
+- Dataset contributions
+- Model improvements
+- Interface enhancements
+
+## Citation
+Please cite as:
+@software{WaterScopeAI2025,
+  title = {WaterScope AI: Domain-Specific Small Language Models for Water Sustainability},
+  author = {Princeton University, Department of Civil and Environmental Engineering},
+  year = {2025},
+  url = {https://github.com/starfriend10/WaterScope-AI-demo}
+}
+
+## License
+Academic and research use permitted. Contact authors for commercial inquiries.
+
+## Research Team
+Department of Civil and Environmental Engineering
+Princeton University
+
+## Contact
+- GitHub Issues: https://github.com/starfriend10/WaterScope-AI-demo/issues
+- Research inquiries: Department of Civil and Environmental Engineering, Princeton University
+
+## Acknowledgments
+- Princeton University CEE Department
+- Hugging Face for model hosting
+- GitHub for repository management
+- Open-source research community
