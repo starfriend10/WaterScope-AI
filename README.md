@@ -1,7 +1,3 @@
-Preference saved: I will format all assistant outputs as raw plaintext inside a plaintext code block from now on.
-
-Below is the README (raw markdown) ready to copy-paste into README.md:
-
 # WaterScope AI Demo
 
 WaterScope AI is a research initiative at the intersection of artificial intelligence and environmental sustainability.
@@ -144,10 +140,3 @@ This research was supported by:
 ---
 
 WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water challenges.
-
-If you'd like, I can now:
-- Re-run specific wording edits you flagged as "not right" (paste the exact line you want changed), or
-- Reformat this README into a single-file plain README.md (no extra code-block conversions), or
-- Output the README with alternative code-fence styles if you prefer fenced-code blocks for the examples.
-
-Tell me which option you want and I'll provide it in the same plaintext code-block format.
