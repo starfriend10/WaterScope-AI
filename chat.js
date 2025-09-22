@@ -1,4 +1,4 @@
-// chat.js - Enhanced with reconnect and continuous timer
+// chat.js - Full enhanced version with reconnect and continuous timer
 
 let gradioApp = null;
 let apiInitializing = false;
@@ -8,42 +8,46 @@ let chatHistory = [];
 
 // Timer functionality
 let timerInterval = null;
-let startTime = null;
-let apiInitStartTime = null;
-let apiInitTimerInterval = null;
+let startTime = null;          // absolute timestamp for message timer
+let apiInitStartTime = null;   // absolute timestamp for API init timer
+let currentTimerType = null;   // 'message' or 'api-init'
 
 // ======================== Timer functions ========================
 function startTimer(type = 'message') {
+    const elapsedTimeElement = document.getElementById('elapsed-time');
+    if (!elapsedTimeElement) return;
+
+    currentTimerType = type;
+
+    // Set absolute start times only if not already set
     if (type === 'api-init') {
-        apiInitStartTime = Date.now();
-        if (apiInitTimerInterval) clearInterval(apiInitTimerInterval);
-        apiInitTimerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - apiInitStartTime) / 1000;
-            const elapsedTimeElement = document.getElementById('elapsed-time');
-            if (elapsedTimeElement) elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
-        }, 100);
+        if (!apiInitStartTime) apiInitStartTime = Date.now();
     } else {
-        startTime = Date.now();
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            const elapsedTimeElement = document.getElementById('elapsed-time');
-            if (elapsedTimeElement) elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
-        }, 100);
+        if (!startTime) startTime = Date.now();
     }
 
-    const elapsedTimeElement = document.getElementById('elapsed-time');
-    if (elapsedTimeElement) elapsedTimeElement.style.display = 'block';
+    // Clear previous interval
+    if (timerInterval) clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = type === 'api-init'
+            ? (now - apiInitStartTime) / 1000
+            : (now - startTime) / 1000;
+
+        elapsedTimeElement.textContent = elapsed.toFixed(1) + 's';
+    }, 100);
+
+    elapsedTimeElement.style.display = 'block';
 }
 
 function stopTimer(type = 'message') {
-    if (type === 'api-init' && apiInitTimerInterval) {
-        clearInterval(apiInitTimerInterval);
-        apiInitTimerInterval = null;
-    } else if (timerInterval) {
+    if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
     }
+    if (type === 'api-init') apiInitStartTime = null;
+    else startTime = null;
 }
 
 // ======================== Status update functions ========================
@@ -153,6 +157,8 @@ setInterval(() => {
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
         ensureGradioConnected();
+        // Restart timer display without resetting startTime
+        if (currentTimerType) startTimer(currentTimerType);
     }
 });
 
@@ -297,6 +303,9 @@ function setupEventListeners() {
 // ======================== Chat persistence ========================
 window.addEventListener("beforeunload", () => {
     localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    if (startTime) localStorage.setItem("startTime", startTime);
+    if (apiInitStartTime) localStorage.setItem("apiInitStartTime", apiInitStartTime);
+
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
         localStorage.setItem("chatMessagesHTML", chatMessages.innerHTML);
@@ -318,16 +327,17 @@ document.addEventListener("DOMContentLoaded", () => {
     setupAutoResize();
     setupEventListeners();
 
+    // Restore chat history and timer
     const savedHistory = localStorage.getItem("chatHistory");
+    if (savedHistory) chatHistory = JSON.parse(savedHistory);
+
     const savedHTML = localStorage.getItem("chatMessagesHTML");
     const savedScrollTop = localStorage.getItem("chatScrollTop");
-
-    if (savedHistory) chatHistory = JSON.parse(savedHistory);
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages && savedHTML) {
         chatMessages.innerHTML = savedHTML;
         if (savedScrollTop) chatMessages.scrollTop = parseInt(savedScrollTop, 10);
     }
 
-    initializeGradioClient().catch(console.error);
-});
+    startTime = localStorage.getItem("startTime") ? parseInt(localStorage.getItem("startTime")) : null;
+    apiInitStartTime = localStorage.getItem("apiInitStartTime") ? parseInt(localStorage.getItem("
