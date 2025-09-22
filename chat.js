@@ -1,343 +1,183 @@
-// chat.js - Full enhanced version with reconnect and continuous timer
-
 let gradioApp = null;
 let apiInitializing = false;
 let apiConnected = false;
 let isProcessing = false;
 let chatHistory = [];
 
-// Timer functionality
+// Timer
 let timerInterval = null;
-let startTime = null;          // absolute timestamp for message timer
-let apiInitStartTime = null;   // absolute timestamp for API init timer
-let currentTimerType = null;   // 'message' or 'api-init'
+let startTime = null;
+let apiInitStartTime = null;
 
-// ======================== Timer functions ========================
-function startTimer(type = 'message') {
+function startTimer(type='message') {
     const elapsedTimeElement = document.getElementById('elapsed-time');
     if (!elapsedTimeElement) return;
 
-    currentTimerType = type;
-
-    // Set absolute start times only if not already set
     if (type === 'api-init') {
         if (!apiInitStartTime) apiInitStartTime = Date.now();
     } else {
         if (!startTime) startTime = Date.now();
     }
 
-    // Clear previous interval
     if (timerInterval) clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
         const now = Date.now();
-        const elapsed = type === 'api-init'
-            ? (now - apiInitStartTime) / 1000
-            : (now - startTime) / 1000;
-
+        const elapsed = type==='api-init'
+            ? (now-apiInitStartTime)/1000
+            : (now-startTime)/1000;
         elapsedTimeElement.textContent = elapsed.toFixed(1) + 's';
     }, 100);
 
     elapsedTimeElement.style.display = 'block';
 }
 
-function stopTimer(type = 'message') {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-    if (type === 'api-init') apiInitStartTime = null;
-    else startTime = null;
+function stopTimer(type='message') {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    if (type==='api-init') apiInitStartTime=null;
+    else startTime=null;
 }
 
-// ======================== Status update functions ========================
-function updateSystemStatus(message) {
-    const element = document.getElementById('system-status');
-    if (!element) return;
+// Status update
+function updateSystemStatus(msg){document.getElementById('system-status')?.textContent=msg;}
+function updateAPIStatus(msg){document.getElementById('api-status')?.textContent=msg;}
 
-    element.textContent = message;
-    element.classList.remove('status-processing', 'status-ready', 'status-error');
-
-    if (message.toLowerCase().includes('processing')) element.classList.add('status-processing');
-    else if (message.toLowerCase().includes('ready')) element.classList.add('status-ready');
-    else if (message.toLowerCase().includes('error')) element.classList.add('status-error');
-}
-
-function updateAPIStatus(message) {
-    const element = document.getElementById('api-status');
-    if (!element) return;
-
-    element.textContent = message;
-    element.classList.remove('status-processing', 'status-ready', 'status-error');
-
-    if (message.toLowerCase().includes('processing')) element.classList.add('status-processing');
-    else if (message.toLowerCase().includes('connected') || message.toLowerCase().includes('received')) element.classList.add('status-ready');
-    else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) element.classList.add('status-error');
-}
-
-// ======================== Input freeze/unfreeze ========================
-function freezeInputPanel() {
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-chat');
-    const clearButton = document.getElementById('clear-chat');
-
-    if (userInput) {
-        userInput.disabled = true;
-        userInput.setAttribute('readonly', 'readonly');
-        userInput.placeholder = 'Processing your request...';
-    }
-    if (sendButton) sendButton.disabled = true;
-    if (clearButton) clearButton.disabled = true;
-
+// Input freeze/unfreeze
+function freezeInputPanel(){
+    const u=document.getElementById('user-input'), s=document.getElementById('send-chat'), c=document.getElementById('clear-chat');
+    if(u){u.disabled=true;u.setAttribute('readonly','readonly');u.placeholder='Processing your request...';}
+    if(s)s.disabled=true;if(c)c.disabled=true;
     updateSystemStatus("Processing your request...");
 }
-
-function unfreezeInputPanel() {
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-chat');
-    const clearButton = document.getElementById('clear-chat');
-
-    if (userInput) {
-        userInput.disabled = false;
-        userInput.removeAttribute('readonly');
-        userInput.placeholder = 'Type your message here...';
-        userInput.focus();
-    }
-    if (sendButton) sendButton.disabled = false;
-    if (clearButton) clearButton.disabled = false;
-
+function unfreezeInputPanel(){
+    const u=document.getElementById('user-input'), s=document.getElementById('send-chat'), c=document.getElementById('clear-chat');
+    if(u){u.disabled=false;u.removeAttribute('readonly');u.placeholder='Type your message here...';u.focus();}
+    if(s)s.disabled=false;if(c)c.disabled=false;
     updateSystemStatus("Ready");
 }
 
-// ======================== Initialize Gradio ========================
-async function initializeGradioClient() {
-    try {
-        if (gradioApp) return true; // already initialized
-
-        apiInitializing = true;
+// Initialize Gradio
+async function initializeGradioClient(){
+    try{
+        if(gradioApp) return true;
+        apiInitializing=true;
         updateAPIStatus("Initializing connection to AI API...");
         startTimer('api-init');
-
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
         gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
-
-        console.log("Gradio client initialized successfully");
-        apiInitializing = false;
-        apiConnected = true;
-        updateAPIStatus("Connected to AI API successfully");
+        console.log("Gradio initialized");
+        apiInitializing=false;
+        apiConnected=true;
+        updateAPIStatus("Connected to AI API");
         updateSystemStatus("Ready");
         stopTimer('api-init');
-
         return true;
-    } catch (error) {
-        console.error("Failed to initialize Gradio client:", error);
-        apiInitializing = false;
-        apiConnected = false;
-        updateAPIStatus("Failed to connect to AI API");
+    }catch(e){
+        console.error("Gradio init failed:",e);
+        apiInitializing=false;
+        apiConnected=false;
+        updateAPIStatus("Failed to connect");
         updateSystemStatus("Connection Error");
         stopTimer('api-init');
         return false;
     }
 }
 
-// ======================== Automatic reconnect ========================
-async function ensureGradioConnected() {
-    if (!gradioApp || !apiConnected) {
-        console.log("Attempting to reconnect Gradio client...");
-        await initializeGradioClient();
-    }
-}
-
-// Periodic reconnect check every 10s
-setInterval(() => {
-    ensureGradioConnected();
-}, 10000);
-
-// Reconnect when tab becomes visible
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-        ensureGradioConnected();
-        // Restart timer display without resetting startTime
-        if (currentTimerType) startTimer(currentTimerType);
-    }
-});
-
-// ======================== Message handling ========================
-function addMessage(text, isUser) {
-    const chatMessages = document.getElementById('chat-messages');
-    if (!chatMessages) return;
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
-    messageDiv.innerHTML = `<div class="message-content"><p>${text}</p></div>`;
-
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function extractAssistantResponse(apiResult) {
-    try {
-        if (apiResult && apiResult.data && Array.isArray(apiResult.data) && apiResult.data.length >= 2) {
-            const chatHistory = apiResult.data[1];
-            if (Array.isArray(chatHistory) && chatHistory.length > 0) {
-                const lastMessage = chatHistory[chatHistory.length - 1];
-                if (Array.isArray(lastMessage) && lastMessage.length >= 2) {
-                    return lastMessage[1] || "No response generated";
-                }
-            }
-        }
-        return "Failed to extract response from API";
-    } catch (error) {
-        console.error("Error extracting response:", error);
-        return "Error processing response";
-    }
-}
-
-// ======================== Send message ========================
-async function sendMessage() {
-    const userInput = document.getElementById('user-input');
-    if (!userInput) return;
-
-    const message = userInput.value.trim();
-    if (!message) return;
-
+// Send message
+async function sendMessage(){
+    const u=document.getElementById('user-input');if(!u)return;
+    const msg=u.value.trim();if(!msg)return;
     freezeInputPanel();
-    addMessage(message, true);
-    userInput.value = '';
-    userInput.style.height = 'auto';
-
-    await ensureGradioConnected();
-    if (!apiConnected) {
-        addMessage("Sorry, I'm having trouble connecting to the AI service. Please try again later.", false);
-        unfreezeInputPanel();
-        return;
-    }
-
-    try {
-        isProcessing = true;
+    addMessage(msg,true);u.value='';u.style.height='auto';
+    if(!gradioApp){const success=await initializeGradioClient();if(!success){addMessage("Sorry, can't connect.",false);unfreezeInputPanel();return;}}
+    try{
+        isProcessing=true;
         updateAPIStatus("Processing your message...");
         startTimer('message');
-
-        const result = await gradioApp.predict("/respond", { message: message, chat_history: chatHistory });
-        const assistantResponse = extractAssistantResponse(result);
-        chatHistory.push([message, assistantResponse]);
-        addMessage(assistantResponse, false);
+        const result=await gradioApp.predict("/respond",{message:msg,chat_history:chatHistory});
+        const assistantResponse=extractAssistantResponse(result);
+        chatHistory.push([msg,assistantResponse]);
+        addMessage(assistantResponse,false);
         updateAPIStatus("Response received");
-    } catch (err) {
-        console.error('API Error:', err);
-        updateAPIStatus('Error: ' + (err.message || 'Unknown error'));
-        addMessage("Sorry, I encountered an error while processing your message. Please try again.", false);
-    } finally {
-        isProcessing = false;
-        stopTimer('message');
-        unfreezeInputPanel();
-    }
+    }catch(e){console.error(e);updateAPIStatus("Error");addMessage("Error occurred.",false);}
+    finally{isProcessing=false;stopTimer('message');unfreezeInputPanel();}
 }
 
-// ======================== Clear chat ========================
-function clearChat() {
-    const chatMessages = document.getElementById('chat-messages');
-    if (chatMessages) {
-        chatMessages.innerHTML = `
-            <div class="message bot-message">
-                <div class="message-content">
-                    <p>Hello! I'm a specialized AI model for water sustainability. How can I assist you today?</p>
-                </div>
-            </div>
-        `;
-    }
-    chatHistory = [];
-
-    if (!apiInitializing) updateAPIStatus("Ready");
-    if (!apiInitializing) updateSystemStatus("Ready");
-
-    const elapsedTimeElement = document.getElementById('elapsed-time');
-    if (elapsedTimeElement) elapsedTimeElement.textContent = "0.0s";
+// Add message
+function addMessage(text,isUser){
+    const chatMessages=document.getElementById('chat-messages');if(!chatMessages)return;
+    const div=document.createElement('div');div.className=isUser?'message user-message':'message bot-message';
+    div.innerHTML=`<div class="message-content"><p>${text}</p></div>`;
+    chatMessages.appendChild(div);chatMessages.scrollTop=chatMessages.scrollHeight;
 }
 
-// ======================== UI Enhancements ========================
-function setupAutoResize() {
-    const userInput = document.getElementById('user-input');
-    if (!userInput) return;
-
-    userInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-
-    userInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-            setTimeout(() => { this.style.height = 'auto'; }, 10);
+// Extract assistant response
+function extractAssistantResponse(apiResult){
+    try{
+        if(apiResult?.data?.length>=2){
+            const hist=apiResult.data[1];
+            if(hist.length>0){
+                const last=hist[hist.length-1];
+                if(Array.isArray(last)&&last.length>=2) return last[1]||"No response";
+            }
         }
-    });
+        return "Failed to extract response";
+    }catch(e){console.error(e);return "Error processing response";}
 }
 
-function addClearButton() {
-    const chatInputContainer = document.querySelector('.chat-input-container');
-    if (!chatInputContainer || document.getElementById('clear-chat')) return;
-
-    const clearButton = document.createElement('button');
-    clearButton.id = 'clear-chat';
-    clearButton.className = 'btn-secondary';
-    clearButton.innerHTML = '<i class="fas fa-broom"></i> Clear Chat';
-    clearButton.addEventListener('click', clearChat);
-
-    chatInputContainer.appendChild(clearButton);
+// Clear chat
+function clearChat(){
+    const chatMessages=document.getElementById('chat-messages');
+    if(chatMessages) chatMessages.innerHTML=`<div class="message bot-message"><div class="message-content"><p>Hello! I'm a specialized AI model for water sustainability. How can I assist you today?</p></div></div>`;
+    chatHistory=[];
+    updateAPIStatus("Ready");updateSystemStatus("Ready");
+    document.getElementById('elapsed-time').textContent="0.0s";
 }
 
-function setupEventListeners() {
-    const sendButton = document.getElementById('send-chat');
-    const userInput = document.getElementById('user-input');
-
-    if (sendButton) sendButton.addEventListener('click', sendMessage);
-    if (userInput) userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+// Setup textarea auto resize
+function setupAutoResize(){
+    const u=document.getElementById('user-input');if(!u)return;
+    u.addEventListener('input',()=>{u.style.height='auto';u.style.height=(u.scrollHeight)+'px';});
+    u.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();setTimeout(()=>{u.style.height='auto'},10);}});
 }
 
-// ======================== Chat persistence ========================
-window.addEventListener("beforeunload", () => {
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-    if (startTime) localStorage.setItem("startTime", startTime);
-    if (apiInitStartTime) localStorage.setItem("apiInitStartTime", apiInitStartTime);
+// Add clear button
+function addClearButton(){
+    const c=document.querySelector('.chat-input-container');if(!c||document.getElementById('clear-chat'))return;
+    const b=document.createElement('button');b.id='clear-chat';b.className='btn-secondary';b.innerHTML='<i class="fas fa-broom"></i> Clear Chat';b.addEventListener('click',clearChat);
+    c.appendChild(b);
+}
 
-    const chatMessages = document.getElementById('chat-messages');
-    if (chatMessages) {
-        localStorage.setItem("chatMessagesHTML", chatMessages.innerHTML);
-        localStorage.setItem("chatScrollTop", chatMessages.scrollTop);
-    }
+// Setup events
+function setupEventListeners(){
+    const s=document.getElementById('send-chat'),u=document.getElementById('user-input');
+    if(s)s.addEventListener('click',sendMessage);
+    if(u)u.addEventListener('keypress',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+}
+
+// Load page
+document.addEventListener('DOMContentLoaded',async()=>{
+    updateSystemStatus("Initializing application...");
+    updateAPIStatus("Initializing API...");
+    const e=document.getElementById('elapsed-time');if(e){e.style.display='block';e.textContent='0.0s';}
+    addClearButton();setupAutoResize();setupEventListeners();
+    // Restore chat
+    const h=localStorage.getItem('chatHistory');if(h)chatHistory=JSON.parse(h);
+    const html=localStorage.getItem('chatMessagesHTML'),s=localStorage.getItem('chatScrollTop');const chatMessages=document.getElementById('chat-messages');
+    if(chatMessages&&html){chatMessages.innerHTML=html;if(s)chatMessages.scrollTop=parseInt(s,10);}
+    startTime=localStorage.getItem('startTime')?parseInt(localStorage.getItem('startTime')):null;
+    apiInitStartTime=localStorage.getItem('apiInitStartTime')?parseInt(localStorage.getItem('apiInitStartTime')):null;
+
+    // Initialize Gradio client immediately
+    await initializeGradioClient();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    updateSystemStatus("Initializing application...");
-    updateAPIStatus("Initializing API connection...");
-
-    const elapsedTimeElement = document.getElementById('elapsed-time');
-    if (elapsedTimeElement) {
-        elapsedTimeElement.style.display = 'block';
-        elapsedTimeElement.textContent = "0.0s";
-    }
-
-    addClearButton();
-    setupAutoResize();
-    setupEventListeners();
-
-    // Restore chat history and timer
-    const savedHistory = localStorage.getItem("chatHistory");
-    if (savedHistory) chatHistory = JSON.parse(savedHistory);
-
-    const savedHTML = localStorage.getItem("chatMessagesHTML");
-    const savedScrollTop = localStorage.getItem("chatScrollTop");
-    const chatMessages = document.getElementById('chat-messages');
-    if (chatMessages && savedHTML) {
-        chatMessages.innerHTML = savedHTML;
-        if (savedScrollTop) chatMessages.scrollTop = parseInt(savedScrollTop, 10);
-    }
-
-    startTime = localStorage.getItem("startTime") ? parseInt(localStorage.getItem("startTime")) : null;
-    apiInitStartTime = localStorage.getItem("apiInitStartTime") ? parseInt(localStorage.getItem("
+// Save chat state
+window.addEventListener("beforeunload",()=>{
+    localStorage.setItem("chatHistory",JSON.stringify(chatHistory));
+    if(startTime)localStorage.setItem("startTime",startTime);
+    if(apiInitStartTime)localStorage.setItem("apiInitStartTime",apiInitStartTime);
+    const chatMessages=document.getElementById('chat-messages');
+    if(chatMessages){localStorage.setItem("chatMessagesHTML",chatMessages.innerHTML);localStorage.setItem("chatScrollTop",chatMessages.scrollTop);}
+});
