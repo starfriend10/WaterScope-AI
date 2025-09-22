@@ -414,4 +414,24 @@ window.addEventListener("beforeunload", () => {
     }
     
     // Save current accumulated time
-    localStorage.setItem('accumulatedHidden
+    localStorage.setItem('accumulatedHiddenTime', accumulatedHiddenTime.toString());
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Restore chat history
+    const savedHistory = localStorage.getItem("chatHistory");
+    const savedHTML = localStorage.getItem("chatMessagesHTML");
+    const savedScrollTop = localStorage.getItem("chatScrollTop");
+
+    if (savedHistory) chatHistory = JSON.parse(savedHistory);
+    
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages && savedHTML) {
+        chatMessages.innerHTML = savedHTML;
+        if (savedScrollTop) chatMessages.scrollTop = parseInt(savedScrollTop);
+    }
+    
+    // Restore accumulated time
+    const savedAccumulated = localStorage.getItem('accumulatedHiddenTime');
+    if (savedAccumulated) accumulatedHiddenTime = parseInt(savedAccumulated);
+});
