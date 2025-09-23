@@ -560,9 +560,9 @@ document.getElementById('clear').addEventListener('click', ()=>{
     document.getElementById('it_letter').innerText = "-";
     document.getElementById('it_raw').innerText = "Waiting for input...";
     
-    // Stop and reset the timer
-    stopTimer();
-    document.getElementById('elapsed-time').textContent = "0.0s";
+    // // Stop and reset the timer
+    // stopTimer();
+    // document.getElementById('elapsed-time').textContent = "0.0s";
     
     // Clear saved data from localStorage
     clearPersistence();
