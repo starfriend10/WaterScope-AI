@@ -1,6 +1,6 @@
 # WaterScope AI: Domain-Specific Small Language Models for Water Sustainability
 
-[WaterScope AI](https://starfriend10.github.io/WaterScope-AI-demo) is an innovative research platform that leverages domain-specific small language models (SLMs) for advancing water sustainability research. This project demonstrates the application of instruction-tuned and preference-optimized language models specifically designed for multiple-choice question answering (MCQA) in the water sustainability domain. Our models provide researchers with specialized AI assistance for analyzing complex water-related challenges through an intuitive web interface connected to Hugging Face inference endpoints.
+[WaterScope AI](https://starfriend10.github.io/WaterScope-AI) is an innovative research platform that leverages domain-specific small language models (SLMs) for advancing water sustainability research. This project demonstrates the application of instruction-tuned and preference-optimized language models specifically designed for multiple-choice question answering (MCQA) in the water sustainability domain. Our models provide researchers with specialized AI assistance for analyzing complex water-related challenges through an intuitive web interface connected to Hugging Face inference endpoints.
 
 
 ---
@@ -29,7 +29,7 @@ Frontend (GitHub Pages) → Gradio Client API → Hugging Face Inference → Spe
 ## Usage Instructions
 
 ### Research Interface
-Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI-demo)
+Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI)
 - **MCQA Analysis**: Domain-specific multiple-choice question answering with model comparisons
 - **Real-time Processing**: Live API connectivity to Hugging Face inference endpoints
 - **Explanation Generation**: Option to receive detailed reasoning behind model predictions
@@ -41,7 +41,7 @@ Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI-d
 ### Local Deployment
 ```bash
 # Clone repository
-git clone https://github.com/starfriend10/WaterScope-AI-demo.git
+git clone https://github.com/starfriend10/WaterScope-AI.git
 ```
 
 ### For Developers
@@ -79,7 +79,7 @@ We welcome research collaborations and contributions in:
 
 Please open a GitHub Issue on the project repository to propose collaborations, datasets, or code contributions.
 
-Repository: https://github.com/starfriend10/WaterScope-AI-demo
+Repository: https://github.com/starfriend10/WaterScope-AI
 
 ---
 
@@ -100,6 +100,7 @@ For commercial-use inquiries or licensing, please contact the authors.
 
 
 **WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.**
+
 
 
 
