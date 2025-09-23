@@ -1,4 +1,3 @@
-// chat.js - Complete solution with fixed continuous timer
 let gradioApp = null;
 let apiInitializing = false;
 let apiConnected = false;
@@ -24,7 +23,7 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-// Fixed timer functions using timestamp-based approach
+// timestamp-based approach
 function startTimer(type = 'message') {
     // Clear any existing timer first
     stopTimer();
@@ -361,7 +360,7 @@ function setupAutoResize() {
     });
 }
 
-// Add clear chat button to UI if it doesn't exist
+// clear chat button to UI if it doesn't exist
 function addClearButton() {
     const chatInputContainer = document.querySelector('.chat-input-container');
     if (!chatInputContainer || document.getElementById('clear-chat')) return;
