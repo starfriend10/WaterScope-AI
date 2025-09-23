@@ -16,7 +16,9 @@ We developed and fine-tuned two specialized language models:
 2. **DA-DPO Model** (Domain-Adaptation Direct Preference Optimization): Preference-optimized for expert-aligned responses
 
 ### Technical Architecture
+```
 Frontend (GitHub Pages) → Gradio Client API → Hugging Face Inference → Specialized SLMs
+```
 
 ### Technical Specifications
 - **Frontend**: HTML5, CSS3, JavaScript with responsive design
@@ -100,6 +102,7 @@ For commercial-use inquiries or licensing, please contact the authors.
 
 
 **WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.**
+
 
 
 
