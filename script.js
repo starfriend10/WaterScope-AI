@@ -1,4 +1,4 @@
-// mcqa-evaluator.js
+// mcqa-evaluator.js - Fixed with continuous timer
 const MAX_OPTIONS = 8;
 let currentOptions = 4;
 let MCQA_DATA = [];
@@ -7,11 +7,75 @@ let apiInitializing = false;
 let apiConnected = false;
 let isProcessing = false;
 
-// Timer functionality
+// Fixed timer functionality - using timestamp-based approach
 let timerInterval = null;
-let startTime = null;
-let warmupTimerInterval = null;
-let warmupStartTime = null;
+let timerStartTime = null;
+
+// Tab visibility handling for continuous timing
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        // Tab is hidden - update status but timer continues running in background
+        updateAPIStatus("Background (Active)");
+    } else {
+        // Tab is visible again - update display immediately
+        if (timerStartTime) {
+            updateTimerDisplay();
+        }
+        // Check and recover connection if needed
+        checkAndRecoverConnection();
+    }
+});
+
+// Fixed timer functions using timestamp-based approach
+function startTimer(type = 'processing') {
+    // Clear any existing timer first
+    stopTimer();
+
+    // Record the precise start time (timestamp in milliseconds)
+    timerStartTime = Date.now();
+    
+    // Save to localStorage for persistence across page reloads
+    localStorage.setItem('mcqaTimerStartTime', timerStartTime.toString());
+    localStorage.setItem('mcqaTimerType', type);
+    
+    console.log('MCQA Timer started at:', timerStartTime, 'Type:', type);
+    
+    // Start UI update interval (this is just for display smoothness)
+    timerInterval = setInterval(updateTimerDisplay, 100);
+    
+    // Show initial display
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    if (!timerStartTime) {
+        // Try to recover from localStorage if page was reloaded
+        const storedTime = localStorage.getItem('mcqaTimerStartTime');
+        if (!storedTime) return;
+        timerStartTime = parseInt(storedTime);
+    }
+
+    // Calculate elapsed time based on actual timestamp difference
+    const currentTime = Date.now();
+    const elapsedTimeMs = currentTime - timerStartTime;
+    const elapsedSeconds = elapsedTimeMs / 1000;
+    
+    const elapsedTimeElement = document.getElementById('elapsed-time');
+    if (elapsedTimeElement) {
+        elapsedTimeElement.textContent = elapsedSeconds.toFixed(1) + 's';
+        elapsedTimeElement.style.display = 'block';
+    }
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    timerStartTime = null;
+    localStorage.removeItem('mcqaTimerStartTime');
+    localStorage.removeItem('mcqaTimerType');
+}
 
 // ===== Form persistence across page switches =====
 
@@ -279,40 +343,6 @@ function unfreezeMCQAInputs() {
     updateSystemStatus("Ready");
 }
 
-function startTimer(type) {
-    if (type === 'warmup') {
-        warmupStartTime = Date.now();
-        document.getElementById('elapsed-time').style.display = 'block';
-        
-        if (warmupTimerInterval) clearInterval(warmupTimerInterval);
-        
-        warmupTimerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - warmupStartTime) / 1000;
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-        }, 100);
-    } else if (type === 'processing') {
-        startTime = Date.now();
-        document.getElementById('elapsed-time').style.display = 'block';
-        
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            document.getElementById('elapsed-time').textContent = elapsedTime.toFixed(1) + 's';
-        }, 100);
-    }
-}
-
-function stopTimer(type) {
-    if (type === 'warmup' && warmupTimerInterval) {
-        clearInterval(warmupTimerInterval);
-        warmupTimerInterval = null;
-    } else if (type === 'processing' && timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-}
-
 // Status update functions
 function updateSystemStatus(message) {
     const element = document.getElementById('system-status');
@@ -340,12 +370,37 @@ function updateAPIStatus(message) {
         // Add visual status indicators
         element.classList.remove('status-processing', 'status-ready', 'status-error');
         
-        if (message.toLowerCase().includes('processing')) {
+        if (message.toLowerCase().includes('processing') || message.toLowerCase().includes('checking') || message.toLowerCase().includes('reconnecting')) {
             element.classList.add('status-processing');
-        } else if (message.toLowerCase().includes('connected') || message.toLowerCase().includes('received')) {
+        } else if (message.toLowerCase().includes('connected') || message.toLowerCase().includes('received') || message.toLowerCase().includes('ready')) {
             element.classList.add('status-ready');
         } else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
             element.classList.add('status-error');
+        }
+    }
+}
+
+// Connection recovery function
+function checkAndRecoverConnection() {
+    const apiStatusElement = document.getElementById('api-status');
+    if (!apiStatusElement) return;
+    
+    const statusText = apiStatusElement.textContent.toLowerCase();
+    if (statusText.includes('failed') || statusText.includes('error') || statusText.includes('background')) {
+        console.log('Checking MCQA connection status...');
+        updateAPIStatus("Checking connection...");
+        
+        if (gradioApp && apiConnected) {
+            updateAPIStatus("Connected");
+        } else if (!apiInitializing) {
+            updateAPIStatus("Reconnecting...");
+            initializeGradioClient().then(success => {
+                if (success) {
+                    updateAPIStatus("Reconnected successfully");
+                } else {
+                    updateAPIStatus("Reconnection failed");
+                }
+            });
         }
     }
 }
@@ -505,13 +560,14 @@ document.getElementById('clear').addEventListener('click', ()=>{
     document.getElementById('it_letter').innerText = "-";
     document.getElementById('it_raw').innerText = "Waiting for input...";
     
+    // Stop and reset the timer
+    stopTimer();
+    document.getElementById('elapsed-time').textContent = "0.0s";
+    
     // Clear saved data from localStorage
     clearPersistence();
     
     updateSystemStatus("Form cleared");
-    
-    // Don't modify API status as it might be in the middle of processing
-    document.getElementById('elapsed-time').textContent = "0.0s";
 });
 
 // --- 6. Initialize Gradio Client ---
@@ -519,6 +575,8 @@ async function initializeGradioClient() {
     try {
         apiInitializing = true;
         updateAPIStatus("Initializing connection to AI API...");
+        
+        // Start the fixed timer for API initialization
         startTimer('warmup');
         
         // Import the Gradio client
@@ -528,16 +586,18 @@ async function initializeGradioClient() {
         gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
         
         console.log("Gradio client initialized successfully");
-        stopTimer('warmup');
+        stopTimer();
         apiInitializing = false;
         apiConnected = true;
         updateAPIStatus("Connected to AI API successfully");
+        return true;
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
-        stopTimer('warmup');
+        stopTimer();
         apiInitializing = false;
         apiConnected = false;
         updateAPIStatus("Failed to connect to AI API");
+        return false;
     }
 }
 
@@ -545,7 +605,7 @@ async function initializeGradioClient() {
 function handleStopRequest() {
     if (isProcessing) {
         isProcessing = false;
-        stopTimer('processing');
+        stopTimer();
         unfreezeMCQAInputs(); // Unfreeze inputs when stopping
         updateAPIStatus("Request cancelled");
         console.log("Processing stopped by user");
@@ -576,8 +636,8 @@ document.getElementById('send').addEventListener('click', async ()=>{
     // Initialize client if not already done
     if (!gradioApp) {
         updateAPIStatus("Initializing connection to AI API...");
-        await initializeGradioClient();
-        if (!gradioApp) {
+        const success = await initializeGradioClient();
+        if (!success) {
             updateAPIStatus("Failed to connect to AI API. Please try again.");
             alert("Failed to connect to AI API. Please try again.");
             return;
@@ -591,7 +651,7 @@ document.getElementById('send').addEventListener('click', async ()=>{
         // Freeze inputs before processing
         freezeMCQAInputs();
         
-        // Start the processing timer
+        // Start the fixed timer for processing
         startTimer('processing');
         updateAPIStatus("Processing your question...");
         
@@ -640,7 +700,7 @@ document.getElementById('send').addEventListener('click', async ()=>{
         // Always clean up, even if there was an error
         if (isProcessing) {
             // Stop the processing timer
-            stopTimer('processing');
+            stopTimer();
             
             // Unfreeze inputs
             unfreezeMCQAInputs();
@@ -655,6 +715,21 @@ document.getElementById('send').addEventListener('click', async ()=>{
 document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
     updateAPIStatus("Initializing API connection...");
+    
+    // Check if there's an active timer from a previous session and resume it
+    const savedStartTime = localStorage.getItem('mcqaTimerStartTime');
+    if (savedStartTime) {
+        console.log('Resuming previous MCQA timer session');
+        timerStartTime = parseInt(savedStartTime);
+        timerInterval = setInterval(updateTimerDisplay, 100);
+        updateTimerDisplay();
+    } else {
+        // Show initial state
+        const elapsedTimeElement = document.getElementById('elapsed-time');
+        if (elapsedTimeElement) {
+            elapsedTimeElement.textContent = "0.0s";
+        }
+    }
     
     // Restore form state after a short delay to ensure DOM is fully loaded
     setTimeout(() => {
