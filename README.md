@@ -90,9 +90,9 @@ If you use WaterScope AI in your research, please cite:
 
     @software{WaterScopeAI2025,
       title = {WaterScope AI: Domain-Specific Small Language Models for Water Sustainability},
-      author = {Princeton University, Department of Civil and Environmental Engineering},
+      author = {Jun-Jie Zhu, Department of Civil and Environmental Engineering, Princeton University},
       year = {2025},
-      url = {https://github.com/starfriend10/WaterScope-AI-demo}
+      url = {https://github.com/starfriend10/WaterScope-AI}
     }
 
 
@@ -102,6 +102,7 @@ For commercial-use inquiries or licensing, please contact the authors.
 
 
 **WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.**
+
 
 
 
