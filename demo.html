@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        /* Add some additional styling for the persistence features */
+
         .persistence-notice {
             background-color: #e8f4fc;
             border-left: 4px solid #2196F3;
@@ -110,6 +110,9 @@
                         <div class="note">Quality may vary, refer to instructions</div>
                     </div>
                     <div class="button-group">
+                        <small style="font-size: 0.6em; color: #666; display: block; margin-top: 4px; font-style: italic;">
+                            [The first model initialization may take 3-5 minutes]
+                        </small>
                         <button id="add-option" class="btn-secondary"><i class="fas fa-plus"></i> Option</button>
                         <button id="clear" class="btn-secondary"><i class="fas fa-broom"></i> Clear</button>
                         <button id="stop" class="btn-warning" style="display: none;"><i class="fas fa-stop"></i> Stop</button>
@@ -204,7 +207,7 @@
         <footer class="footer">
             <p>WaterScope-AI Research Platform © 2025 | Built with GitHub, Hugging Face, & Gradio </p>
             <p>Note: This website showcases a demo of domain-specific SLMs for water sustainability</p>
-            <p>Department of Civil and Environmental Engineering, Princeton University, </p>
+            <p>Department of Civil and Environmental Engineering, Princeton University </p>
         </footer>
     </div>
 
