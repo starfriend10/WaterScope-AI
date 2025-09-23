@@ -1,114 +1,78 @@
-// analytics.js - Fixed session tracking
-class WaterScopeAnalytics {
-    constructor() {
-        this.version = '1.1';
-        this.sessionTimeout = 30 * 60 * 1000; // 30 minutes
-        this.init();
-    }
-    
-    init() {
-        console.log('🌊 WaterScope-AI Analytics Initialized');
-        
-        // Set first visit date if not set
-        if (!localStorage.getItem('waterScopeFirstVisit')) {
-            localStorage.setItem('waterScopeFirstVisit', new Date().toISOString());
-            console.log('📅 First visit recorded');
-        }
-        
-        this.startSession();
-        this.trackPageView();
-        this.setupEventListeners();
-    }
-    
-    startSession() {
-        const now = Date.now();
-        const sessionStart = sessionStorage.getItem('waterScopeSessionStart');
-        const lastActivity = sessionStorage.getItem('waterScopeLastActivity');
-        
-        // NEW: Check if this is a completely new browser instance
-        const isNewBrowserInstance = !sessionStorage.getItem('waterScopeTabCount');
-        
-        // Count tabs in this session
-        let tabCount = parseInt(sessionStorage.getItem('waterScopeTabCount') || '0');
-        tabCount++;
-        sessionStorage.setItem('waterScopeTabCount', tabCount.toString());
-        
-        // Check if new session (no session OR timeout OR new browser instance)
-        const timeSinceLastActivity = lastActivity ? now - parseInt(lastActivity) : Infinity;
-        
-        if (!sessionStart || timeSinceLastActivity > this.sessionTimeout || isNewBrowserInstance) {
-            this.incrementTotalVisits();
-            sessionStorage.setItem('waterScopeSessionStart', now.toString());
-            console.log('🆕 New session started - Total visits incremented');
-        }
-        
-        sessionStorage.setItem('waterScopeLastActivity', now.toString());
-        sessionStorage.setItem('waterScopeLastTabOpen', now.toString());
-    }
-    
-    incrementTotalVisits() {
-        let totalVisits = localStorage.getItem('waterScopeTotalVisits');
-        totalVisits = totalVisits ? parseInt(totalVisits) + 1 : 1;
-        localStorage.setItem('waterScopeTotalVisits', totalVisits.toString());
-        
-        // Track unique visitors (based on first visit)
-        let uniqueVisitors = localStorage.getItem('waterScopeUniqueVisitors');
-        if (!uniqueVisitors) {
-            uniqueVisitors = 1;
-            localStorage.setItem('waterScopeUniqueVisitors', '1');
-            console.log('👤 New unique visitor');
-        }
-        
-        return totalVisits;
-    }
-    
-    trackPageView() {
-        const currentPage = this.getCurrentPage();
-        
-        // Always increment page views (even in same session)
-        let totalPageViews = localStorage.getItem('waterScopeTotalPageViews');
-        totalPageViews = totalPageViews ? parseInt(totalPageViews) + 1 : 1;
-        localStorage.setItem('waterScopeTotalPageViews', totalPageViews.toString());
-        
-        // Individual page views
-        let pageViews = JSON.parse(localStorage.getItem('waterScopePageViews') || '{}');
-        pageViews[currentPage] = (pageViews[currentPage] || 0) + 1;
-        localStorage.setItem('waterScopePageViews', JSON.stringify(pageViews));
-        
-        this.updateDisplay();
-        this.logPageView(currentPage, pageViews[currentPage]);
-    }
-    
-    // ... rest of your existing methods remain the same ...
-    
-    setupEventListeners() {
-        // Track when user leaves the page or closes tab
-        window.addEventListener('beforeunload', () => {
-            this.handleTabClose();
-        });
-        
-        // Track visibility changes (tab switching)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                // Tab is hidden
-                sessionStorage.setItem('waterScopeLastActivity', Date.now().toString());
-            }
-        });
-    }
-    
-    handleTabClose() {
-        // Decrement tab count
-        let tabCount = parseInt(sessionStorage.getItem('waterScopeTabCount') || '1');
-        tabCount = Math.max(0, tabCount - 1);
-        sessionStorage.setItem('waterScopeTabCount', tabCount.toString());
-        
-        // If last tab, mark session as potentially ending
-        if (tabCount === 0) {
-            sessionStorage.setItem('waterScopeLastActivity', Date.now().toString());
-            console.log('📱 Last tab closed - session may end');
-        }
-    }
-}
+(function() {
+    const VISITOR_KEY = 'visitor_id';
+    const SESSION_KEY = 'session_expiry';
+    const IDLE_TIMEOUT_MINUTES = 30;
 
-// Initialize analytics
-const waterScopeAnalytics = new WaterScopeAnalytics();
+    // Generate a unique visitor ID
+    function generateVisitorID() {
+        return 'v_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
+    }
+
+    // Get or create visitor ID
+    function getVisitorID() {
+        let visitorID = localStorage.getItem(VISITOR_KEY);
+        if (!visitorID) {
+            visitorID = generateVisitorID();
+            localStorage.setItem(VISITOR_KEY, visitorID);
+            console.log('New visitor ID assigned:', visitorID);
+            // Send new visitor count to server here
+            sendVisitorEvent('new_visitor');
+        }
+        return visitorID;
+    }
+
+    // Check if session is active or expired
+    function checkSession() {
+        const now = Date.now();
+        const expiry = sessionStorage.getItem(SESSION_KEY);
+
+        if (!expiry || now > parseInt(expiry)) {
+            startNewSession();
+        } else {
+            // Refresh session expiry
+            const newExpiry = now + IDLE_TIMEOUT_MINUTES * 60 * 1000;
+            sessionStorage.setItem(SESSION_KEY, newExpiry);
+        }
+    }
+
+    // Start a new session (counts as one visit)
+    function startNewSession() {
+        const now = Date.now();
+        const expiry = now + IDLE_TIMEOUT_MINUTES * 60 * 1000;
+        sessionStorage.setItem(SESSION_KEY, expiry);
+        console.log('New session started');
+        sendVisitorEvent('session_start');
+    }
+
+    // Call this whenever user interacts to reset idle timer
+    function resetIdleTimer() {
+        const now = Date.now();
+        const expiry = now + IDLE_TIMEOUT_MINUTES * 60 * 1000;
+        sessionStorage.setItem(SESSION_KEY, expiry);
+    }
+
+    // Example function to send visitor info to analytics server
+    function sendVisitorEvent(eventType) {
+        const visitorID = getVisitorID();
+        console.log(`Visitor Event: ${eventType}, ID: ${visitorID}`);
+        // You can replace console.log with actual POST to your backend
+        // Example:
+        // fetch('/analytics', {
+        //     method: 'POST',
+        //     headers: {'Content-Type':'application/json'},
+        //     body: JSON.stringify({visitorID, eventType, timestamp: Date.now()})
+        // });
+    }
+
+    // Listen for user activity to reset idle timer
+    ['mousemove','keydown','scroll','click'].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, true);
+    });
+
+    // Initialize
+    getVisitorID();
+    checkSession();
+
+    // Optional: Check session periodically in case user stays idle
+    setInterval(checkSession, 60 * 1000); // every 1 min
+})();
