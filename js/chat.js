@@ -318,8 +318,8 @@ function clearChat() {
     }
     chatHistory = [];
     
-    // Stop and reset the timer
-    stopTimer();
+    // // Stop and reset the timer
+    // stopTimer();
     
     // Only update API status if not initializing
     if (!apiInitializing) {
