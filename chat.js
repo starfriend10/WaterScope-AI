@@ -1,139 +1,78 @@
-// chat.js - Complete solution with persistent timer (ALL ORIGINAL CODE PRESERVED)
+// chat.js - Complete solution with fixed continuous timer
 let gradioApp = null;
 let apiInitializing = false;
 let apiConnected = false;
 let isProcessing = false;
 let chatHistory = [];
 
-// Enhanced timer functionality with proper background timing
+// Fixed timer variables - using timestamp-based approach
 let timerInterval = null;
-let startTime = null;
-let apiInitStartTime = null;
-let apiInitTimerInterval = null;
-let accumulatedHiddenTime = 0;
-let tabHiddenTime = null;
+let timerStartTime = null;
 
-// Tab visibility handling for continuous timing
+// Tab visibility handling
 document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
-        // Tab is being hidden - record the time
-        tabHiddenTime = Date.now();
-        
-        // Calculate and store time elapsed so far for active timers
-        if (apiInitStartTime) {
-            accumulatedHiddenTime += Date.now() - apiInitStartTime;
-            apiInitStartTime = null;
-        }
-        if (startTime) {
-            accumulatedHiddenTime += Date.now() - startTime;
-            startTime = null;
-        }
-        
-        // Stop timers to prevent inaccurate counting
-        stopTimer('api-init');
-        stopTimer('message');
-        
-        // Update status to reflect background state
-        updateAPIStatus("Background (connection active)");
-        
+        // Tab is hidden - update status but timer continues running in background
+        updateAPIStatus("Background (Active)");
     } else {
-        // Tab is visible again
-        if (tabHiddenTime) {
-            const hiddenDuration = Date.now() - tabHiddenTime;
-            accumulatedHiddenTime += hiddenDuration;
-            tabHiddenTime = null;
+        // Tab is visible again - update display immediately
+        if (timerStartTime) {
+            updateTimerDisplay();
         }
-        
-        // Resume any active timers with corrected timing
-        resumeTimers();
-        
         // Check and recover connection if needed
         checkAndRecoverConnection();
     }
 });
 
+// Fixed timer functions using timestamp-based approach
 function startTimer(type = 'message') {
-    // Reset accumulated time when starting fresh
-    accumulatedHiddenTime = 0;
+    // Clear any existing timer first
+    stopTimer();
+
+    // Record the precise start time (timestamp in milliseconds)
+    timerStartTime = Date.now();
     
-    if (type === 'api-init') {
-        apiInitStartTime = Date.now();
-        localStorage.setItem('apiInitStartTime', apiInitStartTime.toString());
-        
-        if (apiInitTimerInterval) clearInterval(apiInitTimerInterval);
-        
-        apiInitTimerInterval = setInterval(() => {
-            if (apiInitStartTime) {
-                const elapsedTime = (Date.now() - apiInitStartTime - accumulatedHiddenTime) / 1000;
-                updateTimerDisplay(elapsedTime);
-            }
-        }, 100);
-    } else {
-        startTime = Date.now();
-        localStorage.setItem('messageStartTime', startTime.toString());
-        
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-            if (startTime) {
-                const elapsedTime = (Date.now() - startTime - accumulatedHiddenTime) / 1000;
-                updateTimerDisplay(elapsedTime);
-            }
-        }, 100);
-    }
+    // Save to localStorage for persistence across page reloads
+    localStorage.setItem('timerStartTime', timerStartTime.toString());
+    localStorage.setItem('timerType', type);
     
-    updateTimerDisplay(0);
+    console.log('Timer started at:', timerStartTime, 'Type:', type);
+    
+    // Start UI update interval (this is just for display smoothness)
+    timerInterval = setInterval(updateTimerDisplay, 100);
+    
+    // Show initial display
+    updateTimerDisplay();
 }
 
-function updateTimerDisplay(elapsedTime) {
+function updateTimerDisplay() {
+    if (!timerStartTime) {
+        // Try to recover from localStorage if page was reloaded
+        const storedTime = localStorage.getItem('timerStartTime');
+        if (!storedTime) return;
+        timerStartTime = parseInt(storedTime);
+    }
+
+    // Calculate elapsed time based on actual timestamp difference
+    const currentTime = Date.now();
+    const elapsedTimeMs = currentTime - timerStartTime;
+    const elapsedSeconds = elapsedTimeMs / 1000;
+    
     const elapsedTimeElement = document.getElementById('elapsed-time');
     if (elapsedTimeElement) {
-        elapsedTimeElement.textContent = elapsedTime.toFixed(1) + 's';
+        elapsedTimeElement.textContent = elapsedSeconds.toFixed(1) + 's';
         elapsedTimeElement.style.display = 'block';
     }
 }
 
-function resumeTimers() {
-    // Restart timers if they were running when tab was hidden
-    const savedApiInitTime = localStorage.getItem('apiInitStartTime');
-    const savedMessageTime = localStorage.getItem('messageStartTime');
-    
-    if (savedApiInitTime) {
-        apiInitStartTime = parseInt(savedApiInitTime);
-        accumulatedHiddenTime = Date.now() - apiInitStartTime - accumulatedHiddenTime;
-        
-        if (apiInitTimerInterval) clearInterval(apiInitTimerInterval);
-        apiInitTimerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - apiInitStartTime - accumulatedHiddenTime) / 1000;
-            updateTimerDisplay(elapsedTime);
-        }, 100);
-    } else if (savedMessageTime) {
-        startTime = parseInt(savedMessageTime);
-        accumulatedHiddenTime = Date.now() - startTime - accumulatedHiddenTime;
-        
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            const elapsedTime = (Date.now() - startTime - accumulatedHiddenTime) / 1000;
-            updateTimerDisplay(elapsedTime);
-        }, 100);
-    }
-}
-
-function stopTimer(type = 'message') {
-    if (type === 'api-init' && apiInitTimerInterval) {
-        clearInterval(apiInitTimerInterval);
-        apiInitTimerInterval = null;
-        apiInitStartTime = null;
-        localStorage.removeItem('apiInitStartTime');
-    } else if (timerInterval) {
+function stopTimer() {
+    if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
-        startTime = null;
-        localStorage.removeItem('messageStartTime');
     }
-    
-    // Reset accumulated time when stopping
-    accumulatedHiddenTime = 0;
+    timerStartTime = null;
+    localStorage.removeItem('timerStartTime');
+    localStorage.removeItem('timerType');
 }
 
 // Status update functions
@@ -179,7 +118,7 @@ function freezeInputPanel() {
     const sendButton = document.getElementById('send-chat');
     const clearButton = document.getElementById('clear-chat');
     
-    console.log("Freezing input panel", {userInput, sendButton, clearButton});
+    console.log("Freezing input panel");
     
     if (userInput) {
         userInput.disabled = true;
@@ -232,7 +171,7 @@ async function initializeGradioClient() {
         apiInitializing = true;
         updateAPIStatus("Initializing connection to AI API...");
         
-        // Start timer for API initialization
+        // Start the fixed timer
         startTimer('api-init');
         
         // Import the Gradio client
@@ -247,8 +186,8 @@ async function initializeGradioClient() {
         updateAPIStatus("Connected to AI API successfully");
         updateSystemStatus("Ready");
         
-        // Stop API initialization timer
-        stopTimer('api-init');
+        // Stop timer
+        stopTimer();
         return true;
     } catch (error) {
         console.error("Failed to initialize Gradio client:", error);
@@ -257,8 +196,8 @@ async function initializeGradioClient() {
         updateAPIStatus("Failed to connect to AI API");
         updateSystemStatus("Connection Error");
         
-        // Stop API initialization timer even if it fails
-        stopTimer('api-init');
+        // Stop timer even if it fails
+        stopTimer();
         return false;
     }
 }
@@ -335,6 +274,8 @@ async function sendMessage() {
     try {
         isProcessing = true;
         updateAPIStatus("Processing your message...");
+        
+        // Start the fixed timer for message processing
         startTimer('message');
         
         // Call the correct endpoint - using /respond as shown in your API documentation
@@ -359,12 +300,12 @@ async function sendMessage() {
         addMessage("Sorry, I encountered an error while processing your message. Please try again.", false);
     } finally {
         isProcessing = false;
-        stopTimer('message');
+        stopTimer();
         unfreezeInputPanel(); // Always unfreeze regardless of success/error
     }
 }
 
-// Clear chat function - MODIFIED to preserve API status during initialization
+// Clear chat function
 function clearChat() {
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
@@ -378,13 +319,8 @@ function clearChat() {
     }
     chatHistory = [];
     
-    // Clear all timer data
-    stopTimer('api-init');
-    stopTimer('message');
-    accumulatedHiddenTime = 0;
-    tabHiddenTime = null;
-    localStorage.removeItem('apiInitStartTime');
-    localStorage.removeItem('messageStartTime');
+    // Stop and reset the timer
+    stopTimer();
     
     // Only update API status if not initializing
     if (!apiInitializing) {
@@ -396,7 +332,7 @@ function clearChat() {
         updateSystemStatus("Ready");
     }
     
-    // Clear any timer display
+    // Reset timer display
     if (document.getElementById('elapsed-time')) {
         document.getElementById('elapsed-time').textContent = "0.0s";
     }
@@ -458,11 +394,10 @@ function setupEventListeners() {
     }
 }
 
-// Enhanced connection recovery
+// Connection recovery function
 async function checkAndRecoverConnection() {
     const apiStatusElement = document.getElementById('api-status');
     
-    // Only attempt recovery if status indicates failure
     if (apiStatusElement && (
         apiStatusElement.textContent.includes('Failed') || 
         apiStatusElement.textContent.includes('Error') ||
@@ -471,30 +406,17 @@ async function checkAndRecoverConnection() {
         console.log('Tab active - checking API connection...');
         updateAPIStatus("Checking connection...");
         
-        // Simple connectivity test instead of full reinitialization
         if (gradioApp && apiConnected) {
-            // If we already have a connection object, assume it's still valid
             updateAPIStatus("Connected");
             updateSystemStatus("Ready");
-        } else {
-            // Only reset if truly disconnected
+        } else if (!apiInitializing) {
             updateAPIStatus("Reconnecting...");
-            gradioApp = null;
-            apiConnected = false;
-            
             const success = await initializeGradioClient();
             if (success) {
                 updateAPIStatus("Reconnected successfully");
             } else {
-                updateAPIStatus("Reconnection failed - please refresh");
+                updateAPIStatus("Reconnection failed");
             }
-        }
-    } else if (apiStatusElement && apiStatusElement.textContent.includes('Background')) {
-        // Restore normal status when returning to tab
-        if (gradioApp && apiConnected) {
-            updateAPIStatus("Connected");
-        } else {
-            updateAPIStatus("Ready");
         }
     }
 }
@@ -502,7 +424,7 @@ async function checkAndRecoverConnection() {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     updateSystemStatus("Initializing application...");
-    updateAPIStatus("Initializing API connection...");
+    updateAPIStatus("Ready");
     
     // Show timer immediately on page load
     const elapsedTimeElement = document.getElementById('elapsed-time');
@@ -511,30 +433,13 @@ document.addEventListener('DOMContentLoaded', function() {
         elapsedTimeElement.textContent = "0.0s";
     }
     
-    // Check for existing timer state from previous session
-    const savedApiInitTime = localStorage.getItem('apiInitStartTime');
-    const savedMessageTime = localStorage.getItem('messageStartTime');
-    
-    if (savedApiInitTime || savedMessageTime) {
+    // Check if there's an active timer from a previous session and resume it
+    const savedStartTime = localStorage.getItem('timerStartTime');
+    if (savedStartTime) {
         console.log('Resuming previous timer session');
-        // Set accumulated time to simulate continuous running
-        if (savedApiInitTime) {
-            const start = parseInt(savedApiInitTime);
-            accumulatedHiddenTime = Date.now() - start;
-            apiInitStartTime = Date.now();
-            apiInitTimerInterval = setInterval(() => {
-                const elapsedTime = (Date.now() - apiInitStartTime - accumulatedHiddenTime) / 1000;
-                updateTimerDisplay(elapsedTime);
-            }, 100);
-        } else if (savedMessageTime) {
-            const start = parseInt(savedMessageTime);
-            accumulatedHiddenTime = Date.now() - start;
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsedTime = (Date.now() - startTime - accumulatedHiddenTime) / 1000;
-                updateTimerDisplay(elapsedTime);
-            }, 100);
-        }
+        timerStartTime = parseInt(savedStartTime);
+        timerInterval = setInterval(updateTimerDisplay, 100);
+        updateTimerDisplay();
     }
     
     // Add UI enhancements
