@@ -13,7 +13,7 @@ Cite the publication here: Publication DOI reserved
 Water sustainability faces complex challenges requiring interdisciplinary expertise. Traditional language models lack domain-specific knowledge in water systems, climate impacts, and environmental engineering, limiting their utility for researchers and practitioners in this critical field.
 
 ### Methodology
-We developed and fine-tuned two specialized language models:
+We developed and post-trained two specialized language models:
 
 1. **DA-IT Model** (Domain-Adaptation Instruction-Tuning): Instruction-tuned on water/wastewater sustainability corpora
 2. **DA-DPO Model** (Domain-Adaptation Direct Preference Optimization): Preference-optimized for experts-aligned responses
@@ -105,6 +105,7 @@ For commercial-use inquiries or licensing, please contact the authors.
 
 
 **WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.**
+
 
 
 
