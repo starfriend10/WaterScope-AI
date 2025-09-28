@@ -16,7 +16,7 @@ Water sustainability faces complex challenges requiring interdisciplinary expert
 We developed and fine-tuned two specialized language models:
 
 1. **DA-IT Model** (Domain-Adaptation Instruction-Tuning): Instruction-tuned on water/wastewater sustainability corpora
-2. **DA-DPO Model** (Domain-Adaptation Direct Preference Optimization): Preference-optimized for expert-aligned responses
+2. **DA-DPO Model** (Domain-Adaptation Direct Preference Optimization): Preference-optimized for experts-aligned responses
 
 ### Technical Architecture
 ```
@@ -39,7 +39,7 @@ Visit the [WaterScope AI Website](https://starfriend10.github.io/WaterScope-AI)
 - **Real-time Processing**: Live API connectivity to Hugging Face inference endpoints
 - **Explanation Generation**: Option to receive detailed reasoning behind model predictions
 - **Research Dataset Integration**: Pre-loaded with water sustainability MCQA examples
-- **Chatbot**: Experience real-time conversation (this function is for an experimental purpose)
+- **Chatbot**: Experience real-time conversation (research prototype)
 
 ## Installation and Deployment
 
@@ -105,6 +105,7 @@ For commercial-use inquiries or licensing, please contact the authors.
 
 
 **WaterScope AI is an ongoing research initiative demonstrating domain-specific AI for addressing critical water sustainability challenges.**
+
 
 
 
