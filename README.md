@@ -98,7 +98,6 @@ If you use WaterScope AI in your research, please cite:
       url = {https://github.com/starfriend10/WaterScope-AI}
     }
 
-
 ## License
 This research software is available for academic and research use.
 For commercial-use inquiries or licensing, please contact the authors.
