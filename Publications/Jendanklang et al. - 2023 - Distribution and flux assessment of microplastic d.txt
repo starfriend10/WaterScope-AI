@@ -1,0 +1,82 @@
+# Paper Identity
+
+**Title:** Distribution and flux assessment of microplastic debris in the middle and lower Chao Phraya River, Thailand  
+**Publication Year:** 2023  
+**Journal:** Journal of Water and Health  
+**Document Type:** Article  
+**Author Keywords:** Chao Phraya River; flux; microplastic; sedimentation
+
+# Research Background and Objective
+
+Microplastic (MP) pollution has become a global environmental concern, with rivers serving as major transport pathways for plastic debris from terrestrial sources to oceans. Thailand ranked sixth globally in plastic debris discharge to the ocean in 2015. The Chao Phraya River, the largest river in Thailand, drains the central region and carries the highest water discharge to the estuary. Despite its significance as a drinking water source and its role in transporting pollutants, quantitative assessments of MP distribution, sedimentation, and riverine flux along this river system were limited.
+
+This study aimed to assess the quantity, distribution, composition, and flux of MP debris in five provinces along the middle and lower Chao Phraya River. Specific objectives included: (1) evaluating spatial distribution and seasonal variation of MPs in water and sediment, (2) characterizing MP size, shape, color, and polymer types, (3) measuring MP sedimentation rates using sediment traps, and (4) estimating MP riverine flux between provinces using a box model approach.
+
+# Study System / Materials / Data
+
+The Chao Phraya River originates in Nakhon Sawan Province at the confluence of the Ping, Wang, Yom, and Nan Rivers, flowing 379 km through central Thailand to the estuary. The drainage area covers 20,523 km². The river passes through intensive agricultural, aquacultural, industrial, and residential areas.
+
+Thirteen sampling stations were established across five provinces: Samut Prakan (C1–C3), Bangkok (C4–C6), and Nonthaburi (C7–C9) in the lower river, and Pathum Thani (C10–C11) and Phra Nakhon Si Ayutthaya (C12–C13) in the middle river. Sampling occurred during neap tides in March 2021 (dry season), September 2021 (wet season), and March 2022 (dry season).
+
+# Methods and Experimental or Modeling Design
+
+**Hydrological data collection:** Water velocity was measured at 50 cm depth using an Alec electromagnetic current meter. Cross-sectional areas were calculated using GPS and portable depth meter data processed with Surfer 22.0. Water quality parameters (salinity, temperature, pH, dissolved oxygen) were measured with a YSI multiparameter meter; transparency was recorded using a Secchi disc.
+
+**MP sampling:** Surface water samples (volume not specified in text) were collected at each station. One sediment sample per station was collected using a 15 cm × 15 cm × 10 cm sampler from the river channel side. A sediment trap was deployed at station C8 (borderline between middle and lower river), consisting of two cylindrical columns (10 cm diameter, 50 cm height) anchored with a sandbag and suspended with buoys.
+
+**MP separation:** The protocol modified from NOAA methods included: (1) wet peroxide oxidation using 30% H₂O₂ and 1% KOH (9:1 ratio) at 75°C with stirring until organic gas bubbles disappeared, followed by 24-hour standing; (2) density separation using 1.3 g/cm³ NaCl solution with 24-hour settling; (3) filtration through Whatman GF/C filters (1.2 μm pore size, 47 mm diameter); (4) drying at 60°C. Sediment samples were homogenized, dried, and weighed before applying the same protocol.
+
+**MP characterization:** MPs were categorized by six colors (black, blue, red, green, yellow, white) plus clear items, and by shape (fiber, fragment, film, foam, pellet). Polymer identification was performed using Fourier Transform Infrared Spectrophotometry (FTIR) on approximately 10% of total MPs from water and sediment samples, and 100% of MPs from sediment traps.
+
+**Calculations:**
+- Microplastic Sedimentation Rate (MSR) = (MPn / As) / t (items/m²/day)
+- Sedimentation Rate (SR) = (m / As) / t (g/m²/day)
+- MP riverine flux = MPconc × v × A (items/day)
+
+Where MPn = quantity of MPs in sediment trap, As = sediment trap opening area, t = soaking time, m = sediment mass, MPconc = MP concentration in water (items/m³), v = current velocity, A = cross-sectional area.
+
+**Quality control:** Three blank controls using distilled deionized water showed no MP contamination.
+
+**Statistical analysis:** Shapiro-Wilk test for normality, Kruskal-Wallis H test with pairwise comparisons for differences between provinces and seasons (α = 0.05).
+
+# Key Results
+
+**MP abundance in water:** Average concentrations ranged from 0.54 ± 0.05 to 1.07 ± 0.28 items/L across all seasons. The highest concentration (1.07 ± 0.28 items/L) occurred in Samut Prakan Province during September 2021 (wet season). The second highest was in Bangkok (0.95 ± 0.21 items/L) in the same season. March 2022 (dry season) showed significantly lower concentrations (0.54–0.64 items/L) (Kruskal-Wallis, p < 0.05). Spatial differences between provinces were not significant.
+
+**MP abundance in sediment:** Average concentrations ranged from 183.84 ± 38.76 to 546.18 ± 86.84 items/kg dry weight. The highest was in Nonthaburi Province in March 2021 (546.18 ± 86.84 items/kg dw). The lowest was in Phra Nakhon Si Ayutthaya in March 2022 (183.84 ± 38.76 items/kg dw). Spatial differences between provinces were not significant, but seasonal differences were significant.
+
+**MP size distribution:** In water, dominant size fractions shifted across seasons: 15–150 μm (45.5%) in March 2021, 150–330 μm (46.9%) in September 2021, and 330–5,000 μm (37.1%) in March 2022 (Kruskal-Wallis, p < 0.05). In sediment, the 330–5,000 μm fraction dominated all seasons (75.6–76.9%).
+
+**MP shape distribution:** Fibers dominated water samples across all seasons (76.3–84.3%), followed by films (9.0–13.1%) and fragments (5.1–7.8%). Foams (0.7–2.5%) and pellets (0.1–1.3%) were minor. In sediment, fibers dominated in March 2021 (59.6%), while fragments increased to 49.5% in March 2022.
+
+**MP color:** Blue was the most common color in both water (41.3%) and sediment (39.9%). Blue fibers constituted 45% of fibers. Blue fragments dominated in water (64.5%) and sediment (42.6–49.5%), except in March 2022 sediment where green fragments dominated (44.9%). Films were mostly clear (85.1%).
+
+**Polymer composition:** In water: PET (65.8%), PP (26.9%), PE (4.6%). In sediment: PP (34.1%), PET (31.4%), PE (21.8%). Fiber polymers were predominantly PET (81.9% in water, 70.2% in sediment). Fragment polymers were mainly PP (55.8% in water, 43.3% in sediment) and PE (22.8% in water, 34.7% in sediment). Films were mostly PP (68.6%) with PE (21.0%).
+
+**Sedimentation:** Average SR was higher in dry season (2,454 g/m²/day) than wet season (2,047 g/m²/day). MSR was lower in dry season (9,443 items/m²/day) than wet season (23,760 items/m²/day). Sedimented MPs were predominantly 330–5,000 μm, with fibers dominant, blue color, and polymer composition of PET, PP, and PE.
+
+**MP riverine flux:** Flux values ranged from 0.15 to 1.83 × 10⁵ million items/day in September 2021 and 0.20 to 2.00 × 10⁵ million items/day in March 2022. The highest MP input from terrestrial load was in Samut Prakan Province (1.60 × 10⁵ million items/day in wet season) and Nonthaburi Province (1.21 × 10⁵ million items/day in dry season). MP discharge to the inner Gulf of Thailand from Samut Prakan was 1.83 × 10⁵ million items/day (September 2021) and 1.60 × 10⁵ million items/day (March 2022).
+
+# Mechanisms and Interpretation
+
+The dominance of fibers (especially PET) in both water and sediment indicates that textile washing and domestic wastewater discharge are primary MP sources. PET fibers originate from synthetic clothing, entering rivers through sewerage systems. The shift in MP size in water from small to large particles across seasons suggests that degradation and fragmentation rates vary with hydrological conditions (water discharge, velocity, tidal fluctuation).
+
+Higher MP accumulation in sediment during dry season, despite lower MSR, indicates that lower water velocity increases settling probability. Conversely, higher MSR during wet season (23,760 vs. 9,443 items/m²/day) but lower sediment accumulation suggests that higher flow resuspends settled MPs. The lack of correlation between SR and MSR indicates that MP settling is governed by particle-specific properties (density, shape, biofouling) rather than bulk sediment dynamics.
+
+Higher MP concentrations near the estuary (Bangkok, Samut Prakan) result from tidal fluctuations increasing residence time and accumulation. Biofouling increases MP density, promoting sedimentation near estuarine sites. Large MPs (330–5,000 μm) dominate sediment because they sink faster than smaller particles, while small MPs remain suspended longer.
+
+# Novelty and Contribution
+
+This study provides the first comprehensive assessment of MP distribution, sedimentation, and riverine flux along the middle and lower Chao Phraya River using a box model approach. It quantifies MP loads from individual provinces and total discharge to the Gulf of Thailand, establishing baseline data for Thailand's plastic waste management roadmap (2018–2030). The simultaneous measurement of water, sediment, and sedimentation trap MPs, combined with hydrological data, enables process-based understanding of MP transport dynamics.
+
+# Limitations
+
+Polymer identification by FTIR was performed on only 10% of total MPs from water and sediment samples (100% from sediment traps), potentially missing polymer diversity. The hot needle test was suggested as supplementary verification but not implemented. Sediment traps were deployed at only one station (C8), limiting spatial resolution of sedimentation data. Sampling occurred only during neap tides, potentially missing tidal cycle effects. Water volume data from floodgates transferring water from each province were not collected, which would improve flux estimates.
+
+# Practical Implications
+
+The finding that PET fibers from textile washing are the dominant MP type entering the Chao Phraya River highlights the need for improved wastewater treatment to capture synthetic fibers. The roadmap on plastic waste management in Thailand should prioritize reducing single-use plastics and microbeads (already banned in personal care products). The high MP flux from Samut Prakan Province (1.83 × 10⁵ million items/day in wet season) indicates that estuarine areas require targeted management interventions. Results can inform guidelines for MP and plastic debris management to reduce marine environmental deterioration.
+
+# Concise Takeaway
+
+This study quantified microplastic pollution in the Chao Phraya River across five provinces over three seasons, finding average abundances of 0.54–1.07 items/L in water and 183.84–546.18 items/kg dry weight in sediment. Fibers (especially PET) dominated, indicating textile washing as the primary source. MP riverine flux to the Gulf of Thailand reached 1.83 × 10⁵ million items/day in the wet season, with highest terrestrial inputs from Samut Prakan and Nonthaburi Provinces. Seasonal hydrological factors (current velocity, tidal fluctuation) strongly influenced MP distribution, sedimentation, and transport dynamics.

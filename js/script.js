@@ -583,7 +583,7 @@ async function initializeGradioClient() {
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
         
         // Connect to your Hugging Face Space
-        gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
+        gradioApp = await Client.connect("starfriend/WaterScopeAI");
         
         console.log("Gradio client initialized successfully");
         stopTimer();
@@ -675,14 +675,19 @@ document.getElementById('send').addEventListener('click', async ()=>{
             return;
         }
         
-        // Update results
+        // Update results.
+        // The new Space returns exactly four values in this order:
+        // [DA-IT letter, DA-IT raw answer, DA-DPO letter, DA-DPO raw answer]
         const outputs = result.data;
-        // Assuming the API returns [base_letter, base_raw, it_letter, it_raw, dpo_letter, dpo_raw]
-        // We'll skip the base model outputs (index 0 and 1)
-        document.getElementById('dpo_letter').innerText = outputs[4] || "";
-        document.getElementById('dpo_raw').innerText = outputs[5] || "";
-        document.getElementById('it_letter').innerText = outputs[2] || "";
-        document.getElementById('it_raw').innerText = outputs[3] || "";
+
+        if (!Array.isArray(outputs) || outputs.length < 4) {
+            throw new Error("Unexpected MCQA response format from the Space.");
+        }
+
+        document.getElementById('it_letter').innerText = outputs[0] || "";
+        document.getElementById('it_raw').innerText = outputs[1] || "";
+        document.getElementById('dpo_letter').innerText = outputs[2] || "";
+        document.getElementById('dpo_raw').innerText = outputs[3] || "";
         
         updateAPIStatus("Evaluation completed successfully");
         

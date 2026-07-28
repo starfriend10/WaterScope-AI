@@ -1,0 +1,142 @@
+# Optimized Microplastic Analysis Based on Size Fractionation, Density Separation and μ-FTIR
+
+## 1. Paper Identity
+
+**Title:** Optimized microplastic analysis based on size fractionation, density separation and μ-FTIR  
+**Authors:** Olga Konechnaya, Sabine Lüchtrath, Larissa Dsikowitzky, Jan Schwarzbauer (corresponding author)  
+**Affiliation:** Institute of Geology and Geochemistry of Petroleum and Coal, Germany  
+**Publication Year:** 2020  
+**Journal:** Water Science and Technology  
+**Document Type:** Article  
+
+## 2. Research Background and Objective
+
+Microplastics (plastic particles <5 mm diameter) have been recognized as hazardous pollutants that persist in the environment for up to hundreds of years. They can accumulate in cells and tissues of aquatic organisms, cause chromosomal changes in humans, and act as vectors for transporting persistent organic pollutants (POPs) and heavy metals through trophic levels. Despite growing concern, analyzing microplastics in complex environmental matrices such as soils and sediments remains challenging due to the diversity of polymer types, particle sizes, and matrix interferences.
+
+The main objective of this study was to develop and test a multi-step analytical approach combining: (i) grain size fractionation, (ii) ZnCl₂-based density separation, and (iii) μ-FTIR spectroscopy for unambiguous identification of microplastic particles in sediment and soil matrices. The study focused particularly on detailed analysis across different grain size classes, including particles as small as 100–200 μm, and aimed to test the suitability of this approach for real environmental samples.
+
+## 3. Study System / Materials / Data
+
+**Polymers studied:** Eight widely used polymers were selected based on domestic and industrial usage, economic relevance, and production rates:
+- Polyethylene (PE)
+- Polypropylene (PP)
+- Polyvinylchloride (PVC)
+- Polystyrene (PS)
+- Polyethyleneterephthalate (PET)
+- Polymethylmethacrylate (PMMA)
+- Polyurethane (PU)
+- Polyamide (PA, Nylon 6)
+
+Polymer densities ranged from 0.25 g·cm⁻³ (PU) to 1.39 g·cm⁻³ (PET). Polymers were ground and homogenized using a metal file to obtain particles in various sizes and shapes.
+
+**Test matrices:**
+- Calcinated sea sand (clean matrix for initial recovery experiments)
+- Beach sand from Scotland (TOC = 0.24%)
+- Fine-grained river sediment from Teltow Canal, Berlin, Germany (TOC = 9.11%)
+- Soil sample from floodplains of the Wurm River, North Rhine Westphalia, Germany (TOC = 7.67%)
+- Environmental sediment sample from River Tiranë, Albania (TOC = 0.65%)
+
+## 4. Methods and Experimental or Modeling Design
+
+### 4.1 Size Fractionation
+Polymer reference materials were separated into four grain size fractions according to DIN4188 using a sieve stack (AS 200, Retsch) under water flow (5–10 L water) for 15 minutes at amplitude 40. Fractions obtained: >5 mm, 1–5 mm, 200–400 μm, and 100–200 μm. All fractions were dried at 40°C for 48 hours.
+
+### 4.2 Density Separation
+A ZnCl₂ solution with target density of 1.7 g·cm⁻³ was prepared by dissolving 72.07 g ZnCl₂ in 46.84 mL distilled water. The reaction was cooled with an ice bath. After filtration, the solution achieved a density of 1.63 g·cm⁻³ and pH 3.
+
+The density separation procedure involved six steps:
+1. Adding ZnCl₂ solution (density 1.6–1.7 g·cm⁻³) to the sample
+2. Stirring the suspension three times for ~2 minutes each (stirring time increased from 30 s to 10 min for smaller microplastics)
+3. Allowing sedimentation for 10 minutes
+4. Creating overflow by slowly adding ZnCl₂ solution
+5. Filtering and washing the filter with deionized water
+6. Collecting ZnCl₂-free microplastic particles
+
+For recovery experiments, 0.5 g of each polymer grain size fraction was mixed with 10 g precleaned calcinated sea sand and added to 250 mL ZnCl₂ solution. All procedures were performed in triplicate.
+
+### 4.3 Spiking Experiments with Natural Samples
+For testing on natural matrices, five polymers (PP, PE, PET, PVC, PS) were selected as the most commonly used. For each natural sample, 0.025 g of each polymer type in each of four grain size fractions (total 0.1 g per polymer type) was mixed with 50 g of sample material. Grain size fractionation was performed using sieve mesh sizes of 5 mm, 1 mm, 400 μm, 200 μm, and 100 μm. Subsamples were dried at 40°C for 3–4 days before density separation.
+
+For the organic-rich Wurm River soil sample, an extended sedimentation period of two days was required due to organic matter interference.
+
+### 4.4 μ-FTIR Measurements
+Spectroscopic analyses were performed using an FTIR spectroscope Spotlight 400 Series (Perkin Elmer) with:
+- Attenuated total reflection (ATR) mode with germanium crystal
+- Mercury Cadmium Telluride (MCT) detector
+- Wavenumber range: 4,000–750 cm⁻¹
+- Spectral resolution: 16 cm⁻¹
+- 8–16 scans co-added per spectrum
+
+Sample preparation: Microplastic particles were placed on prepared KBr pellets and pressed for 30 seconds at 10–12 tons to ensure smooth surfaces. The KBr pellet with particles was brought into close contact with the germanium crystal.
+
+A polymer-specific database was built by measuring polymer samples from different sources via ATR-FTIR spectroscopy (five measurements per polymer).
+
+### 4.5 Application to Environmental Sample
+The Albanian riverine sediment sample (100 g) was sieved into five grain size fractions (including finer fractions of 50–100 μm and 20–50 μm) without spiking. After density separation, subsamples were treated with 35% H₂O₂ at 60°C for 12 hours to remove organic matter, then filtered and analyzed by μ-FTIR using ATR-imaging mode.
+
+## 5. Key Results
+
+### 5.1 Recovery Rates for Density Separation (Clean Sand Matrix)
+All eight polymers showed recovery rates between 94% and 103% across all grain size fractions:
+- PE, PP, PET, PA, PS, PU: Recovery decreased slightly from 98–103% (largest fraction) to 94–97% (smallest fraction), with standard deviations of 0.3–3.3%
+- PU (1–5 mm): Highest recovery rate of 103 ± 6%, attributed to its very low density
+- PMMA: Showed a reversed trend compared to other polymers, possibly due to differences in particle shape and flexibility; standard deviations ranged from 0.6% (middle fraction) to 3.0% (smallest fraction)
+
+### 5.2 Recovery Rates for Natural Samples
+- **Scotland beach sand (sandy matrix):** Recovery rates ranged from 70% to 133%, with an overall average of 106%
+- **Teltow Canal sediment (fine-grained):** Recovery rates ranged from 70% to 109%, with an average of 96%
+- **Wurm River soil (organic-rich):** Recovery was problematic due to insufficient separation of microplastics from organic matter with similar densities; more than half of the organic fraction was lost during sieving
+
+### 5.3 μ-FTIR Identification
+A systematic decision tree was developed for polymer identification based on characteristic IR absorption bands:
+- Carbonyl-containing polymers (PET, PMMA, PA, PU) were differentiated from non-carbonyl polymers (PS, PE, PP, PVC)
+- PET was identified by aromatic signals from its phenyl moiety
+- PA and PU were distinguished from PMMA by N-H signals
+- Among non-carbonyl polymers, aromatic moieties and C-Cl absorption differentiated PS, PE, PP, and PVC
+
+### 5.4 Environmental Sample Results
+Analysis of the Albanian river sediment revealed:
+- PET in the 50–100 μm grain size fraction at elevated amounts
+- PMMA in the 0.5–1 mm fraction sporadically
+
+## 6. Mechanisms and Interpretation
+
+The study demonstrated that grain size fractionation prior to density separation is beneficial because different grain sizes exhibit differing physical properties (density, shape, flexibility) that affect separation efficiency. The decreasing recovery rates with decreasing particle size for most polymers suggest that smaller particles are more difficult to separate, likely due to slower floatation kinetics and greater interaction with the matrix.
+
+The ZnCl₂ solution (density 1.63 g·cm⁻³) proved effective for separating all eight polymers because its density exceeds that of all tested polymers (max 1.39 g·cm⁻³ for PET). The solution is recyclable, environmentally less harmful than alternatives like ZnBr₂ or NaI, and easy to prepare.
+
+The KBr pellet preparation method provided a practical approach for fixing particles for ATR-μ-FTIR measurements, enabling close contact with the germanium crystal. The decision tree approach allowed systematic identification based on molecular structure, while spectral matching with a reference database provided confirmation.
+
+## 7. Novelty and Contribution
+
+This study extended previous work (e.g., Imhof et al. 2012) by:
+1. Including four grain size fractions down to 100–200 μm (compared to two fractions in earlier studies)
+2. Simplifying the final separation step using a simple overflow approach instead of specialized equipment like the Munich Plastic Sediment Separator (MPSS)
+3. Testing eight polymers simultaneously across all size fractions
+4. Demonstrating that ZnCl₂ (less environmentally harmful than ZnBr₂) achieves recovery rates >94% for all tested polymers
+5. Validating the approach on three different natural matrices with varying organic content and grain size distributions
+6. Developing a systematic decision tree for polymer identification by μ-FTIR
+
+## 8. Limitations
+
+1. **Organic-rich matrices:** The method struggled with the organic-rich Wurm River soil sample (TOC = 7.67%), where organic matter with similar density to microplastics interfered with separation
+2. **H₂O₂ treatment:** Even with 35% H₂O₂ treatment at 60°C for 12 hours, complete removal of organic matter was not achieved in all grain size fractions
+3. **Polymer range:** Only eight polymers were tested; the method's applicability to other polymer types remains unverified
+4. **Quantification:** The study focused on qualitative identification; quantitative analysis was not fully addressed
+5. **Smallest particles:** Particles below 100 μm were only partially included (down to 20–50 μm in the Albanian sample), and recovery rates for these very small fractions were not systematically determined
+6. **Sample size:** Only one environmental sample was analyzed as proof-of-concept
+
+## 9. Practical Implications
+
+The developed multi-step approach offers a simple, cost-effective method for microplastic analysis that can be implemented in any laboratory without specialized equipment. Key practical advantages include:
+- Fast and simple sample preparation
+- Use of recyclable ZnCl₂ solution (environmentally preferable to alternatives)
+- High recovery rates (>94%) for eight common polymers across multiple grain sizes
+- Applicability to sandy and fine-grained sediments (but not highly organic-rich soils without modification)
+- Non-destructive identification via μ-FTIR
+
+The method is suitable for monitoring microplastic pollution in soils and sediments, particularly for assessing contamination in riverine and coastal environments. The decision tree for polymer identification facilitates rapid screening without requiring extensive spectral libraries.
+
+## 10. Concise Takeaway
+
+This study presents an optimized multi-step analytical approach combining grain size fractionation, ZnCl₂-based density separation, and μ-FTIR spectroscopy for microplastic analysis in soils and sediments. The method achieved recovery rates of 94–103% for eight common polymers across four grain size fractions (100 μm to 5 mm) in clean sand, and 96–106% in sandy and fine-grained natural sediments. The approach was validated by detecting PET and PMMA in an environmental sediment sample from Albania. The method is simple, cost-effective, and suitable for routine monitoring, though it requires modification for highly organic-rich matrices.

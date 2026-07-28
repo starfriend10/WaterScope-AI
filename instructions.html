@@ -170,7 +170,7 @@
             </div>
             <div class="header-badge">
                 <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
-                <span class="badge"><i class="fas fa-database"></i> v1.0.0</span>
+                <span class="badge"><i class="fas fa-database"></i> v1.1</span>
             </div>
         </header>
 
@@ -178,6 +178,7 @@
             <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
             <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
             <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat (Experimental purpose)</button>
+            <button class="tab" onclick="window.location.href='agent.html'"><i class="fas fa-robot"></i> Research Agent (Under Construction)</button>
             <button class="tab active"><i class="fas fa-book"></i> Instructions</button>
         </nav>
 
@@ -330,6 +331,49 @@
                         </div>
                     </div>
                     
+                    <!-- Research Agent Instructions -->
+                    <div class="instruction-card">
+                        <h3><i class="fas fa-robot"></i> Research Agent <span class="model-badge">Under Construction</span></h3>
+                        <p>The Research Agent is being developed as a publication-grounded workspace for searching, selecting, and discussing water-sustainability literature with domain-specific SLMs.</p>
+
+                        <div class="note-box important">
+                            <h4><i class="fas fa-hammer"></i> Development Status</h4>
+                            <p>This module is currently under construction. The present interface uses a small local publication collection for functional testing. Publication retrieval will later be connected to BM25 and semantic-search systems.</p>
+                        </div>
+
+                        <div class="instruction-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Search Publications</h4>
+                                <p>Enter terms in the publication-search box to search the prototype collection by title, abstract, keywords, or full text.</p>
+                            </div>
+                        </div>
+
+                        <div class="instruction-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Select Research Context</h4>
+                                <p>Select one or more publications to provide paper-grounded context. General chat remains available when no publication is selected.</p>
+                            </div>
+                        </div>
+
+                        <div class="instruction-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Choose a Model and Research Task</h4>
+                                <p>Select an available model and a research task, such as document-grounded question answering, multi-paper synthesis, method recommendation, research-gap identification, or unsupported-claim checking.</p>
+                            </div>
+                        </div>
+
+                        <div class="instruction-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>Discuss the Publications</h4>
+                                <p>Enter a question in the Agent chat. The selected publication text is provided to the model as research context for the response.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Model Information -->
                     <div class="instruction-card">
                         <h3><i class="fas fa-cogs"></i> Model Information</h3>
@@ -339,6 +383,12 @@
                                 <h4><i class="fas fa-tachometer-alt"></i> DA-DPO Model</h4>
                                 <span class="model-badge">Preference-Optimized</span>
                                 <p>Domain-adaptation by domain-specific text corpora and Fine-tuned using Direct Preference Optimization (DPO) for water sustainability content.</p>
+                            </div>
+
+                            <div class="model-detail">
+                                <h4><i class="fas fa-sliders-h"></i> DPO Model</h4>
+                                <span class="model-badge">Preference-Optimized</span>
+                                <p>Fine-tuned directly from the base model using Direct Preference Optimization (DPO), without the preceding domain-adaptation stage. This model is the default option in the Research Agent.</p>
                             </div>
                             
                             <div class="model-detail">
@@ -380,7 +430,7 @@
         </main>
 
         <footer class="footer">
-            <p>WaterScope-AI Research Platform © 2025 | Built with GitHub, Hugging Face, & Gradio </p>
+            <p>WaterScope-AI Research Platform © 2025-2026 | Built with GitHub, Hugging Face, & Gradio </p>
             <p>Note: This website showcases a demo of domain-specific SLMs for water sustainability</p>
             <p>Department of Civil and Environmental Engineering, Princeton University</p>
         </footer>

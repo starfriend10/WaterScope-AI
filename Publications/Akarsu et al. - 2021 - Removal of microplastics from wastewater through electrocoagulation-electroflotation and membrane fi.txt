@@ -1,0 +1,91 @@
+# Paper Identity
+
+**Title:** Removal of microplastics from wastewater through electrocoagulation-electroflotation and membrane filtration processes  
+**Authors:** Not specified in full text  
+**Publication Year:** 2021  
+**Journal:** Water Science and Technology  
+**Document Type:** Article  
+
+# Research Background and Objective
+
+Wastewater treatment plants (WWTPs) are major vectors of microplastic (MP) pollution in aquatic environments. Global plastics production exceeded 359 million tons in 2018, with an estimated 13 million tons of plastics discharged into water bodies annually, 60–80% of which are microplastics (0.1 μm to 5 mm). MPs have been detected in over 600 species and in human food sources including table salt, beer, and drinking water.
+
+MP removal efficiency in WWTPs varies widely, from approximately 40% to 99.9%, depending on treatment processes, wastewater quality, and MP characteristics. Despite high removal percentages, the absolute number of discharged MPs remains substantial. For example, three WWTPs in Mersin Bay (Mediterranean Sea) removed 55–97% of MPs but still contributed about 17% of the total MP load in the bay. Primary treatment can remove 70–98% of MPs, secondary treatment (e.g., activated sludge) removes 2–55%, and tertiary treatment (coagulation, membrane filtration) can reach up to 81.6% removal. However, many facilities achieve only ~40% removal.
+
+The objective of this study was to investigate electrocoagulation-electroflotation (EC/EF) and membrane filtration as complementary advanced treatment methods for MP removal from wastewater. The study assessed the effects of electrode combinations, current density, pH, operating time, and pressure on removal efficiency for two polymer types (polyethylene and polyvinyl chloride) in both distilled water and real domestic wastewater. Additionally, one-year average data from a real-scale membrane treatment plant were compared with laboratory results.
+
+# Study System / Materials / Data
+
+**Microplastics:** Two synthetic polymer types were used: polyethylene (PE) with an average diameter of 150 μm and polyvinyl chloride (PVC) with an average diameter of 250 μm. These polymers were selected because they are commonly detected in WWTP effluents. PE is the cheapest and most widely used plastic and was the dominant polymer type in Mersin WWTP effluents; PVC is one of the most toxic plastic types due to bisphenol derivative plasticizers.
+
+**Water mediums:** Experiments were conducted in two stages. Stage 1 used distilled water to eliminate confounding factors and determine optimal parameters. Stage 2 used real domestic wastewater under optimized conditions to assess removal efficiency. A high MP concentration of 0.2 particles/mL (PE and PVC) was used.
+
+**Real wastewater treatment plant:** Monthly wastewater samples were collected for one year from the Konacık municipal treatment plant in Bodrum, Muğla, Turkey. This facility uses a membrane bioreactor (MBR) with an average capacity of 1,600 m³/day (max 3,200 m³/day). The system includes coarse screening, sand trap, balancing tank (115 m³), fine screen (3 mm), anoxic, aerobic, and membrane pools. Recycled water is used for irrigation.
+
+**Analytical methods:** A particle counter (Beckman Coulter Z1) was used to determine MP concentrations. A standard zooplankton net (26 μm mesh) filtered collected samples. Microplastics were classified into four categories: soft plastic, hard plastic, fiber, and others (styrofoam, polystyrene, rubber). Digital optical microscopy (Olympus SZX16) with image analysis software (Olympus cellSens) was used for size and color classification.
+
+# Methods and Experimental or Modeling Design
+
+**EC/EF reactor setup:** The system consisted of a 1 L reactor (0.8 L active volume), magnetic stirrer (200 rpm), plate-shaped aluminum and iron electrodes (90 mm × 60 mm × 1 mm thickness), and a DC power supply (AATech ADC-3303D). Electrode distance was 2 cm. The system operated in batch mode.
+
+**Parameters investigated:**
+- Electrode combinations: Al-Fe and Fe-Al
+- Current density: 10, 15, and 20 A/m²
+- Initial pH: 4.0, 7.0, and 10.0
+- Operating time: 0–120 min (sampled at 10, 20, 30, 40, 50, 60, 90, 120 min)
+- Polymer type: PE and PVC
+
+**Membrane filtration setup:** Dead-end filtration using 47 mm polyvinylidene fluoride (PVDF) hydrophobic microfiltration membranes (0.22 μm pore size). Pressure was varied at 1, 2, and 3 bar. Initial flux was determined by passing pure water for 60 minutes. Flux was calculated as J = V/(A × Δt), where V = volume (L), A = active membrane area (m²), and Δt = filtration time (h).
+
+**Removal efficiency calculation:** RE(%) = [(Ci − Cf)/Ci] × 100, where Ci and Cf are initial and final MP concentrations. Samples were counted in triplicate using the particle counter.
+
+**Blind samples:** Prepared with identical MP content and chemical properties (pH, conductivity) to exclude spontaneously floating/settling plastics.
+
+**Contamination prevention:** The medium was washed with distilled water before each run. Contamination blinds were created by keeping water in beakers in the work area.
+
+# Key Results
+
+**Electrode optimization:** The Al-Fe electrode combination achieved 100% MP removal within 20 minutes. The Fe-Al combination achieved a maximum of 96.3% removal at 120 minutes. Al(OH)₃ has higher adsorption capacity in acidic and neutral pH compared to iron hydroxides.
+
+**pH optimization:** Optimum pH was 7.0 (neutral), which is the natural pH range of domestic wastewater (7.0–7.5). At pH 7 with Al-Fe electrodes and 15 A/m², 100% removal was achieved. Removal efficiency decreased to 88.9% at higher pH and longer retention times due to increased solubility of Al(OH)₃ above neutral pH.
+
+**Current density optimization:** At 20 A/m², 100% removal was achieved within 10 minutes. At 15 A/m², 100% removal required 20 minutes. At lower current densities, insufficient aluminum ionization led to floc destabilization and lower removal.
+
+**Polymer type:** PVC was more susceptible to electrochemical precipitation and flotation than PE. PVC has lower electrical resistivity (10 × 10⁵ ohm·cm) compared to PE (16 × 10⁵ ohm·cm). Under optimized conditions (pH 7, 20 A/m², Al-Fe electrodes), 100% removal of PVC was achieved within 10 minutes.
+
+**Membrane filtration:** Initial flux of the PVDF membrane was 450 L/m²·h. At 1 bar pressure, only 20–25% of the sample passed through in 90 minutes. At 2 and 3 bar, complete water passage occurred with 100% MP removal. PVDF membranes can act as nonporous adsorbents, so removal depends on both size exclusion and adsorption.
+
+**Real wastewater application:** Under optimized conditions, both EC/EF and membrane microfiltration achieved 100% MP removal from real domestic wastewater. EC/EF offered lower retention time compared to membrane filtration.
+
+**Real-scale plant comparison:** The Konacık WWTP using MBR showed lower removal efficiency than laboratory-scale membrane filtration. Fibers were the most common MP type detected in the effluent, as they can longitudinally pass through membrane pores due to their morphology and the high applied pressure. MBR removal efficiency was reported as 79% in a similar study (Murcia, Spain) and 48–73% in three Turkish WWTPs.
+
+# Mechanisms and Interpretation
+
+**EC/EF mechanism:** The process involves dissolution of sacrificial anodes to release active coagulant precursors (Al³⁺ or Fe²⁺) while electrolysis at the cathode produces H₂ gas for flotation. For aluminum: Al(s) → Al³⁺ + 3e⁻ at the anode; 2H₂O + 2e⁻ → H₂(g) + 2OH⁻ at the cathode; Al³⁺ + 3OH⁻ → Al(OH)₃ in solution. For iron: Fe(s) → Fe²⁺ + 2e⁻; Fe²⁺ + 2OH⁻ → Fe(OH)₂.
+
+Al(OH)₃ has higher adsorption capacity in acidic and neutral pH. Gas bubbles provide high flotation efficiency and encourage flocculation. Particles with lower density than water (e.g., PE) are more effectively removed by flotation.
+
+**Membrane filtration mechanism:** PVDF membranes remove MPs through both size exclusion (pore size 0.22 μm vs. MP diameters 150–250 μm) and adsorption at functional sites. However, fibers can bypass membranes due to their elongated morphology and high applied pressure.
+
+**Comparison with conventional treatment:** The EC/EF process achieved 100% removal compared to 15% removal by conventional coagulation for PE (Ma et al., 2019). This difference is attributed to the simultaneous flotation mechanism in EC/EF, which is particularly effective for low-density particles like PE.
+
+# Novelty and Contribution
+
+This study is one of the pioneering works on microplastic removal by electrocoagulation (based on a literature search with keywords "microplastic" and "electrocoagulation"). It differs from existing studies in terms of optimization parameters and particle types. The study provides the first comparison of laboratory-scale membrane filtration results with one-year average data from a real-scale membrane treatment plant. The use of distilled water in the first stage allowed for stable, controllable, and replicable determination of optimal parameters.
+
+# Limitations
+
+1. The particle counter reported identical results for each count, preventing calculation of standard deviation.
+2. The study used only two polymer types (PE and PVC) at specific sizes (150 μm and 250 μm), limiting generalizability to other polymers and size ranges.
+3. Real wastewater experiments determined MP removal over synthetic microplastics added to real wastewater, not over naturally occurring MPs.
+4. The study did not analyze wastewater characteristics (TSS, COD, pH, conductivity) after EC/EF treatment, only before.
+5. Laboratory-scale results may not directly translate to full-scale performance due to differences in system hydraulics, variables, and pollutant loadings.
+6. The study did not investigate membrane fouling in detail, though it noted that PE particles cause low fouling due to their larger size relative to membrane pores.
+
+# Practical Implications
+
+EC/EF and membrane microfiltration processes can achieve 100% MP removal at laboratory scale, significantly outperforming conventional secondary (2–55%) and tertiary (up to 81.6%) treatment methods. EC/EF offers advantages of rapid treatment (10–20 minutes) and simultaneous flotation and coagulation. However, real-scale membrane systems show lower removal efficiency (48–79%) due to fiber bypass and membrane rupture under high pressure. The study suggests that EC/EF has potential as a complementary advanced treatment step for MP removal in WWTPs, but further research under real conditions is needed.
+
+# Concise Takeaway
+
+This laboratory study demonstrates that electrocoagulation-electroflotation (EC/EF) with Al-Fe electrodes at pH 7, current density 20 A/m², and 10–20 minutes reaction time achieves 100% removal of polyethylene (150 μm) and polyvinyl chloride (250 μm) microplastics from both distilled water and real domestic wastewater. Dead-end membrane microfiltration (0.22 μm PVDF) also achieves 100% removal at 2–3 bar pressure. However, one-year monitoring of a real-scale membrane bioreactor plant showed lower removal (48–79%), primarily due to fiber-shaped microplastics bypassing membranes. EC/EF offers faster treatment than membrane filtration and outperforms conventional coagulation (15% removal for PE). This is one of the first studies on microplastic removal by electrocoagulation.

@@ -29,7 +29,7 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1760px;
     margin: 0 auto;
     padding: 0 15px;
 }
@@ -1197,3 +1197,227 @@ tr.highlighted {
     color: #666;
     margin-top: 5px;
 }
+
+
+/* Research Agent prototype */
+.agent-intro { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:18px 20px; }
+.agent-intro h2 { color:var(--primary); font-size:1.25rem; margin-bottom:5px; }
+.agent-intro p, .panel-heading p, .agent-chat-toolbar p { color:#6c757d; }
+.agent-status { margin-top:0; justify-content:flex-end; }
+.agent-workspace { display:grid; grid-template-columns:minmax(420px, 40%) minmax(0, 60%); gap:20px; min-height:900px; }
+.publication-panel, .agent-chat-panel { position:relative; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,.04); }
+.publication-panel { position:relative; display:flex; flex-direction:column; min-height:900px; }
+.panel-heading h3, .agent-chat-toolbar h3 { color:var(--primary); font-size:1.08rem; margin-bottom:3px; }
+.publication-search-bar { display:flex; gap:8px; margin:16px 0 8px; }
+.publication-search-bar input { min-width:0; flex:1; border:1px solid var(--border); border-radius:6px; padding:10px 12px; font-size:13px; }
+.publication-search-bar input:focus, .model-selector select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(52,152,219,.15); }
+.search-summary, .selected-heading { display:flex; align-items:center; justify-content:space-between; color:#6c757d; font-size:.85rem; }
+.text-button { background:none; border:none; color:var(--accent); cursor:pointer; font-weight:600; }
+.publication-results { display:flex; flex-direction:column; gap:10px; overflow-y:auto; max-height:620px; padding:8px 3px 10px 0; }
+.publication-card { display:flex; gap:10px; border:1px solid #e2e6ea; border-radius:7px; padding:12px; transition:.18s ease; background:#fff; }
+.publication-card:hover { border-color:#a9cfea; box-shadow:0 2px 8px rgba(52,152,219,.09); }
+.publication-card.selected { border-color:var(--accent); background:#f5fbff; }
+.paper-checkbox { padding-top:2px; }
+.paper-checkbox input { width:17px; height:17px; accent-color:var(--accent); cursor:pointer; }
+.publication-card-content { min-width:0; }
+.publication-meta { display:flex; gap:8px; color:#718096; font-size:.75rem; text-transform:uppercase; letter-spacing:.02em; }
+.publication-meta span + span::before { content:'•'; margin-right:8px; }
+.publication-card h4 { color:var(--primary); font-size:.94rem; line-height:1.35; margin:5px 0; }
+.publication-card p { color:#5f6670; font-size:.82rem; line-height:1.45; }
+.keyword-line { margin-top:7px; color:#7b8794; font-size:.76rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.selected-publications { border-top:1px solid var(--border); margin-top:auto; padding-top:14px; }
+.count-pill { display:inline-flex; min-width:23px; height:23px; align-items:center; justify-content:center; background:#eaf5fd; color:#1f78b4; border-radius:12px; font-size:.75rem; }
+.selected-paper-list { display:flex; flex-direction:column; gap:7px; margin-top:9px; max-height:175px; overflow:auto; }
+.selected-paper-item { display:flex; align-items:center; gap:8px; background:#f7f9fb; border-radius:5px; padding:8px 9px; font-size:.8rem; }
+.selected-paper-item span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.selected-paper-item button { background:none; border:none; color:#87919b; cursor:pointer; }
+.empty-state, .no-results { color:#8a949e; font-size:.82rem; text-align:center; padding:14px 8px; }
+.agent-chat-panel { position:relative; display:flex; flex-direction:column; }
+.agent-chat-toolbar { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:16px 18px; border-bottom:1px solid var(--border); }
+.model-selector { display:flex; align-items:center; gap:8px; font-weight:600; color:var(--primary); }
+.model-selector select { min-width:130px; padding:8px 9px; border:1px solid var(--border); border-radius:5px; background:#fff; }
+.agent-chat-container { display:flex; flex-direction:column; height:845px; }
+.agent-chat-container .chat-messages { min-height:0; }
+.agent-chat-container .message-content p { white-space:pre-wrap; }
+.agent-suggestion-row { display:flex; gap:7px; flex-wrap:wrap; padding:9px 15px; background:#fafbfc; border-top:1px solid #edf0f2; }
+.suggestion-chip { background:#fff; border:1px solid #d8e3ea; color:#496477; border-radius:16px; padding:6px 10px; cursor:pointer; font-size:.78rem; }
+.suggestion-chip:hover { border-color:var(--accent); color:var(--accent); }
+.agent-input-container { align-items:center; }
+.agent-input-container textarea { min-height:46px; }
+@media (max-width: 980px) { .agent-workspace { grid-template-columns:1fr; min-height:auto; } .publication-panel { min-height:700px; } .agent-chat-container { height:720px; } }
+@media (max-width: 650px) { .agent-intro, .agent-chat-toolbar { flex-direction:column; align-items:stretch; } .agent-status { justify-content:flex-start; } .publication-search-bar { flex-direction:column; } .agent-input-container { flex-wrap:wrap; } .agent-input-container textarea { flex-basis:100%; } }
+
+/* Agent model and research-task controls */
+.agent-selectors { display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
+.agent-selectors .model-selector { display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
+.agent-selectors .model-selector span { font-size:.8rem; }
+.agent-selectors .model-selector select { min-width:145px; }
+.agent-selectors .task-selector select { min-width:230px; }
+.agent-selectors option:disabled { color:#9aa1a8; }
+@media (max-width: 650px) {
+    .agent-selectors { justify-content:flex-start; width:100%; }
+    .agent-selectors .model-selector { flex:1 1 180px; }
+    .agent-selectors .model-selector select { width:100%; min-width:0; }
+}
+
+
+/* Agent workspace panel expansion controls */
+.panel-content {
+    min-width: 0;
+    min-height: 0;
+}
+.publication-panel-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+}
+.agent-chat-panel-content {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+}
+.panel-heading {
+    position: static;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding-right: 42px;
+}
+.agent-chat-toolbar {
+    position: static;
+    padding-left: 48px;
+}
+.panel-corner-control {
+    position: absolute;
+    top: 10px;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: rgba(255,255,255,.97);
+    color: var(--primary);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+#toggle-publications-panel { right: 8px; }
+#toggle-agent-chat-panel { left: 8px; }
+.panel-corner-control:hover,
+.panel-corner-control:focus-visible {
+    background: #eef7fc;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* Draw the double-chevron with CSS so both controls are perfectly centered
+   and do not depend on font-glyph alignment. */
+.panel-corner-control i {
+    position: relative;
+    display: block;
+    width: 12px;
+    height: 10px;
+    font-size: 0;
+    line-height: 0;
+    pointer-events: none;
+}
+.panel-corner-control i::before,
+.panel-corner-control i::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    width: 5px;
+    height: 5px;
+    border-top: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+}
+.panel-corner-control i::before { left: 0; }
+.panel-corner-control i::after { left: 5px; }
+.panel-corner-control i.fa-angles-right::before,
+.panel-corner-control i.fa-angles-right::after {
+    transform: rotate(45deg);
+}
+.panel-corner-control i.fa-angles-left::before,
+.panel-corner-control i.fa-angles-left::after {
+    transform: rotate(-135deg);
+}
+.collapsed-panel-tab {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 900px;
+    padding: 18px 8px;
+    border: 0;
+    background: linear-gradient(180deg, #f8fbfd 0%, #eef5f8 100%);
+    color: var(--primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px var(--border);
+}
+.collapsed-panel-tab i { font-size: 1.05rem; }
+.collapsed-panel-tab span {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: .04em;
+    font-size: .8rem;
+}
+.collapsed-panel-tab:hover,
+.collapsed-panel-tab:focus-visible {
+    background: #e9f4fa;
+    outline: none;
+}
+.agent-workspace {
+    transition: grid-template-columns .24s ease;
+}
+.agent-workspace.view-left {
+    grid-template-columns: minmax(0, 1fr) 66px;
+    gap: 12px;
+}
+.agent-workspace.view-right {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 12px;
+}
+.agent-workspace.view-left .agent-chat-panel-content,
+.agent-workspace.view-right .publication-panel-content {
+    display: none;
+}
+.agent-workspace.view-left #open-agent-chat-panel,
+.agent-workspace.view-right #open-publications-panel {
+    display: flex;
+}
+.agent-workspace.view-left .publication-results { max-height: 650px; }
+.agent-workspace.view-right .agent-chat-container { height: 900px; }
+.agent-workspace.view-left #toggle-publications-panel,
+.agent-workspace.view-right #toggle-agent-chat-panel {
+    background: #eef7fc;
+    border-color: var(--primary);
+}
+@media (max-width: 980px) {
+    .agent-workspace,
+    .agent-workspace.view-left,
+    .agent-workspace.view-right {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .agent-workspace.view-left .agent-chat-panel-content,
+    .agent-workspace.view-right .publication-panel-content {
+        display: flex;
+    }
+    .collapsed-panel-tab { display: none !important; }
+    .panel-corner-control { display: none; }
+    .agent-chat-toolbar { padding-left: 18px; }
+}
+

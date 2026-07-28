@@ -177,7 +177,7 @@ async function initializeGradioClient() {
         const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
         
         // Connect to your Hugging Face Space
-        gradioApp = await Client.connect("EnvironmentalAI/WaterScopeAI");
+        gradioApp = await Client.connect("starfriend/WaterScopeAI");
         
         console.log("Gradio client initialized successfully");
         apiInitializing = false;
@@ -219,23 +219,41 @@ function addMessage(text, isUser) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Extract just the assistant's response from API result
+// Extract the latest assistant response from the Gradio 6 messages history.
 function extractAssistantResponse(apiResult) {
     try {
-        // The API returns [cleared_input, updated_chat_history]
-        // updated_chat_history is an array of [user_message, assistant_message] arrays
-        if (apiResult && apiResult.data && Array.isArray(apiResult.data) && apiResult.data.length >= 2) {
-            const chatHistory = apiResult.data[1];
-            if (Array.isArray(chatHistory) && chatHistory.length > 0) {
-                // Get the last message in the history
-                const lastMessage = chatHistory[chatHistory.length - 1];
-                // Return the assistant's response (second element in the tuple)
-                if (Array.isArray(lastMessage) && lastMessage.length >= 2) {
-                    return lastMessage[1] || "No response generated";
+        if (!apiResult?.data || !Array.isArray(apiResult.data) || apiResult.data.length < 2) {
+            return "Failed to extract response from API";
+        }
+
+        const returnedHistory = apiResult.data[1];
+        if (!Array.isArray(returnedHistory) || returnedHistory.length === 0) {
+            return "No response generated";
+        }
+
+        for (let i = returnedHistory.length - 1; i >= 0; i--) {
+            const message = returnedHistory[i];
+
+            if (message?.role !== "assistant") {
+                continue;
+            }
+
+            if (typeof message.content === "string") {
+                return message.content || "No response generated";
+            }
+
+            if (Array.isArray(message.content)) {
+                const textParts = message.content
+                    .filter(item => item?.type === "text" && typeof item.text === "string")
+                    .map(item => item.text);
+
+                if (textParts.length > 0) {
+                    return textParts.join("\n");
                 }
             }
         }
-        return "Failed to extract response from API";
+
+        return "No assistant response found";
     } catch (error) {
         console.error("Error extracting response:", error);
         return "Error processing response";
@@ -280,14 +298,18 @@ async function sendMessage() {
         // Call the correct endpoint - using /respond as shown in your API documentation
         const result = await gradioApp.predict("/respond", {
             message: message,
-            chat_history: chatHistory
+            chat_history: chatHistory,
+            selected_model: "da_dpo",
+            max_new_tokens: 900
         });
-        
+
         // Extract just the assistant's response
         const assistantResponse = extractAssistantResponse(result);
-        
-        // Update chat history with the new interaction
-        chatHistory.push([message, assistantResponse]);
+
+        // Keep the exact Gradio 6 messages history returned by the API.
+        if (result?.data && Array.isArray(result.data[1])) {
+            chatHistory = result.data[1];
+        }
         
         // Add bot response to chat
         addMessage(assistantResponse, false);
@@ -383,14 +405,8 @@ function setupEventListeners() {
         sendButton.addEventListener('click', sendMessage);
     }
     
-    if (userInput) {
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-    }
+    // Keyboard submission is handled in setupAutoResize().
+    // Keeping only one Enter-key listener prevents duplicate requests.
 }
 
 // Connection recovery function
@@ -472,7 +488,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const savedScrollTop = localStorage.getItem("chatScrollTop");
 
     if (savedHistory) {
-        chatHistory = JSON.parse(savedHistory);
+        try {
+            const parsedHistory = JSON.parse(savedHistory);
+
+            // The new Space uses Gradio 6 messages:
+            // [{ role: "user" | "assistant", content: [...] }, ...]
+            const isGradioMessagesHistory =
+                Array.isArray(parsedHistory) &&
+                parsedHistory.every(
+                    item =>
+                        item &&
+                        typeof item === "object" &&
+                        !Array.isArray(item) &&
+                        typeof item.role === "string"
+                );
+
+            chatHistory = isGradioMessagesHistory ? parsedHistory : [];
+        } catch (error) {
+            console.warn("Could not restore saved chat history:", error);
+            chatHistory = [];
+        }
     }
 
     const chatMessages = document.getElementById('chat-messages');

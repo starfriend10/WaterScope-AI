@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterScope-AI | Research Agent</title>
+    <link rel="stylesheet" href="style-research.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
+            <p>Domain-Specific Small Language Models (SLMs) for Water Sustainability</p>
+        </div>
+        <div class="header-badge">
+            <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
+            <span class="badge"><i class="fas fa-database"></i> v1.1</span>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
+        <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
+        <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat (Experimental purpose)</button>
+        <button class="tab active"><i class="fas fa-robot"></i> Research Agent (Under Construction)</button>
+        <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book"></i> Instructions</button>
+    </nav>
+
+    <main class="main-content">
+        <section class="agent-intro">
+            <div>
+                <h2><i class="fas fa-book-open"></i> Publication-Grounded Research Agent</h2>
+                <p>Search the prototype publication collection, select one or more papers, and discuss them with a WaterScope-AI model.</p>
+            </div>
+            <div class="status-indicators agent-status">
+                <div class="status-item"><span class="status-label">API:</span><span id="agent-api-status" class="status-value">Ready</span></div>
+                <div class="status-item"><span class="status-label">Context:</span><span id="context-status" class="status-value">No papers selected</span></div>
+            </div>
+        </section>
+
+        <section id="agent-workspace" class="agent-workspace">
+            <aside class="publication-panel">
+                <button id="open-publications-panel" class="collapsed-panel-tab" type="button" title="Open publication panel" aria-label="Open publication panel">
+                    <i class="fas fa-book-open"></i><span>Publications</span>
+                </button>
+                <div class="panel-content publication-panel-content">
+                    <div class="panel-heading">
+                        <div>
+                            <h3><i class="fas fa-search"></i> Publication Search</h3>
+                            <p>Prototype collection: three local papers</p>
+                        </div>
+                        <button id="toggle-publications-panel" class="panel-corner-control" type="button" title="Expand publication panel" aria-label="Expand publication panel"><i class="fas fa-angles-right" aria-hidden="true"></i></button>
+                    </div>
+
+                <div class="publication-search-bar">
+                    <input id="publication-query" type="search" placeholder="Search title, abstract, keywords, or full text">
+                    <button id="publication-search" class="btn-primary"><i class="fas fa-search"></i> Search</button>
+                </div>
+
+                <div class="search-summary">
+                    <span id="result-count">Loading publications...</span>
+                    <button id="show-all-papers" class="text-button">Show all</button>
+                </div>
+
+                <div id="publication-results" class="publication-results"></div>
+
+                <div class="selected-publications">
+                    <div class="selected-heading">
+                        <h4>Selected papers <span id="selected-count" class="count-pill">0</span></h4>
+                        <button id="clear-selected" class="text-button">Clear</button>
+                    </div>
+                    <div id="selected-paper-list" class="selected-paper-list">
+                        <p class="empty-state">No papers selected. General chat remains available.</p>
+                    </div>
+                </div>
+                </div>
+            </aside>
+
+            <section class="agent-chat-panel">
+                <button id="open-agent-chat-panel" class="collapsed-panel-tab" type="button" title="Open Agent chat panel" aria-label="Open Agent chat panel">
+                    <i class="fas fa-comments"></i><span>Agent Chat</span>
+                </button>
+                <div class="panel-content agent-chat-panel-content">
+                <div class="agent-chat-toolbar">
+                    <div>
+                        <h3><i class="fas fa-comments"></i> AI Research Assistant</h3>
+                        <p id="chat-context-description">General chat mode</p>
+                    </div>
+                    <button id="toggle-agent-chat-panel" class="panel-corner-control" type="button" title="Expand Agent chat panel" aria-label="Expand Agent chat panel"><i class="fas fa-angles-left" aria-hidden="true"></i></button>
+                    <div class="agent-selectors">
+                        <label class="model-selector">
+                            <span>Model</span>
+                            <select id="agent-model">
+                                <option value="base">Base</option>
+                                <option value="dpo" selected>DPO-only</option>
+                                <option value="da_dpo">DA-DPO</option>
+                                <option value="tulucore">TuluCore</option>
+                            </select>
+                        </label>
+                        <label class="model-selector task-selector">
+                            <span>Research Task</span>
+                            <select id="agent-task"></select>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="agent-chat-container">
+                    <div id="agent-chat-messages" class="chat-messages">
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                <p>Hello! Ask a general water-sustainability question, or select publications on the left for paper-grounded discussion.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="agent-suggestion-row">
+                        <button class="suggestion-chip" data-prompt="Summarize the selected paper or papers.">Summarize</button>
+                        <button class="suggestion-chip" data-prompt="Compare the methods and main findings of the selected papers.">Compare methods</button>
+                        <button class="suggestion-chip" data-prompt="What research gaps are suggested by the selected papers?">Research gaps</button>
+                    </div>
+                    <div class="chat-input-container agent-input-container">
+                        <textarea id="agent-user-input" placeholder="Ask a question..." rows="2"></textarea>
+                        <button id="clear-agent-chat" class="btn-secondary"><i class="fas fa-broom"></i> Clear</button>
+                        <button id="send-agent-message" class="btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
+                    </div>
+                </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>WaterScope-AI Research Platform © 2025-2026 | Built with GitHub, Hugging Face, & Gradio</p>
+        <p>Note: This website showcases a demo of domain-specific SLMs for water sustainability</p>
+        <p>Department of Civil and Environmental Engineering, Princeton University</p>
+    </footer>
+</div>
+<script src="js/agent.js"></script>
+</body>
+</html>
