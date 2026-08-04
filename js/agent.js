@@ -5,7 +5,7 @@ let selectedPublicationIds = new Set();
 let agentConversation = [];
 let agentProcessing = false;
 
-const SPACE_ID = "starfriend/WaterScopeAI";
+const SPACE_ID = "EnvironmentalAI/WaterScopeAI";
 
 const RESEARCH_TASKS = [
     { value: "general_qa", label: "General environmental QA", minPapers: 0 },
