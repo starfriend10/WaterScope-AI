@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaterScope-AI | Chat</title>
-    <link rel="stylesheet" href="style-research.css">
+    <link rel="stylesheet" href="CSS/style-research.css?v=20260818e">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
 
@@ -20,33 +20,92 @@
             overflow-y: auto;       /* Scroll if content exceeds height */
         }
     </style>
+
+<style id="waterscope-secondary-theme">
+/* WaterScope-AI shared secondary-page theme — intentionally loaded last. */
+:root {
+  --ws-deep:#123b61; --ws-water:#2d7fa6; --ws-aqua:#4da9a5;
+  --ws-green:#62a973; --ws-ai:#7064c8; --ws-ink:#19344e;
+  --ws-muted:#70838f; --ws-line:rgba(26,83,110,.14);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.main-content { background:transparent !important; }
+.main-content > section { border:1px solid var(--ws-line) !important; border-radius:18px !important; background:rgba(255,255,255,.96) !important; box-shadow:0 10px 28px rgba(18,70,95,.055) !important; }
+.section-header { border-bottom:1px solid rgba(26,83,110,.09) !important; }
+.section-header h2,.section-header h3,.agent-intro h2 { color:var(--ws-deep) !important; }
+.section-header h2 i,.section-header h3 i,.agent-intro h2 i { color:var(--ws-water) !important; }
+.btn-primary { background:linear-gradient(135deg,#287da4,#4b9d9c) !important; border:0 !important; color:#fff !important; box-shadow:0 6px 15px rgba(45,127,166,.16) !important; }
+.btn-primary:hover { filter:brightness(.96); transform:translateY(-1px); }
+.btn-secondary { background:#fff !important; border:1px solid rgba(22,63,102,.16) !important; color:var(--ws-deep) !important; }
+.btn-secondary:hover { color:var(--ws-water) !important; background:#f8fbfc !important; }
+input[type="text"],input[type="search"],textarea,select { border:1px solid rgba(26,83,110,.17) !important; border-radius:10px !important; background:#fbfdfe !important; }
+input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus { border-color:rgba(45,127,166,.5) !important; box-shadow:0 0 0 3px rgba(45,127,166,.08) !important; outline:none !important; }
+
+/* Page-specific visual alignment without changing functionality */
+.instruction-section,.chat-section,.input-section,.output-section,.data-section { padding:22px 24px !important; }
+.instruction-card,.model-card,.publication-panel,.agent-chat-panel { border:1px solid rgba(26,83,110,.12) !important; border-radius:14px !important; background:#fff !important; box-shadow:0 6px 18px rgba(18,70,95,.045) !important; }
+.instruction-card { padding:20px 22px !important; }
+.instruction-card > h3 { color:var(--ws-deep) !important; }
+.note-box { border-radius:10px !important; }
+.note-box.loading { background:rgba(45,127,166,.065) !important; border-left-color:var(--ws-water) !important; }
+.note-box.important { background:rgba(206,114,98,.08) !important; border-left-color:#c66f63 !important; }
+.model-header,.panel-heading,.agent-chat-toolbar { background:linear-gradient(90deg,rgba(45,127,166,.055),rgba(112,100,200,.025)) !important; border-bottom:1px solid rgba(26,83,110,.09) !important; }
+.chat-container { border:1px solid rgba(26,83,110,.12) !important; border-radius:14px !important; background:linear-gradient(180deg,#fbfdfd,#f7fbfc) !important; overflow:hidden !important; }
+.user-message .message-content { background:linear-gradient(135deg,#2a7da3,#4d9d9b) !important; }
+.experimental-tag { color:#655bb9 !important; background:rgba(112,100,200,.08) !important; border:1px solid rgba(112,100,200,.14) !important; border-radius:999px !important; }
+</style>
+
+
+
+
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
-                <p>Domain-Specific Small Language Models (SLMs) for Water Sustainability</p>
+            <div class="header-brand">
+                <div class="header-logo">
+                    <!-- Place logo.png in Assets/figures/ -->
+                    <img src="Assets/logo/logo_s.png" alt="WaterScope-AI logo">
+                </div>
+                <div class="header-content">
+                    <h1>WaterScope-AI</h1>
+                    <p>Domain AI for Water Sustainability, Decarbonization, and Environmental Decision Support</p>
+                </div>
             </div>
             <div class="header-badge">
-                <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
-                <span class="badge"><i class="fas fa-database"></i> v1.1</span>
+                <span class="badge"><i class="fas fa-flask"></i> Research Platform Demo</span>
+                <span class="badge"><i class="fas fa-microchip"></i> SLM/RAG/Agent</span>
             </div>
         </header>
 
         <nav class="tabs">
             <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
-            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
-            <button class="tab active"><i class="fas fa-comments"></i> Chat (Experimental purpose)</button>
-            <button class="tab" onclick="window.location.href='agent.html'"><i class="fas fa-robot"></i> Research Agent (Under Construction)</button>
-            <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book"></i> Instructions</button>
+            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-circle-check"></i> MCQA Demo</button>
+            <button class="tab active"><i class="fas fa-comments"></i> Chat [Experimental Purpose]</button>
+            <button class="tab" onclick="window.location.href='agent.html'"><i class="fas fa-diagram-project"></i> Research Agent [Experimental Purpose]</button>
+            <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book-open"></i> Instructions</button>
         </nav>
 
         <main class="main-content">
             <section class="chat-section">
                 <div class="section-header">
                     <h2>
-                        <i class="fas fa-comments"></i> Chat with DA-DPO Model 
+                        <i class="fas fa-comments"></i> Domain Chat <span class="experimental-tag">Experimental Purpose</span> 
                         <small style="font-size: 0.6em; color: #666; display: block; margin-top: 4px; font-style: italic;">
                             [The first model initialization may take 3-5 minutes]
                         </small>
@@ -86,13 +145,13 @@
         </main>
 
         <footer class="footer">
-            <p>WaterScope-AI Research Platform © 2025-2026 | Built with GitHub, Hugging Face, & Gradio </p>
-            <p>Note: This website showcases a demo of domain-specific SLMs for water sustainability</p>
+            <p>WaterScope-AI Research Platform © 2025-2026 | GitHub · Hugging Face · Gradio</p>
+            <p>Domain-specific AI for water sustainability research, decarbonization, and intelligent research workflows</p>
             <p>Department of Civil and Environmental Engineering, Princeton University</p>
         </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
-    <script src="js/chat.js"></script>
+    <script src="JS/chat.js"></script>
 </body>
 </html>

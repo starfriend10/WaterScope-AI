@@ -1,141 +1,278 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaterScope-AI | Research Agent</title>
-    <link rel="stylesheet" href="style-research.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WaterScope-AI | Research Agent</title>
+
+
+<link href="CSS/style-research.css?v=20260818e" rel="stylesheet"/><link href="CSS/style-agent-api.css?v=20260902b" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style id="waterscope-secondary-theme">
+/* WaterScope-AI shared secondary-page theme — intentionally loaded last. */
+:root {
+  --ws-deep:#123b61; --ws-water:#2d7fa6; --ws-aqua:#4da9a5;
+  --ws-green:#62a973; --ws-ai:#7064c8; --ws-ink:#19344e;
+  --ws-muted:#70838f; --ws-line:rgba(26,83,110,.14);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.main-content { background:transparent !important; }
+.main-content > section { border:1px solid var(--ws-line) !important; border-radius:18px !important; background:rgba(255,255,255,.96) !important; box-shadow:0 10px 28px rgba(18,70,95,.055) !important; }
+.section-header { border-bottom:1px solid rgba(26,83,110,.09) !important; }
+.section-header h2,.section-header h3,.agent-intro h2 { color:var(--ws-deep) !important; }
+.section-header h2 i,.section-header h3 i,.agent-intro h2 i { color:var(--ws-water) !important; }
+.btn-primary { background:linear-gradient(135deg,#287da4,#4b9d9c) !important; border:0 !important; color:#fff !important; box-shadow:0 6px 15px rgba(45,127,166,.16) !important; }
+.btn-primary:hover { filter:brightness(.96); transform:translateY(-1px); }
+.btn-secondary { background:#fff !important; border:1px solid rgba(22,63,102,.16) !important; color:var(--ws-deep) !important; }
+.btn-secondary:hover { color:var(--ws-water) !important; background:#f8fbfc !important; }
+input[type="text"],input[type="search"],textarea,select { border:1px solid rgba(26,83,110,.17) !important; border-radius:10px !important; background:#fbfdfe !important; }
+input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus { border-color:rgba(45,127,166,.5) !important; box-shadow:0 0 0 3px rgba(45,127,166,.08) !important; outline:none !important; }
+
+/* Page-specific visual alignment without changing functionality */
+.instruction-section,.chat-section,.input-section,.output-section,.data-section { padding:22px 24px !important; }
+.instruction-card,.model-card,.publication-panel,.agent-chat-panel { border:1px solid rgba(26,83,110,.12) !important; border-radius:14px !important; background:#fff !important; box-shadow:0 6px 18px rgba(18,70,95,.045) !important; }
+.instruction-card { padding:20px 22px !important; }
+.instruction-card > h3 { color:var(--ws-deep) !important; }
+.note-box { border-radius:10px !important; }
+.note-box.loading { background:rgba(45,127,166,.065) !important; border-left-color:var(--ws-water) !important; }
+.note-box.important { background:rgba(206,114,98,.08) !important; border-left-color:#c66f63 !important; }
+.model-header,.panel-heading,.agent-chat-toolbar { background:linear-gradient(90deg,rgba(45,127,166,.055),rgba(112,100,200,.025)) !important; border-bottom:1px solid rgba(26,83,110,.09) !important; }
+.chat-container { border:1px solid rgba(26,83,110,.12) !important; border-radius:14px !important; background:linear-gradient(180deg,#fbfdfd,#f7fbfc) !important; overflow:hidden !important; }
+.user-message .message-content { background:linear-gradient(135deg,#2a7da3,#4d9d9b) !important; }
+.experimental-tag { color:#655bb9 !important; background:rgba(112,100,200,.08) !important; border:1px solid rgba(112,100,200,.14) !important; border-radius:999px !important; }
+</style></head>
 <body>
 <div class="container">
-    <header class="header">
-        <div class="header-content">
-            <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
-            <p>Domain-Specific Small Language Models (SLMs) for Water Sustainability</p>
-        </div>
-        <div class="header-badge">
-            <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
-            <span class="badge"><i class="fas fa-database"></i> v1.1</span>
-        </div>
-    </header>
-
-    <nav class="tabs">
-        <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
-        <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
-        <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat (Experimental purpose)</button>
-        <button class="tab active"><i class="fas fa-robot"></i> Research Agent (Under Construction)</button>
-        <button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book"></i> Instructions</button>
-    </nav>
-
-    <main class="main-content">
-        <section class="agent-intro">
-            <div>
-                <h2><i class="fas fa-book-open"></i> Publication-Grounded Research Agent</h2>
-                <p>Search the prototype publication collection, select one or more papers, and discuss them with a WaterScope-AI model.</p>
-            </div>
-            <div class="status-indicators agent-status">
-                <div class="status-item"><span class="status-label">API:</span><span id="agent-api-status" class="status-value">Ready</span></div>
-                <div class="status-item"><span class="status-label">Context:</span><span id="context-status" class="status-value">No papers selected</span></div>
-            </div>
-        </section>
-
-        <section id="agent-workspace" class="agent-workspace">
-            <aside class="publication-panel">
-                <button id="open-publications-panel" class="collapsed-panel-tab" type="button" title="Open publication panel" aria-label="Open publication panel">
-                    <i class="fas fa-book-open"></i><span>Publications</span>
-                </button>
-                <div class="panel-content publication-panel-content">
-                    <div class="panel-heading">
-                        <div>
-                            <h3><i class="fas fa-search"></i> Publication Search</h3>
-                            <p>Prototype collection: three local papers</p>
-                        </div>
-                        <button id="toggle-publications-panel" class="panel-corner-control" type="button" title="Expand publication panel" aria-label="Expand publication panel"><i class="fas fa-angles-right" aria-hidden="true"></i></button>
-                    </div>
-
-                <div class="publication-search-bar">
-                    <input id="publication-query" type="search" placeholder="Search title, abstract, keywords, or full text">
-                    <button id="publication-search" class="btn-primary"><i class="fas fa-search"></i> Search</button>
-                </div>
-
-                <div class="search-summary">
-                    <span id="result-count">Loading publications...</span>
-                    <button id="show-all-papers" class="text-button">Show all</button>
-                </div>
-
-                <div id="publication-results" class="publication-results"></div>
-
-                <div class="selected-publications">
-                    <div class="selected-heading">
-                        <h4>Selected papers <span id="selected-count" class="count-pill">0</span></h4>
-                        <button id="clear-selected" class="text-button">Clear</button>
-                    </div>
-                    <div id="selected-paper-list" class="selected-paper-list">
-                        <p class="empty-state">No papers selected. General chat remains available.</p>
-                    </div>
-                </div>
-                </div>
-            </aside>
-
-            <section class="agent-chat-panel">
-                <button id="open-agent-chat-panel" class="collapsed-panel-tab" type="button" title="Open Agent chat panel" aria-label="Open Agent chat panel">
-                    <i class="fas fa-comments"></i><span>Agent Chat</span>
-                </button>
-                <div class="panel-content agent-chat-panel-content">
-                <div class="agent-chat-toolbar">
-                    <div>
-                        <h3><i class="fas fa-comments"></i> AI Research Assistant</h3>
-                        <p id="chat-context-description">General chat mode</p>
-                    </div>
-                    <button id="toggle-agent-chat-panel" class="panel-corner-control" type="button" title="Expand Agent chat panel" aria-label="Expand Agent chat panel"><i class="fas fa-angles-left" aria-hidden="true"></i></button>
-                    <div class="agent-selectors">
-                        <label class="model-selector">
-                            <span>Model</span>
-                            <select id="agent-model">
-                                <option value="base">Base</option>
-                                <option value="dpo" selected>DPO-only</option>
-                                <option value="da_dpo">DA-DPO</option>
-                                <option value="tulucore">TuluCore</option>
-                            </select>
-                        </label>
-                        <label class="model-selector task-selector">
-                            <span>Research Task</span>
-                            <select id="agent-task"></select>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="agent-chat-container">
-                    <div id="agent-chat-messages" class="chat-messages">
-                        <div class="message bot-message">
-                            <div class="message-content">
-                                <p>Hello! Ask a general water-sustainability question, or select publications on the left for paper-grounded discussion.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="agent-suggestion-row">
-                        <button class="suggestion-chip" data-prompt="Summarize the selected paper or papers.">Summarize</button>
-                        <button class="suggestion-chip" data-prompt="Compare the methods and main findings of the selected papers.">Compare methods</button>
-                        <button class="suggestion-chip" data-prompt="What research gaps are suggested by the selected papers?">Research gaps</button>
-                    </div>
-                    <div class="chat-input-container agent-input-container">
-                        <textarea id="agent-user-input" placeholder="Ask a question..." rows="2"></textarea>
-                        <button id="clear-agent-chat" class="btn-secondary"><i class="fas fa-broom"></i> Clear</button>
-                        <button id="send-agent-message" class="btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
-                    </div>
-                </div>
-                </div>
-            </section>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <p>WaterScope-AI Research Platform © 2025-2026 | Built with GitHub, Hugging Face, & Gradio</p>
-        <p>Note: This website showcases a demo of domain-specific SLMs for water sustainability</p>
-        <p>Department of Civil and Environmental Engineering, Princeton University</p>
-    </footer>
+<header class="header">
+<div class="header-brand">
+<div class="header-logo">
+<!-- Place logo.png in Assets/figures/ -->
+<img alt="WaterScope-AI logo" src="Assets/logo/logo_s.png"/>
 </div>
-<script src="js/agent.js"></script>
+<div class="header-content">
+<h1>WaterScope-AI</h1>
+<p>Domain AI for Water Sustainability, Decarbonization, and Environmental Decision Support</p>
+</div>
+</div>
+<div class="header-badge">
+<span class="badge"><i class="fas fa-flask"></i> Research Platform Demo</span>
+<span class="badge"><i class="fas fa-microchip"></i> SLM/RAG/Agent</span>
+</div>
+</header>
+<nav class="tabs">
+<button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
+<button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-circle-check"></i> MCQA Demo</button>
+<button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat [Experimental Purpose]</button>
+<button class="tab active"><i class="fas fa-diagram-project"></i> Research Agent [Experimental Purpose]</button>
+<button class="tab" onclick="window.location.href='instructions.html'"><i class="fas fa-book-open"></i> Instructions</button>
+</nav>
+<main class="main-content">
+<section class="agent-intro">
+<div>
+<h2><i class="fas fa-book-open"></i> Publication Intelligence &amp; Research Agent</h2>
+<p>Search and analyze the prototype publication collection, then use selected papers as context for domain-informed research dialogue.</p>
+</div>
+<div class="status-indicators agent-status">
+<div class="status-item"><span class="status-label">Search System:</span><span class="status-value" id="search-system-status">Checking…</span></div>
+<div class="status-item"><span class="status-label">Chat Model:</span><span class="status-value" id="chat-model-status">Checking…</span><span class="status-value" id="chat-model-elapsed">0.0s</span></div>
+<div class="status-item"><span class="status-label">Context:</span><span class="status-value" id="context-status">No papers selected</span></div>
+</div>
+</section>
+<section class="agent-workspace" id="agent-workspace">
+<aside class="publication-panel">
+<button aria-label="Open publication panel" class="collapsed-panel-tab" id="open-publications-panel" title="Open publication panel" type="button">
+<i class="fas fa-book-open"></i><span>Publications</span>
+</button>
+<div class="panel-content publication-panel-content">
+<div class="panel-heading">
+<div>
+<h3><i class="fas fa-search"></i> Publication Search (Hybrid Ranking)</h3>
+</div>
+<button aria-label="Expand publication panel" class="panel-corner-control" id="toggle-publications-panel" title="Expand publication panel" type="button"><i aria-hidden="true" class="fas fa-angles-right"></i></button>
+</div>
+<div class="publication-search-bar">
+<input id="publication-query" placeholder='Search — use +required -exclude "exact phrase"' type="search"/>
+<button class="btn-primary" id="publication-search"><i class="fas fa-search"></i> Search</button>
+</div>
+<div class="search-summary">
+<span id="result-count">Enter a query to search</span>
+<div aria-label="Search results pages" class="search-results-pagination hidden" id="search-results-pagination">
+<button aria-label="Previous 10 results" class="search-results-nav" id="search-results-prev" type="button">
+<i aria-hidden="true" class="fas fa-chevron-left"></i>
+</button>
+<span id="search-results-range">10 of 50</span>
+<button aria-label="Next 10 results" class="search-results-nav" id="search-results-next" type="button">
+<i aria-hidden="true" class="fas fa-chevron-right"></i>
+</button>
+</div>
+<div class="search-summary-actions">
+<button class="text-button clear-selected-top hidden" id="clear-selected-top" type="button">
+<i class="fas fa-times-circle" aria-hidden="true"></i> Clear selected
+</button>
+<label class="search-top-k">
+<span>Results</span>
+<select aria-label="Number of search results" id="search-top-k">
+<option selected="" value="10">Top 10</option>
+<option value="50">Top 50</option>
+<option value="100">Top 100</option>
+<option value="200">Top 200</option>
+</select>
+</label>
+<button class="text-button" id="show-all-papers">Sample search</button>
+</div>
+</div>
+<div class="publication-results" id="publication-results"></div>
+<details class="saved-publications compact-context-section">
+<summary class="compact-context-summary">
+<span><i class="fas fa-bookmark" aria-hidden="true"></i> Bookmarks <span class="count-pill" id="saved-count">0</span></span>
+<span class="compact-context-hint">View</span>
+</summary>
+<div class="publication-results saved-list" id="saved-paper-list">
+<p class="empty-state">Nothing bookmarked yet.</p>
+</div>
+</details>
+<details class="selected-publications compact-context-section">
+<summary class="compact-context-summary">
+<span><i class="fas fa-check-square" aria-hidden="true"></i> Selected for chat <span class="count-pill" id="selected-count">0</span></span>
+<span class="compact-context-hint">View</span>
+</summary>
+<div class="compact-context-toolbar"><button class="text-button" id="clear-selected">Clear selection</button></div>
+<div class="selected-paper-list" id="selected-paper-list">
+<p class="empty-state">No papers selected. General chat uses HF Space directly.</p>
+</div>
+</details>
+</div>
+</aside>
+<section class="agent-chat-panel">
+<button aria-label="Open Agent chat panel" class="collapsed-panel-tab" id="open-agent-chat-panel" title="Open Agent chat panel" type="button">
+<i class="fas fa-comments"></i><span>Agent Chat</span>
+</button>
+<div class="panel-content agent-chat-panel-content">
+<div class="agent-chat-toolbar">
+<div>
+<h3><i class="fas fa-comments"></i> Paper Research Assistant</h3>
+<p id="chat-context-description">General chat mode (HF Space)</p>
+<p class="agent-selection-notice hidden" id="agent-selection-notice"></p>
+</div>
+<button aria-label="Expand Agent chat panel" class="panel-corner-control" id="toggle-agent-chat-panel" title="Expand Agent chat panel" type="button"><i aria-hidden="true" class="fas fa-angles-left"></i></button>
+<div class="agent-selectors">
+<label class="model-selector">
+<span>Model</span>
+<select id="agent-model">
+<option selected="" value="base">Base</option>
+<option value="dpo">DPO-only</option>
+<option value="da_dpo">DA-DPO</option>
+<option value="tulucore">TuluCore</option>
+</select>
+</label>
+<label class="model-selector task-selector">
+<span>Research Task</span>
+<select id="agent-task"></select>
+</label>
+<label class="model-selector agent-mode-toggle">
+<input checked="" id="agent-mode" type="checkbox"/>
+<span>Agent mode (auto search &amp; select papers)</span>
+</label>
+</div>
+</div>
+<div class="agent-chat-container">
+<div class="chat-messages" id="agent-chat-messages">
+<div class="message bot-message">
+<div class="message-content">
+<p>Search publications on the left, select papers, then ask questions here.</p>
+<p><strong>Agent mode</strong> (checkbox in top right): when no papers are selected, the server runs a fixed MCP pipeline — search → select papers → load summaries — then answers via HF Space. With <code>USE_MCP=1</code>, those tools run through the MCP server. Bookmarking papers is available through the <strong>Bookmark</strong> button on each result.</p>
+</div>
+</div>
+</div>
+<div class="agent-suggestion-row">
+<button class="suggestion-chip" data-prompt="Summarize the selected paper or papers.">Summarize</button>
+<button class="suggestion-chip" data-prompt="Compare the methods and main findings of the selected papers.">Compare methods</button>
+<button class="suggestion-chip" data-prompt="What research gaps are suggested by the selected papers?">Research gaps</button>
+</div>
+<div class="chat-input-container agent-input-container">
+<textarea id="agent-user-input" placeholder="Ask a question..." rows="2"></textarea>
+<button class="btn-secondary" id="clear-agent-chat"><i class="fas fa-broom"></i> Clear</button>
+<button class="btn-primary" id="send-agent-message"><i class="fas fa-paper-plane"></i> Send</button>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section class="agent-help-panel">
+<details open="">
+<summary><i class="fas fa-circle-info"></i> How to use &amp; sample queries</summary>
+<div class="agent-help-content">
+<div class="agent-help-grid">
+<div class="agent-help-block">
+<h4><i class="fas fa-broom"></i> Before Agent search</h4>
+<ul>
+<li><strong>Clear selected papers</strong> under <em>Selected for chat</em> (or click below) before asking Agent to <strong>find</strong> new papers — otherwise chat uses your current selection and Agent auto-search is skipped.</li>
+<li>Agent mode (checkbox) runs search → select up to 4 papers → answer when nothing is selected.</li>
+<li>Manual search on the left keeps your checkboxes until you clear them.</li>
+</ul>
+<button class="btn-secondary btn-compact" id="clear-selected-help" type="button">
+<i class="fas fa-eraser"></i> Clear all selected papers
+                            </button>
+<p class="agent-selection-warning hidden" id="agent-selection-warning">
+<i class="fas fa-triangle-exclamation"></i> Papers are selected — Agent will chat about these, not run a new search. Clear first to find new papers.
+                            </p>
+</div>
+<div class="agent-help-block">
+<h4><i class="fas fa-search"></i> Search syntax</h4>
+<ul>
+<li><code>+term</code> required · <code>-term</code> exclude · <code>"exact phrase"</code></li>
+<li>Natural language: <code>microplastics in freshwater, not drinking water</code></li>
+<li>Use <strong>Top 50</strong> for broader discovery — results show <strong>10 at a time</strong> with arrow navigation (10 of 50, 20 of 50, …).</li>
+</ul>
+</div>
+</div>
+<div class="agent-help-samples-grid">
+<div class="agent-help-block">
+<h4><i class="fas fa-flask"></i> Sample publication searches <span class="help-hint">(click to run)</span></h4>
+<div class="sample-query-row">
+<button class="sample-query-chip" data-query="microplastics in freshwater, not drinking water" data-target="publication" type="button">Freshwater MPs, not drinking</button>
+<button class="sample-query-chip" data-query='+microplastics -drinking "wastewater treatment"' data-target="publication" type="button">+MPs −drinking +WWTP</button>
+<button class="sample-query-chip" data-query="PFAS groundwater remediation" data-target="publication" type="button">PFAS groundwater</button>
+<button class="sample-query-chip" data-query='"membrane bioreactor" energy' data-target="publication" type="button">MBR + energy</button>
+<button class="sample-query-chip" data-query="water sustainability" data-target="publication" type="button">Water sustainability</button>
+</div>
+</div>
+<div class="agent-help-block">
+<h4><i class="fas fa-robot"></i> Sample Agent prompts <span class="help-hint">(clear selection first for “find” queries)</span></h4>
+<div class="sample-query-row">
+<button class="sample-query-chip sample-agent" data-query="Find papers on microplastics in freshwater, not drinking water" data-target="agent" type="button">Find MPs in freshwater</button>
+<button class="sample-query-chip sample-agent" data-query="Find papers on PFAS removal from groundwater" data-target="agent" type="button">Find PFAS groundwater</button>
+<button class="sample-query-chip sample-agent" data-query="Find papers on pharmaceutical residues in wastewater" data-target="agent" type="button">Find pharma in WW</button>
+<button class="sample-query-chip sample-agent" data-query="What are the main ecological risks of microplastics in river sediments?" data-target="agent" type="button">Q&amp;A: MP risks</button>
+</div>
+</div>
+</div>
+</div>
+</details>
+</section>
+</main>
+<footer class="footer">
+<p>WaterScope-AI Research Platform © 2025-2026 | GitHub · Hugging Face · Gradio</p>
+<p>Domain-specific AI for water sustainability research, decarbonization, and intelligent research workflows</p>
+<p>Department of Civil and Environmental Engineering, Princeton University</p>
+</footer>
+</div>
+<script src="JS/waterscope-api-config.js"></script>
+<script src="JS/agent.js"></script>
 </body>
 </html>

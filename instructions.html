@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaterScope-AI | Instructions</title>
-    <link rel="stylesheet" href="style-research.css">
+    <link rel="stylesheet" href="CSS/style-research.css?v=20260818e">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .note-box {
@@ -159,27 +159,464 @@
             color: var(--primary);
             font-size: 1.1rem;
         }
-    </style>
+    
+        /* Research Agent capability summary */
+        .agent-capability-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 16px 0 20px;
+        }
+        .agent-capability-item {
+            border: 1px solid rgba(26,83,110,.12);
+            border-radius: 10px;
+            background: #fbfdfe;
+            padding: 13px 14px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            column-gap: 8px;
+            row-gap: 4px;
+            align-items: start;
+        }
+        .agent-capability-item > i {
+            color: #2d7fa6;
+            margin-top: 2px;
+        }
+        .agent-capability-item > strong {
+            color: #123b61;
+            font-size: .9rem;
+        }
+        .agent-capability-item > span {
+            grid-column: 1 / -1;
+            color: #5f7280;
+            font-size: .8rem;
+            line-height: 1.45;
+        }
+        @media (max-width: 980px) {
+            .agent-capability-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 620px) {
+            .agent-capability-grid { grid-template-columns: 1fr; }
+        }
+
+</style>
+
+<style id="waterscope-secondary-theme">
+/* WaterScope-AI shared secondary-page theme — intentionally loaded last. */
+:root {
+  --ws-deep:#123b61; --ws-water:#2d7fa6; --ws-aqua:#4da9a5;
+  --ws-green:#62a973; --ws-ai:#7064c8; --ws-ink:#19344e;
+  --ws-muted:#70838f; --ws-line:rgba(26,83,110,.14);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.main-content { background:transparent !important; }
+.main-content > section { border:1px solid var(--ws-line) !important; border-radius:18px !important; background:rgba(255,255,255,.96) !important; box-shadow:0 10px 28px rgba(18,70,95,.055) !important; }
+.section-header { border-bottom:1px solid rgba(26,83,110,.09) !important; }
+.section-header h2,.section-header h3,.agent-intro h2 { color:var(--ws-deep) !important; }
+.section-header h2 i,.section-header h3 i,.agent-intro h2 i { color:var(--ws-water) !important; }
+.btn-primary { background:linear-gradient(135deg,#287da4,#4b9d9c) !important; border:0 !important; color:#fff !important; box-shadow:0 6px 15px rgba(45,127,166,.16) !important; }
+.btn-primary:hover { filter:brightness(.96); transform:translateY(-1px); }
+.btn-secondary { background:#fff !important; border:1px solid rgba(22,63,102,.16) !important; color:var(--ws-deep) !important; }
+.btn-secondary:hover { color:var(--ws-water) !important; background:#f8fbfc !important; }
+input[type="text"],input[type="search"],textarea,select { border:1px solid rgba(26,83,110,.17) !important; border-radius:10px !important; background:#fbfdfe !important; }
+input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus { border-color:rgba(45,127,166,.5) !important; box-shadow:0 0 0 3px rgba(45,127,166,.08) !important; outline:none !important; }
+
+/* Page-specific visual alignment without changing functionality */
+.instruction-section,.chat-section,.input-section,.output-section,.data-section { padding:22px 24px !important; }
+.instruction-card,.model-card,.publication-panel,.agent-chat-panel { border:1px solid rgba(26,83,110,.12) !important; border-radius:14px !important; background:#fff !important; box-shadow:0 6px 18px rgba(18,70,95,.045) !important; }
+.instruction-card { padding:20px 22px !important; }
+.instruction-card > h3 { color:var(--ws-deep) !important; }
+.note-box { border-radius:10px !important; }
+.note-box.loading { background:rgba(45,127,166,.065) !important; border-left-color:var(--ws-water) !important; }
+.note-box.important { background:rgba(206,114,98,.08) !important; border-left-color:#c66f63 !important; }
+.model-header,.panel-heading,.agent-chat-toolbar { background:linear-gradient(90deg,rgba(45,127,166,.055),rgba(112,100,200,.025)) !important; border-bottom:1px solid rgba(26,83,110,.09) !important; }
+.chat-container { border:1px solid rgba(26,83,110,.12) !important; border-radius:14px !important; background:linear-gradient(180deg,#fbfdfd,#f7fbfc) !important; overflow:hidden !important; }
+.user-message .message-content { background:linear-gradient(135deg,#2a7da3,#4d9d9b) !important; }
+.experimental-tag { color:#655bb9 !important; background:rgba(112,100,200,.08) !important; border:1px solid rgba(112,100,200,.14) !important; border-radius:999px !important; }
+</style>
+
+
+<style id="waterscope-project-info-style">
+.project-info-section {
+    padding: 26px 24px 28px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--line-soft);
+    box-shadow: var(--shadow-card);
+}
+.project-info-section .section-header {
+    margin-bottom: 22px;
+}
+.project-info-grid {
+    display: grid;
+    gap: 20px;
+}
+.project-info-card {
+    padding: 21px 22px 22px;
+    border: 1px solid rgba(18,91,119,0.11);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(14,72,102,0.045);
+}
+.project-info-card > h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 15px;
+    color: var(--deep-water);
+    font-size: 1.1rem;
+}
+.project-info-card > h3 i { color: var(--water); }
+
+.contributor-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+}
+.contributor-slot {
+    min-height: 172px;
+    padding: 11px;
+    border: 1px solid rgba(18,91,119,0.12);
+    border-radius: 12px;
+    background:
+        linear-gradient(135deg, rgba(22,124,166,0.045), rgba(73,166,111,0.025), rgba(109,99,199,0.035)),
+        #fff;
+}
+.contributor-profile {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.contributor-photo,
+.contributor-photo-placeholder {
+    width: 120px;
+    height: 144px;
+    flex: 0 0 120px;
+    border-radius: 9px;
+    object-fit: cover;
+    object-position: center top;
+    background: #eef4f7;
+    border: 1px solid rgba(18,91,119,0.10);
+}
+.contributor-photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9aabb5;
+    font-size: 2rem;
+}
+.contributor-info {
+    min-width: 0;
+}
+.contributor-slot strong {
+    display: block;
+    margin: 1px 0 4px;
+    color: var(--deep-water);
+    font-size: 1.00rem;
+    line-height: 1.25;
+}
+.contributor-name-link {
+    color: inherit;
+    text-decoration: none;
+}
+.contributor-name-link:hover,
+.contributor-name-link:focus-visible {
+    color: #167ca6;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.contributor-role {
+    display: block;
+    margin-bottom: 6px;
+    color: #2877a0;
+    font-size: 0.80rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+.contributor-affiliation {
+    display: block;
+    color: #667d8b;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+.contributor-affiliation + .contributor-affiliation {
+    margin-top: 2px;
+}
+
+.citation-box {
+    padding: 16px 18px;
+    border-left: 4px solid var(--ai);
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(109,99,199,0.065), rgba(22,124,166,0.025));
+}
+.citation-box p {
+    margin: 0;
+    color: #536b7b;
+    line-height: 1.65;
+}
+.citation-box .citation-main {
+    margin-bottom: 7px;
+    color: var(--deep-water);
+    font-weight: 650;
+}
+
+.related-publications-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+}
+.ws-publication-card {
+    min-height: 218px;
+    display: flex;
+    flex-direction: column;
+    padding: 17px 17px 15px;
+    border: 1px solid rgba(18,91,119,0.13);
+    border-radius: 13px;
+    background:
+        linear-gradient(180deg, rgba(22,124,166,0.035), rgba(255,255,255,0) 48%),
+        #fff;
+}
+.ws-publication-card h4 {
+    margin: 0 0 10px;
+    color: #082e51;
+    font-size: 0.92rem;
+    line-height: 1.28;
+}
+.ws-publication-meta {
+    color: #668090;
+    font-size: 0.79rem;
+    line-height: 1.45;
+}
+.ws-publication-meta strong { color: #075d8e; }
+.ws-publication-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.ws-metric {
+    padding: 5px 8px;
+    border-radius: 999px;
+    color: #176388;
+    background: rgba(73,169,221,0.12);
+    font-size: 0.7rem;
+    font-weight: 650;
+}
+.ws-metric.forthcoming {
+    color: #71818b;
+    background: #eef3f5;
+}
+.ws-publication-status {
+    margin-top: auto;
+    padding-top: 15px;
+    color: #276d95;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+@media (max-width: 1050px) {
+    .contributor-grid,
+    .related-publications-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+    .contributor-grid,
+    .related-publications-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+
+<style id="waterscope-publication-author-style">
+.ws-publication-authors {
+    margin: -2px 0 8px;
+    color: #425f73;
+    font-size: 0.76rem;
+    line-height: 1.42;
+}
+a.ws-publication-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    text-decoration: none;
+}
+a.ws-publication-status:hover {
+    color: #155d83;
+    text-decoration: underline;
+}
+</style>
+
+
+
+<style id="waterscope-other-platforms-style">
+.other-platforms-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 165px);
+    gap: 16px;
+    justify-content: start;
+}
+.other-platform-card {
+    min-height: 205px;
+    padding: 14px 13px 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    border: 1px solid rgba(18,91,119,0.13);
+    border-radius: 13px;
+    background: linear-gradient(180deg, rgba(22,124,166,0.035), rgba(255,255,255,0) 52%), #fff;
+    text-decoration: none;
+    box-shadow: 0 5px 15px rgba(18,70,95,0.04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.other-platform-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(18,70,95,0.08);
+    border-color: rgba(45,127,166,0.28);
+}
+.other-platform-logo {
+    width: 118px;
+    height: 118px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: #fff;
+}
+.other-platform-name {
+    margin-top: 12px;
+    color: var(--deep-water, var(--ws-deep));
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.28;
+    text-align: center;
+}
+.other-platform-card.placeholder {
+    cursor: default;
+}
+@media (max-width: 760px) {
+    .other-platforms-grid { grid-template-columns: repeat(2, 165px); }
+}
+@media (max-width: 390px) {
+    .other-platforms-grid { grid-template-columns: 1fr; }
+    .other-platform-card { width: 165px; }
+}
+</style>
+
+
+<style id="waterscope-support-project-style">
+.support-project-card {
+    position: relative;
+}
+.support-project-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+.support-project-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--deep-water, var(--ws-deep));
+    font-size: 1.1rem;
+}
+.support-project-header h3 i {
+    color: var(--water, var(--ws-water));
+}
+.support-github-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+    padding: 8px 13px;
+    border: 1px solid rgba(18,91,119,0.16);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--deep-water, var(--ws-deep));
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(18,70,95,0.04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+}
+.support-github-button:hover {
+    transform: translateY(-1px);
+    color: var(--water, var(--ws-water));
+    border-color: rgba(45,127,166,0.30);
+    box-shadow: 0 6px 14px rgba(18,70,95,0.07);
+}
+.support-info-box {
+    display: block;
+    padding: 13px 15px;
+    border: 1px solid rgba(45,127,166,0.10);
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(45,127,166,0.055), rgba(77,169,165,0.025));
+}
+.support-heart {
+    margin-right: 3px;
+    font-size: 0.92rem;
+    vertical-align: -0.02em;
+}
+.support-inline-icon {
+    margin: 0 4px 0 7px;
+    color: var(--water, var(--ws-water));
+    font-size: 0.82rem;
+}
+.support-info-box p {
+    margin: 0;
+    color: #5f7482;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+@media (max-width: 620px) {
+    .support-project-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+</style>
+
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-microscope"></i> WaterScope-AI</h1>
-                <p>Domain-Specific Small Language Models (SLMs) for Water Sustainability</p>
+            <div class="header-brand">
+                <div class="header-logo">
+                    <!-- WaterScope-AI logo -->
+                    <img src="Assets/logo/logo_s.png" alt="WaterScope-AI logo">
+                </div>
+                <div class="header-content">
+                    <h1>WaterScope-AI</h1>
+                    <p>Domain AI for Water Sustainability, Decarbonization, and Environmental Decision Support</p>
+                </div>
             </div>
             <div class="header-badge">
-                <span class="badge"><i class="fas fa-flask"></i> Research Demo Edition</span>
-                <span class="badge"><i class="fas fa-database"></i> v1.1</span>
+                <span class="badge"><i class="fas fa-flask"></i> Research Platform Demo</span>
+                <span class="badge"><i class="fas fa-microchip"></i> SLM/RAG/Agent</span>
             </div>
         </header>
 
         <nav class="tabs">
             <button class="tab" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
-            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-play-circle"></i> MCQA Demo</button>
-            <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat (Experimental purpose)</button>
-            <button class="tab" onclick="window.location.href='agent.html'"><i class="fas fa-robot"></i> Research Agent (Under Construction)</button>
-            <button class="tab active"><i class="fas fa-book"></i> Instructions</button>
+            <button class="tab" onclick="window.location.href='demo.html'"><i class="fas fa-circle-check"></i> MCQA Demo</button>
+            <button class="tab" onclick="window.location.href='chat.html'"><i class="fas fa-comments"></i> Chat [Experimental Purpose]</button>
+            <button class="tab" onclick="window.location.href='agent.html'"><i class="fas fa-diagram-project"></i> Research Agent [Experimental Purpose]</button>
+            <button class="tab active"><i class="fas fa-book-open"></i> Instructions</button>
         </nav>
 
         <main class="main-content">
@@ -252,7 +689,7 @@
                     
                     <!-- Chat Instructions -->
                     <div class="instruction-card">
-                        <h3><i class="fas fa-comments"></i> Chat Interface</h3>
+                        <h3><i class="fas fa-comments"></i> Chat Interface <span class="model-badge">Experimental Purpose</span></h3>
                         <p>The chat interface allows you to interact with our specialized DA-DPO model for water sustainability topics.</p>
                         
                         <div class="note-box important">
@@ -333,43 +770,84 @@
                     
                     <!-- Research Agent Instructions -->
                     <div class="instruction-card">
-                        <h3><i class="fas fa-robot"></i> Research Agent <span class="model-badge">Under Construction</span></h3>
-                        <p>The Research Agent is being developed as a publication-grounded workspace for searching, selecting, and discussing water-sustainability literature with domain-specific SLMs.</p>
+                        <h3><i class="fas fa-robot"></i> Research Agent <span class="model-badge">Experimental Purpose</span></h3>
+                        <p>The Research Agent is a publication-grounded workspace for searching, reviewing, selecting, and discussing water-sustainability literature with domain-specific SLMs.</p>
 
                         <div class="note-box important">
-                            <h4><i class="fas fa-hammer"></i> Development Status</h4>
-                            <p>This module is currently under construction. The present interface uses a small local publication collection for functional testing. Publication retrieval will later be connected to BM25 and semantic-search systems.</p>
+                            <h4><i class="fas fa-chart-column"></i> Current Prototype</h4>
+                            <p>The prototype integrates <strong>12K+ open-access publications from IWA Publishing</strong> with hybrid BM25 + semantic retrieval and paper-grounded research assistance.</p>
+                        </div>
+
+                        <div class="agent-capability-grid">
+                            <div class="agent-capability-item">
+                                <i class="fas fa-database"></i>
+                                <strong>12K+ Open-Access IWA Publications</strong>
+                                <span>Search across titles, abstracts, and keywords in the current open-access collection from IWA Publishing.</span>
+                            </div>
+                            <div class="agent-capability-item">
+                                <i class="fas fa-magnifying-glass-chart"></i>
+                                <strong>Hybrid Ranking</strong>
+                                <span>BM25 and semantic-vector retrieval are combined through weighted RRF ranking.</span>
+                            </div>
+                            <div class="agent-capability-item">
+                                <i class="fas fa-file-arrow-down"></i>
+                                <strong>Paper Access</strong>
+                                <span>Visit the official DOI page or access the full-text PDF directly when available.</span>
+                            </div>
+                            <div class="agent-capability-item">
+                                <i class="fas fa-images"></i>
+                                <strong>Figures &amp; Tables</strong>
+                                <span>Use <em>Details</em> to inspect extracted graphical abstracts, figures, and tables for supported papers.</span>
+                            </div>
+                            <div class="agent-capability-item">
+                                <i class="fas fa-bookmark"></i>
+                                <strong>Bookmark &amp; Select</strong>
+                                <span>Bookmark useful results and select up to four papers as grounded research context.</span>
+                            </div>
+                            <div class="agent-capability-item">
+                                <i class="fas fa-comments"></i>
+                                <strong>Paper-Grounded Agent</strong>
+                                <span>Summarize, compare methods, identify research gaps, or ask custom questions across selected papers.</span>
+                            </div>
                         </div>
 
                         <div class="instruction-step">
                             <div class="step-number">1</div>
                             <div class="step-content">
                                 <h4>Search Publications</h4>
-                                <p>Enter terms in the publication-search box to search the prototype collection by title, abstract, keywords, or full text.</p>
+                                <p>Enter keywords or natural-language terms in the publication-search box. Choose Top 10, 50, 100, or 200 results; broader result sets are displayed 10 papers at a time with page navigation.</p>
                             </div>
                         </div>
 
                         <div class="instruction-step">
                             <div class="step-number">2</div>
                             <div class="step-content">
-                                <h4>Select Research Context</h4>
-                                <p>Select one or more publications to provide paper-grounded context. General chat remains available when no publication is selected.</p>
+                                <h4>Review Paper Details</h4>
+                                <p>Use <strong>Details</strong> to inspect ranking metrics and available media. Use <strong>Official</strong> to visit the publication page. When a full-text PDF is available in WaterScope-AI, use <strong>Download</strong> for direct access.</p>
                             </div>
                         </div>
 
                         <div class="instruction-step">
                             <div class="step-number">3</div>
                             <div class="step-content">
-                                <h4>Choose a Model and Research Task</h4>
-                                <p>Select an available model and a research task, such as document-grounded question answering, multi-paper synthesis, method recommendation, research-gap identification, or unsupported-claim checking.</p>
+                                <h4>Select Research Context</h4>
+                                <p>Select up to four publications for paper-grounded dialogue. Bookmarks can be retained separately for later review.</p>
                             </div>
                         </div>
 
                         <div class="instruction-step">
                             <div class="step-number">4</div>
                             <div class="step-content">
+                                <h4>Choose a Model and Research Task</h4>
+                                <p>Select an available model and use Auto-detect task or a specific workflow such as document-grounded question answering, multi-paper synthesis, method recommendation, research-gap identification, or unsupported-claim checking.</p>
+                            </div>
+                        </div>
+
+                        <div class="instruction-step">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
                                 <h4>Discuss the Publications</h4>
-                                <p>Enter a question in the Agent chat. The selected publication text is provided to the model as research context for the response.</p>
+                                <p>Ask questions in the Paper Research Assistant. Selected paper summaries are assembled as grounded context before the request is sent to the selected WaterScope-AI model.</p>
                             </div>
                         </div>
                     </div>
@@ -379,6 +857,13 @@
                         <h3><i class="fas fa-cogs"></i> Model Information</h3>
                         
                         <div class="model-info">
+
+                            <div class="model-detail">
+                                <h4><i class="fas fa-cube"></i> Base Model</h4>
+                                <span class="model-badge">Llama-3.1-8B-Instruct</span>
+                                <p>The unadapted Llama-3.1-8B-Instruct model provides the baseline for comparison and is also available for Research Agent experiments.</p>
+                            </div>
+
                             <div class="model-detail">
                                 <h4><i class="fas fa-tachometer-alt"></i> DA-DPO Model</h4>
                                 <span class="model-badge">Preference-Optimized</span>
@@ -388,7 +873,7 @@
                             <div class="model-detail">
                                 <h4><i class="fas fa-sliders-h"></i> DPO Model</h4>
                                 <span class="model-badge">Preference-Optimized</span>
-                                <p>Fine-tuned directly from the base model using Direct Preference Optimization (DPO), without the preceding domain-adaptation stage. This model is the default option in the Research Agent.</p>
+                                <p>Fine-tuned directly from the base model using Direct Preference Optimization (DPO), without the preceding domain-adaptation stage. This model remains available as an optional Research Agent configuration.</p>
                             </div>
                             
                             <div class="model-detail">
@@ -427,11 +912,203 @@
                     </div>
                 </div>
             </section>
+        
+            <section class="project-info-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> WaterScope-AI Project Information</h2>
+                    <small>Main contributors, citation guidance, and related publications</small>
+                </div>
+
+                <div class="project-info-grid">
+                    <div class="project-info-card">
+                        <h3><i class="fas fa-user-group"></i> Authors and Project Team</h3>
+                        <div class="contributor-grid">
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <img class="contributor-photo" src="../Assets/headshot/Junjie.jpg" alt="Jun-Jie Zhu">
+                                    <div class="contributor-info">
+                                        <strong><a class="contributor-name-link" href="https://scholar.google.com/citations?user=n9Zatu8AAAAJ" target="_blank" rel="noopener noreferrer">Jun-Jie Zhu</a></strong>
+                                        <span class="contributor-role">Leading &amp; Corresponding Author, Platform Developer</span>
+                                        <span class="contributor-affiliation">Associate Research Scholar</span>
+                                        <span class="contributor-affiliation">CEE Department and ACEE</span>
+                                        <span class="contributor-affiliation">Princeton University</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <img class="contributor-photo" src="../Assets/headshot/Jerry.jpg" alt="Jinyue Jiang">
+                                    <div class="contributor-info">
+                                        <strong><a class="contributor-name-link" href="https://dh2o.org/" target="_blank" rel="noopener noreferrer">Jinyue Jiang</a></strong>
+                                        <span class="contributor-role">Co-Author, Platform Contributor</span>
+                                        <span class="contributor-affiliation">Postdoctoral Scholar, Arizona State University</span>
+                                        <span class="contributor-affiliation">Incoming Assistant Professor</span>
+                                        <span class="contributor-affiliation">Hong Kong Polytechnic University</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <img class="contributor-photo" src="../Assets/headshot/Meiqi.jpg" alt="Meiqi Yang">
+                                    <div class="contributor-info">
+                                        <strong><a class="contributor-name-link" href="https://scholar.google.com/citations?user=AQtPAhsAAAAJ" target="_blank" rel="noopener noreferrer">Meiqi Yang</a></strong>
+                                        <span class="contributor-role">Co-Author</span>
+                                        <span class="contributor-affiliation">Assistant Professor</span>
+                                        <span class="contributor-affiliation">Chemical and Biological Engineering</span>
+                                        <span class="contributor-affiliation">University of British Columbia</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <img class="contributor-photo" src="../Assets/headshot/Jason.jpg" alt="Zhiyong Jason Ren">
+                                    <div class="contributor-info">
+                                        <strong><a class="contributor-name-link" href="https://ren.princeton.edu/" target="_blank" rel="noopener noreferrer">Zhiyong Jason Ren</a></strong>
+                                        <span class="contributor-role">Corresponding Author</span>
+                                        <span class="contributor-affiliation">Eugene Higgins Professor</span>
+                                        <span class="contributor-affiliation">CEE Department and ACEE</span>
+                                        <span class="contributor-affiliation">Princeton University</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <img class="contributor-photo" src="../Assets/headshot/Ryan.jpg" alt="Haodong Wei">
+                                    <div class="contributor-info">
+                                        <strong>Haodong Wei</strong>
+                                        <span class="contributor-role">Project Contributor</span>
+                                        <span class="contributor-affiliation">Princeton LLP 2024</span>
+                                        <span class="contributor-affiliation">Undergraduate</span>
+                                        <span class="contributor-affiliation">Massachusetts Institute of Technology</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <img class="contributor-photo" src="../Assets/headshot/Linda.jpg" alt="Linda Zeng">
+                                    <div class="contributor-info">
+                                        <strong>Linda Zeng</strong>
+                                        <span class="contributor-role">Project Contributor</span>
+                                        <span class="contributor-affiliation">Princeton LLP 2024</span>
+                                        <span class="contributor-affiliation">Undergraduate</span>
+                                        <span class="contributor-affiliation">Stanford University</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contributor-slot">
+                                <div class="contributor-profile">
+                                    <div class="contributor-photo-placeholder" aria-hidden="true"><i class="fas fa-user"></i></div>
+                                    <div class="contributor-info">
+                                        <strong>Oceana Li</strong>
+                                        <span class="contributor-role">Project Contributor</span>
+                                        <span class="contributor-affiliation">Princeton LLP 2026</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="project-info-card">
+                        <h3><i class="fas fa-quote-right"></i> Citation</h3>
+                        <div class="citation-box">
+                            <p class="citation-main">WaterScope-AI platform citation information will be updated with the associated publication.</p>
+                            <p>For now, please cite the relevant WaterScope-AI publications below when using specific concepts, models, or platform components.</p>
+                        </div>
+                    </div>
+
+                    <div class="project-info-card support-project-card">
+                        <div class="support-project-header">
+                            <h3><i class="fas fa-heart"></i> Support WaterScope-AI Project</h3>
+                            <a class="support-github-button" href="https://github.com/starfriend10/WaterScope-AI" target="_blank" rel="noopener">
+                                <i class="fas fa-star"></i> Star on GitHub
+                            </a>
+                        </div>
+                        <div class="support-info-box">
+                            <p><span class="support-heart" aria-hidden="true">💙</span> <strong>Your support is very important to us.</strong> If WaterScope-AI is useful for your research, please consider giving the project a star on GitHub. <i class="fas fa-hands-helping support-inline-icon" aria-hidden="true"></i> You can also explore our other research projects and open resources there.</p>
+                        </div>
+                    </div>
+
+                    <div class="project-info-card">
+                        <h3><i class="fas fa-book-open"></i> Related Publications</h3>
+                        <div class="related-publications-grid">
+                            
+                            <article class="ws-publication-card">
+                                <h4>ChatGPT and Environmental Research</h4>
+                                <div class="ws-publication-authors">Zhu, J.-J.; Jiang, J.; Yang, M.; Ren, Z. J.</div>
+                                <div class="ws-publication-meta">Environmental Science &amp; Technology · <strong>2023</strong> · 57 · 17667–17670</div>
+                                <div class="ws-publication-metrics">
+                                    <span class="ws-metric">336 citations</span>
+                                    <span class="ws-metric">66,881 views</span>
+                                </div>
+                                <a class="ws-publication-status" href="https://doi.org/10.1021/acs.est.3c01818" target="_blank" rel="noopener">Access article <i class="fas fa-arrow-up-right-from-square"></i></a>
+                            </article>
+
+
+                            
+                            <article class="ws-publication-card">
+                                <h4>Enabling GPTs for Expert-Level Environmental Engineering Question Answering</h4>
+                                <div class="ws-publication-authors">Zhu, J.-J.; Yang, M.; Jiang, J.; Bai, Y.; Chen, D.; Ren, Z. J.</div>
+                                <div class="ws-publication-meta">Environmental Science &amp; Technology Letters · <strong>2024</strong> · 11(12) · 1327–1333</div>
+                                <div class="ws-publication-metrics">
+                                    <span class="ws-metric">29 citations</span>
+                                </div>
+                                <a class="ws-publication-status" href="https://doi.org/10.1021/acs.estlett.4c00665" target="_blank" rel="noopener">Access article <i class="fas fa-arrow-up-right-from-square"></i></a>
+                            </article>
+
+
+                            <article class="ws-publication-card">
+                                <h4>Putting Large Language Models into Environmental Context</h4>
+                                <div class="ws-publication-meta">Environmental Science &amp; Technology · <strong>2026</strong></div>
+                                <div class="ws-publication-metrics">
+                                    <span class="ws-metric forthcoming">Metrics forthcoming</span>
+                                </div>
+                                <div class="ws-publication-status">Link to be updated</div>
+                            </article>
+
+                            <article class="ws-publication-card">
+                                <h4>Agentic Policy-to-Answer Framework for Cross-Jurisdiction Nutrient Policies Intelligence</h4>
+                                <div class="ws-publication-meta">Publication information forthcoming</div>
+                                <div class="ws-publication-metrics">
+                                    <span class="ws-metric forthcoming">Metrics forthcoming</span>
+                                </div>
+                                <div class="ws-publication-status">Publication information forthcoming</div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div class="project-info-card">
+                        <h3><i class="fas fa-globe"></i> Other Research Platforms</h3>
+                        <div class="other-platforms-grid">
+                            <a class="other-platform-card" href="https://starfriend10.github.io/EST/" target="_blank" rel="noopener">
+                                <img class="other-platform-logo" src="Assets/logo/logo_est20yr.jpg" alt="ES&amp;T 20 Years logo">
+                                <span class="other-platform-name">ES&amp;T 20 Years</span>
+                            </a>
+
+                            <a class="other-platform-card" href="https://starfriend10.github.io/ContamLens/" target="_blank" rel="noopener">
+                                <img class="other-platform-logo" src="Assets/logo/logo_contamlens.jpg" alt="60 Years Evolution of Contaminants logo">
+                                <span class="other-platform-name">60 Years Evolution of Contaminants</span>
+                            </a>
+
+                            <a class="other-platform-card" href="https://starfriend10.github.io/WNP-ARAG/" target="_blank" rel="noopener">
+                                <img class="other-platform-logo" src="Assets/logo/logo_wnp-arag.png" alt="WNR-ARAG logo">
+                                <span class="other-platform-name">WNR-ARAG</span>
+                            </a>
+
+                            <div class="other-platform-card placeholder" aria-label="Future research platform">
+                                <img class="other-platform-logo" src="Assets/logo/logo_tbd.png" alt="To be determined">
+                                <span class="other-platform-name">To Be Updated</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
 
         <footer class="footer">
-            <p>WaterScope-AI Research Platform © 2025-2026 | Built with GitHub, Hugging Face, & Gradio </p>
-            <p>Note: This website showcases a demo of domain-specific SLMs for water sustainability</p>
+            <p>WaterScope-AI Research Platform © 2025-2026 | GitHub · Hugging Face · Gradio</p>
+            <p>Domain-specific AI for water sustainability research, decarbonization, and intelligent research workflows</p>
             <p>Department of Civil and Environmental Engineering, Princeton University</p>
         </footer>
     </div>
