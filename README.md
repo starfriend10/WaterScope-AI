@@ -438,24 +438,6 @@ Future extensions may include:
 
 ---
 
-# 👥 Authors
-
-**Jun-Jie Zhu**  
-Department of Civil and Environmental Engineering  
-Princeton University
-
-**Jinyue Jiang**  
-GitHub: [yinxisang97](https://github.com/yinxisang97)
-
-**Meiqi Yang**  
-GitHub: [meiqiyang53](https://github.com/meiqiyang53)
-
-**Z. Jason Ren**  
-Department of Civil and Environmental Engineering  
-Princeton University
-
----
-
 # 🤝 Contributing & Collaboration
 
 We welcome research collaborations related to:
