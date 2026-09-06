@@ -241,6 +241,13 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </ul>
 </div>
 </div>
+
+<div style="display:flex; justify-content:flex-end; margin:10px 0 14px;">
+<button class="btn-secondary btn-compact" id="clear-search-results" type="button">
+<i class="fas fa-broom" aria-hidden="true"></i> Clear search results
+</button>
+</div>
+
 <div class="agent-help-samples-grid">
 <div class="agent-help-block">
 <h4><i class="fas fa-flask"></i> Sample publication searches <span class="help-hint">(click to run)</span></h4>
@@ -274,5 +281,26 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </div>
 <script src="JS/waterscope-api-config.js"></script>
 <script src="JS/agent.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const clearSearchButton = document.getElementById("clear-search-results");
+  if (!clearSearchButton) return;
+
+  clearSearchButton.addEventListener("click", () => {
+    searchResults = [];
+    lastSearchQuery = "";
+    searchResultsPage = 0;
+
+    const queryInput = document.getElementById("publication-query");
+    if (queryInput) queryInput.value = "";
+
+    const countEl = document.getElementById("result-count");
+    if (countEl) countEl.textContent = "Enter a query to search";
+
+    renderPublicationResults();
+    saveAgentSessionState();
+  });
+});
+</script>
 </body>
 </html>
