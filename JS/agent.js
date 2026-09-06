@@ -1325,7 +1325,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  const ok = await checkFlaskApi();
+  // Start the model API immediately when the page opens so the
+  // WaterScopeAI model Space can wake in parallel with the search Space.
+  const modelConnectionPromise = initializeGradioClient();
+  const searchConnectionPromise = checkFlaskApi();
+
+  const ok = await searchConnectionPromise;
   if (ok) {
     try {
       await loadPapersIndex();
@@ -1335,7 +1340,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       addAgentMessage(error.message, "assistant");
     }
   }
-  await initializeGradioClient();
+
+  // The model connection has already been running in parallel.
+  await modelConnectionPromise;
 });
 
 
