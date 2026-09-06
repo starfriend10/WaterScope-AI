@@ -1,5 +1,6 @@
 # 💧 WaterScope-AI
-## Domain-Specific Small Language Models & MCP-Enabled Research Agents for Water Sustainability
+## Domain-Specific Small Language Models 
+& MCP-Enabled Research Agents for Water Sustainability
 
 <p align="center">
   <strong>Domain Knowledge · Small Language Models · Publication Intelligence · MCP Agents</strong>
