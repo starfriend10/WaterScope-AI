@@ -1,9 +1,7 @@
 name: WaterScope HF Runtime Monitor
 
-on:
+"on":
   schedule:
-    # Every 5 minutes. This checks Hugging Face Hub runtime metadata only.
-    # It does NOT call the model API or wake the GPU.
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
@@ -57,7 +55,6 @@ jobs:
           ).strip()
 
           msg = error_message.lower()
-
           target_error = (
               stage == "RUNTIME_ERROR"
               and (
@@ -67,27 +64,16 @@ jobs:
               )
           )
 
-          # Classify the runtime state for the dashboard.
           if stage == "RUNTIME_ERROR":
-              health = "error"
-              icon = "🔴"
+              health, icon = "error", "🔴"
           elif "START" in stage or "BUILD" in stage or "SCHEDUL" in stage:
-              health = "starting"
-              icon = "🟡"
-          elif stage in {"RUNNING", "RUNNING_APP_STARTING"}:
-              # RUNNING_APP_STARTING is kept as starting below if present.
-              if stage == "RUNNING_APP_STARTING":
-                  health = "starting"
-                  icon = "🟡"
-              else:
-                  health = "running"
-                  icon = "🟢"
+              health, icon = "starting", "🟡"
+          elif stage == "RUNNING":
+              health, icon = "running", "🟢"
           elif stage in {"PAUSED", "SLEEPING", "STOPPED"}:
-              health = "inactive"
-              icon = "⚪"
+              health, icon = "inactive", "⚪"
           else:
-              health = "other"
-              icon = "⚪"
+              health, icon = "other", "⚪"
 
           now_utc = datetime.now(timezone.utc)
           now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
@@ -103,7 +89,6 @@ jobs:
               f.write(f"health={health}\n")
               f.write(f"icon={icon}\n")
               f.write(f"target_error={'true' if target_error else 'false'}\n")
-              f.write(f"timestamp_utc={now_utc.strftime('%Y-%m-%dT%H:%M:%SZ')}\n")
               f.write(f"timestamp_et={now_et.strftime('%Y-%m-%d %H:%M %Z')}\n")
               f.write("error_message<<EOF\n")
               f.write(error_message + "\n")
@@ -119,17 +104,15 @@ jobs:
           DASHBOARD_NUMBER="$(gh issue list \
             --repo "$GITHUB_REPOSITORY" \
             --state open \
-            --search "\"$DASHBOARD_ISSUE_TITLE\" in:title" \
             --json number,title \
-            --jq '.[] | select(.title == env.DASHBOARD_ISSUE_TITLE) | .number' \
+            --jq '.[] | select(.title == "'"$DASHBOARD_ISSUE_TITLE"'") | .number' \
             | head -n 1)"
 
           ALERT_NUMBER="$(gh issue list \
             --repo "$GITHUB_REPOSITORY" \
             --state open \
-            --search "\"$ALERT_ISSUE_TITLE\" in:title" \
             --json number,title \
-            --jq '.[] | select(.title == env.ALERT_ISSUE_TITLE) | .number' \
+            --jq '.[] | select(.title == "'"$ALERT_ISSUE_TITLE"'") | .number' \
             | head -n 1)"
 
           echo "dashboard_number=$DASHBOARD_NUMBER" >> "$GITHUB_OUTPUT"
@@ -162,7 +145,6 @@ jobs:
           error = os.environ.get("HF_ERROR", "").strip()
           time_et = os.environ["HF_TIME_ET"]
 
-          # Store machine-readable history inside a hidden HTML comment in the issue body.
           history = []
 
           if issue_number:
@@ -172,12 +154,11 @@ jobs:
                   capture_output=True,
                   text=True,
               )
-              body = json.loads(result.stdout).get("body") or ""
-
+              old_body = json.loads(result.stdout).get("body") or ""
               start_marker = "<!-- WATERSCOPE_RUNTIME_HISTORY_START"
               end_marker = "WATERSCOPE_RUNTIME_HISTORY_END -->"
-              if start_marker in body and end_marker in body:
-                  hidden = body.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()
+              if start_marker in old_body and end_marker in old_body:
+                  hidden = old_body.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()
                   try:
                       history = json.loads(hidden)
                   except Exception:
@@ -186,103 +167,92 @@ jobs:
           now = datetime.now(timezone.utc)
           cutoff = now - timedelta(hours=24)
 
-          # Keep only records from the past 24 hours.
-          filtered = []
+          kept = []
           for item in history:
               try:
                   ts = datetime.fromisoformat(item["timestamp_utc"].replace("Z", "+00:00"))
                   if ts >= cutoff:
-                      filtered.append(item)
+                      kept.append(item)
               except Exception:
                   pass
 
-          filtered.append(
-              {
-                  "timestamp_utc": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                  "timestamp_et": time_et,
-                  "stage": stage,
-                  "health": health,
-                  "icon": icon,
-                  "error": error,
-              }
-          )
+          kept.append({
+              "timestamp_utc": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "timestamp_et": time_et,
+              "stage": stage,
+              "health": health,
+              "icon": icon,
+              "error": error,
+          })
 
-          # At 30-minute intervals, 48 entries is ~24 h. Keep a little tolerance but cap at 48.
-          filtered = filtered[-48:]
+          kept = kept[-288:]
 
           counts = {
-              "running": sum(1 for x in filtered if x["health"] == "running"),
-              "starting": sum(1 for x in filtered if x["health"] == "starting"),
-              "error": sum(1 for x in filtered if x["health"] == "error"),
-              "inactive": sum(1 for x in filtered if x["health"] == "inactive"),
-              "other": sum(1 for x in filtered if x["health"] == "other"),
+              "running": sum(1 for x in kept if x["health"] == "running"),
+              "starting": sum(1 for x in kept if x["health"] == "starting"),
+              "error": sum(1 for x in kept if x["health"] == "error"),
+              "inactive": sum(1 for x in kept if x["health"] == "inactive"),
+              "other": sum(1 for x in kept if x["health"] == "other"),
           }
 
-          total = len(filtered)
-          healthy_pct = (counts["running"] / total * 100.0) if total else 0.0
+          total = len(kept)
+          running_pct = counts["running"] / total * 100 if total else 0
 
-          rows = []
-          for item in reversed(filtered):
-              err = item["error"].replace("|", "\\|") if item["error"] else ""
+          lines = [
+              "# WaterScope-AI HF Runtime — Past 24 Hours",
+              "",
+              f"**Current status:** {icon} `{stage}`  ",
+              f"**Last checked:** {time_et}  ",
+              f"**Space:** `{os.environ['HF_SPACE_ID']}`",
+              "",
+              "## 24-Hour Summary",
+              "",
+              "| Metric | Value |",
+              "|---|---:|",
+              f"| 🟢 Running | {counts['running']} |",
+              f"| 🟡 Starting / building / scheduling | {counts['starting']} |",
+              f"| 🔴 Runtime error | {counts['error']} |",
+              f"| ⚪ Sleeping / paused / stopped | {counts['inactive']} |",
+              f"| ⚪ Other | {counts['other']} |",
+              f"| **Observed running rate** | **{running_pct:.1f}%** |",
+              f"| **Checks stored** | **{total} / 288** |",
+              "",
+              "> This dashboard tracks Hugging Face Space runtime metadata, not model-response success.",
+              "> The monitor does not call the Gradio/model API and does not wake the GPU.",
+              "",
+              "## History",
+              "",
+              "| Time (ET) | Runtime state | Error |",
+              "|---|---|---|",
+          ]
+
+          for item in reversed(kept):
+              err = (item["error"] or "").replace("|", "\\|")
               if len(err) > 120:
                   err = err[:117] + "..."
-              rows.append(
-                  f'| {item["timestamp_et"]} | {item["icon"]} {item["stage"]} | {err} |'
+              lines.append(
+                  f"| {item['timestamp_et']} | {item['icon']} {item['stage']} | {err} |"
               )
 
-          body = f"""# WaterScope-AI HF Runtime — Past 24 Hours
-
-**Current status:** {icon} `{stage}`  
-**Last checked:** {time_et}  
-**Space:** `{os.environ["HF_SPACE_ID"]}`
-
-## 24-Hour Summary
-
-| Metric | Value |
-|---|---:|
-| 🟢 Running | {counts["running"]} |
-| 🟡 Starting / building / scheduling | {counts["starting"]} |
-| 🔴 Runtime error | {counts["error"]} |
-| ⚪ Sleeping / paused / stopped | {counts["inactive"]} |
-| ⚪ Other | {counts["other"]} |
-| **Observed running rate** | **{healthy_pct:.1f}%** |
-| **Checks stored** | **{total} / 48** |
-
-> This dashboard tracks Hugging Face **Space runtime metadata**, not model-response success.  
-> The monitor does not call the Gradio/model API and does not wake the GPU.
-
-## History
-
-| Time (ET) | Runtime state | Error |
-|---|---|---|
-{chr(10).join(rows)}
-
-<!-- WATERSCOPE_RUNTIME_HISTORY_START
-{json.dumps(filtered, ensure_ascii=False)}
-WATERSCOPE_RUNTIME_HISTORY_END -->
-"""
+          lines += [
+              "",
+              "<!-- WATERSCOPE_RUNTIME_HISTORY_START",
+              json.dumps(kept, ensure_ascii=False),
+              "WATERSCOPE_RUNTIME_HISTORY_END -->",
+          ]
 
           body_path = "/tmp/waterscope-runtime-dashboard.md"
           with open(body_path, "w", encoding="utf-8") as f:
-              f.write(body)
+              f.write("\n".join(lines))
 
           if issue_number:
               subprocess.run(
-                  [
-                      "gh", "issue", "edit", issue_number,
-                      "--repo", repo,
-                      "--body-file", body_path,
-                  ],
+                  ["gh", "issue", "edit", issue_number, "--repo", repo, "--body-file", body_path],
                   check=True,
               )
           else:
               subprocess.run(
-                  [
-                      "gh", "issue", "create",
-                      "--repo", repo,
-                      "--title", title,
-                      "--body-file", body_path,
-                  ],
+                  ["gh", "issue", "create", "--repo", repo, "--title", title, "--body-file", body_path],
                   check=True,
               )
           PY
@@ -299,14 +269,10 @@ WATERSCOPE_RUNTIME_HISTORY_END -->
           cat > /tmp/hf-alert.md <<EOF
           WaterScope-AI's Hugging Face Space reported an explicit runtime scheduling/capacity failure.
 
-          **Space:** \`$HF_SPACE_ID\`
-          **Runtime stage:** \`$HF_STAGE\`
-          **Hugging Face message:** \`$HF_ERROR\`
-          **Detected:** $HF_TIME_ET
-
-          This is an event detected from Hugging Face runtime metadata. The monitor does not call the model endpoint.
-
-          The workflow is intentionally marked failed for this first detection so GitHub can send the normal Actions failure notification.
+          Space: $HF_SPACE_ID
+          Runtime stage: $HF_STAGE
+          Hugging Face message: $HF_ERROR
+          Detected: $HF_TIME_ET
           EOF
 
           gh issue create \
@@ -320,7 +286,7 @@ WATERSCOPE_RUNTIME_HISTORY_END -->
       - name: Existing scheduling failure already reported
         if: steps.hf.outputs.target_error == 'true' && steps.issues.outputs.alert_number != ''
         run: |
-          echo "The targeted HF scheduling/capacity failure is still present."
+          echo "The same scheduling/capacity failure is still present."
           echo "An open alert issue already exists, so no duplicate alert is generated."
 
       - name: Close alert after recovery
@@ -331,7 +297,7 @@ WATERSCOPE_RUNTIME_HISTORY_END -->
         run: |
           gh issue close "${{ steps.issues.outputs.alert_number }}" \
             --repo "$GITHUB_REPOSITORY" \
-            --comment "HF runtime no longer reports the targeted scheduling/capacity failure. Current stage: ${{ steps.hf.outputs.stage }}. Recovery observed at ${{ steps.hf.outputs.timestamp_et }}."
+            --comment "HF runtime no longer reports the targeted scheduling/capacity failure. Current stage: ${{ steps.hf.outputs.stage }}."
 
       - name: Runtime status
         if: steps.hf.outputs.target_error != 'true'
