@@ -64,6 +64,16 @@ let modelTimerInterval = null;
 function updateAgentModelTimer() {
   const el = document.getElementById("chat-model-elapsed");
   if (el) el.textContent = formatSharedModelElapsed(sharedModelElapsedMs());
+
+  if (!agentApp && !agentProcessing && getSharedModelTimerStart()) {
+    const status = document.getElementById("chat-model-status");
+    if (status && !status.classList.contains("status-error")) {
+      setChatModelStatus(
+        sharedModelElapsedMs() >= MODEL_LONG_STARTUP_MS ? "Taking too long…" : "Starting…",
+        "status-processing"
+      );
+    }
+  }
 }
 function startAgentModelTimer() {
   ensureSharedModelTimerStarted();
@@ -214,23 +224,126 @@ async function checkFlaskApi() {
   }
 }
 
+const MODEL_RETRY_INTERVAL_MS = 30 * 1000;
+const MODEL_LONG_STARTUP_MS = 30 * 60 * 1000;
+const HF_SPACE_RUNTIME_URL = `https://huggingface.co/api/spaces/${SPACE_ID}`;
+
+let modelRetryTimeout = null;
+let modelConnectionInProgress = false;
+let gradioClientModulePromise = null;
+
+function modelStartupStatusMessage() {
+  return sharedModelElapsedMs() >= MODEL_LONG_STARTUP_MS
+    ? "Taking too long…"
+    : "Starting…";
+}
+
+function clearModelRetry() {
+  if (modelRetryTimeout) clearTimeout(modelRetryTimeout);
+  modelRetryTimeout = null;
+}
+
+function scheduleModelRetry() {
+  if (agentApp || modelRetryTimeout) return;
+  modelRetryTimeout = setTimeout(() => {
+    modelRetryTimeout = null;
+    initializeGradioClient().catch((error) => {
+      console.error("Chat model retry error:", error);
+    });
+  }, MODEL_RETRY_INTERVAL_MS);
+}
+
+async function getHfSpaceRuntimeState() {
+  try {
+    const response = await fetch(HF_SPACE_RUNTIME_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HF runtime HTTP ${response.status}`);
+    const payload = await response.json();
+
+    const runtime = payload?.runtime || {};
+    const stage = String(runtime.stage || payload?.stage || "").toUpperCase();
+
+    const errorText = [
+      runtime.errorMessage,
+      runtime.error_message,
+      runtime.message,
+      runtime.raw?.errorMessage,
+      runtime.raw?.error_message,
+      runtime.raw?.message,
+      payload?.errorMessage,
+      payload?.error_message,
+      payload?.message,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return { stage, errorText };
+  } catch (error) {
+    console.warn("Could not read HF Space runtime state:", error);
+    return { stage: "", errorText: "" };
+  }
+}
+
 async function initializeGradioClient() {
   if (agentApp) {
+    clearModelRetry();
     setChatModelStatus("Connected", "status-ready");
     return true;
   }
+
+  if (modelConnectionInProgress) return false;
+  modelConnectionInProgress = true;
+
   try {
-    setChatModelStatus("Connecting…", "status-processing");
     startAgentModelTimer();
-    const { Client } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js");
+    if (!agentProcessing) {
+      setChatModelStatus(modelStartupStatusMessage(), "status-processing");
+    }
+
+    const runtimeBeforeConnect = await getHfSpaceRuntimeState();
+    if (runtimeBeforeConnect.stage === "RUNTIME_ERROR") {
+      finishAgentModelTimer();
+      if (!agentProcessing) setChatModelStatus("Unavailable", "status-error");
+      console.error(
+        "HF Space runtime error:",
+        runtimeBeforeConnect.errorText || "RUNTIME_ERROR"
+      );
+      scheduleModelRetry();
+      return false;
+    }
+
+    if (!gradioClientModulePromise) {
+      gradioClientModulePromise = import(
+        "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"
+      );
+    }
+    const { Client } = await gradioClientModulePromise;
+
     agentApp = await Client.connect(SPACE_ID);
+    clearModelRetry();
     finishAgentModelTimer();
-    setChatModelStatus("Connected", "status-ready");
+    if (!agentProcessing) setChatModelStatus("Connected", "status-ready");
     return true;
   } catch (error) {
     console.error("Chat model connection error:", error);
-    setChatModelStatus("Unavailable", "status-error");
+
+    const runtimeAfterConnect = await getHfSpaceRuntimeState();
+    if (runtimeAfterConnect.stage === "RUNTIME_ERROR") {
+      finishAgentModelTimer();
+      if (!agentProcessing) setChatModelStatus("Unavailable", "status-error");
+      console.error(
+        "HF Space runtime error:",
+        runtimeAfterConnect.errorText || "RUNTIME_ERROR"
+      );
+    } else {
+      if (!agentProcessing) {
+        setChatModelStatus(modelStartupStatusMessage(), "status-processing");
+      }
+    }
+
+    scheduleModelRetry();
     return false;
+  } finally {
+    modelConnectionInProgress = false;
   }
 }
 
