@@ -313,7 +313,7 @@ WaterScope-AI combines static web deployment, cloud AI infrastructure, scientifi
 | 🤗 Model Infrastructure | Hugging Face |
 | 🔌 Model API | Gradio |
 | 🔗 Agent Interoperability | Model Context Protocol (MCP) |
-| 🔎 Metadata Retrieval | Vector + hybrid retrieval |
+| 🔎 Metadata Retrieval | Semantic + hybrid retrieval |
 | 🗂️ Vector Infrastructure | Qdrant |
 | 📚 Research Data | Scientific publication metadata and full text |
 
