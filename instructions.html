@@ -591,6 +591,47 @@ a.ws-publication-status:hover {
 }
 </style>
 
+<style id="waterscope-troubleshooting-layout">
+.troubleshooting.ws-troubleshooting-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+.ws-troubleshooting-grid .issue {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid var(--ws-line, #dbe6ed);
+    border-radius: 12px;
+    background: #f7fbfd;
+}
+.ws-troubleshooting-grid .issue h4 { margin: 0 0 8px; }
+.ws-troubleshooting-grid .issue p { margin: 0; line-height: 1.6; }
+.ws-gpu-monitor {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--ws-line, #dbe6ed);
+}
+.ws-gpu-monitor h4 { color: var(--ws-deep, #123b61); }
+.ws-gpu-monitor p, .ws-gpu-monitor li { line-height: 1.65; }
+.ws-gpu-monitor ul { margin: 10px 0 14px; padding-left: 24px; list-style-position: outside; }
+.ws-gpu-monitor li { padding-left: 4px; }
+.ws-gpu-monitor li + li { margin-top: 7px; }
+.ws-gpu-monitor code { overflow-wrap: anywhere; }
+.ws-gpu-monitor .ws-monitor-link {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #123b61;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.ws-gpu-monitor .ws-monitor-link:hover { background: #245978; }
+@media (max-width: 620px) {
+    .troubleshooting.ws-troubleshooting-grid { grid-template-columns: 1fr; }
+}
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -899,7 +940,7 @@ a.ws-publication-status:hover {
                     <div class="instruction-card">
                         <h3><i class="fas fa-question-circle"></i> Troubleshooting</h3>
                         
-                        <div class="troubleshooting">
+                        <div class="troubleshooting ws-troubleshooting-grid">
                             <div class="issue">
                                 <h4>API Connection Issues</h4>
                                 <p>If connection problems occur, try refreshing the page. The system will automatically attempt to reconnect. If the problem persists, please contact us (Email: <strong>junjiez@princeton.edu</strong>)</p>
@@ -912,7 +953,7 @@ a.ws-publication-status:hover {
                             
                             <div class="issue">
                                 <h4>Chat Response Quality</h4>
-                                <p>Remember that the model was designed for MCQA tasks. For best results, use the MCQA interface for precise question-answering.</p>
+                                <p>The model is optimized for MCQA. Use the MCQA interface for more precise answers.</p>
                             </div>
                             
                             <div class="issue">
@@ -920,6 +961,18 @@ a.ws-publication-status:hover {
                                 <p>If the input panel remains frozen for an extended period, refresh the page to reset the interface.</p>
                             </div>
                         </div>
+
+                        <section class="ws-gpu-monitor" aria-labelledby="gpu-monitor-heading">
+                            <h4 id="gpu-monitor-heading"><i class="fas fa-microchip" aria-hidden="true"></i> GPU Availability &amp; Runtime Monitoring</h4>
+                            <p>WaterScope-AI's chat model depends on Hugging Face GPU resources. The monitoring module tracks model startup and availability. If the model remains unavailable, visit the GitHub monitoring issue for reports, errors, and updates.</p>
+                            <ul>
+                                <li><strong>Starting / Connecting:</strong> The model may be waiting for GPU allocation or loading. Follow the status indicator and elapsed timer.</li>
+                                <li><strong>Taking too long / Unavailable:</strong> Check the monitoring reports for details. A long wait alone does not identify the cause.</li>
+                                <li><strong><code>Scheduling failure: unable to schedule</code>:</strong> Hugging Face may lack available GPU capacity. Please try again later.</li>
+                            </ul>
+                            <p>Publication search and available PDFs, figures, and tables can still be used when the Search System is connected, even if the Chat Model is unavailable.</p>
+                            <p><a class="ws-monitor-link" href="https://github.com/starfriend10/WaterScope-AI/issues/3" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> View Monitoring Reports &amp; Updates on GitHub</a></p>
+                        </section>
                     </div>
                 </div>
             </section>
