@@ -89,6 +89,54 @@ function finishAgentModelTimer() {
 }
 
 
+const SEARCH_TIMER_START_KEY = "waterscope_search_connect_started_at";
+const SEARCH_TIMER_DONE_KEY = "waterscope_search_connect_elapsed_ms";
+
+function getSharedSearchTimerStart() {
+  const raw = sessionStorage.getItem(SEARCH_TIMER_START_KEY);
+  return raw ? Number(raw) : null;
+}
+function ensureSharedSearchTimerStarted() {
+  let t = getSharedSearchTimerStart();
+  if (!t || !Number.isFinite(t)) {
+    t = Date.now();
+    sessionStorage.setItem(SEARCH_TIMER_START_KEY, String(t));
+    sessionStorage.removeItem(SEARCH_TIMER_DONE_KEY);
+  }
+  return t;
+}
+function completeSharedSearchTimer() {
+  const t = getSharedSearchTimerStart();
+  if (t && Number.isFinite(t)) {
+    sessionStorage.setItem(SEARCH_TIMER_DONE_KEY, String(Math.max(0, Date.now() - t)));
+  }
+  sessionStorage.removeItem(SEARCH_TIMER_START_KEY);
+}
+function sharedSearchElapsedMs() {
+  const t = getSharedSearchTimerStart();
+  if (t && Number.isFinite(t)) return Math.max(0, Date.now() - t);
+  const done = Number(sessionStorage.getItem(SEARCH_TIMER_DONE_KEY));
+  return Number.isFinite(done) && done >= 0 ? done : 0;
+}
+
+let searchTimerInterval = null;
+function updateAgentSearchTimer() {
+  const el = document.getElementById("search-system-elapsed");
+  if (el) el.textContent = formatSharedModelElapsed(sharedSearchElapsedMs());
+}
+function startAgentSearchTimer() {
+  ensureSharedSearchTimerStarted();
+  if (searchTimerInterval) clearInterval(searchTimerInterval);
+  searchTimerInterval = setInterval(updateAgentSearchTimer, 100);
+  updateAgentSearchTimer();
+}
+function finishAgentSearchTimer() {
+  completeSharedSearchTimer();
+  if (searchTimerInterval) clearInterval(searchTimerInterval);
+  searchTimerInterval = null;
+  updateAgentSearchTimer();
+}
+
 const AGENT_SESSION_KEY = "waterscope_agent_session_v1";
 
 function saveAgentSessionState() {
@@ -210,14 +258,17 @@ function canChat(documentId) {
 }
 
 async function checkFlaskApi() {
+  startAgentSearchTimer();
   try {
     setSearchSystemStatus("Connecting…", "status-processing");
     const response = await fetch(api("/api/health"));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
+    finishAgentSearchTimer();
     setSearchSystemStatus(payload.status === "ok" ? "Connected" : "Degraded", "status-ready");
     return true;
   } catch (error) {
+    finishAgentSearchTimer();
     console.error("Search system connection error:", error);
     setSearchSystemStatus("Unavailable", "status-error");
     return false;
@@ -463,6 +514,8 @@ function renderPublicationCard(item, index, { showSave = true, showScore = true,
   const chatOk = documentId && canChat(documentId);
   const abstract = item.abstract || "No abstract available.";
   const authors = resolveItemAuthors(item);
+  const journal = String(item.journal || item.SO || "").trim();
+  const publicationType = String(item.publication_type || item.DT || "").trim();
   const savePayload = item.save_payload;
   const isSaved = Boolean(item.is_saved || savePayload?.saved_id);
   const doiUrl = officialDoiUrl(item.doi || savePayload?.doi);
@@ -512,6 +565,8 @@ function renderPublicationCard(item, index, { showSave = true, showScore = true,
             <span class="meta-year">${escapeHTML(item.year || "—")}</span>
             ${scoreText ? `<span class="meta-score">${escapeHTML(scoreText)}</span>` : ""}
             ${authors ? `<span class="meta-authors">${escapeHTML(authors)}</span>` : ""}
+            ${journal ? `<span class="meta-journal">${escapeHTML(journal)}</span>` : ""}
+            ${publicationType ? `<span class="meta-publication-type">${escapeHTML(publicationType)}</span>` : ""}
           </div>
           ${menuButton}
         </div>
