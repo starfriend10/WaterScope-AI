@@ -172,7 +172,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </label>
 <label class="model-selector agent-mode-toggle">
 <input checked="" id="agent-mode" type="checkbox"/>
-<span>Agent mode (auto search &amp; select papers)</span>
+<span>Agent mode (auto search &amp; retrieval)</span>
 </label>
 </div>
 </div>
@@ -181,7 +181,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <div class="message bot-message">
 <div class="message-content">
 <p>Search publications on the left, select papers, then ask questions here.</p>
-<p><strong>Agent mode</strong> (checkbox in top right): when no papers are selected, the server runs a fixed MCP pipeline — search → select papers → load summaries — then answers via HF Space. With <code>USE_MCP=1</code>, those tools run through the MCP server. Bookmarking papers is available through the <strong>Bookmark</strong> button on each result.</p>
+<p><strong>Agent mode</strong> (checkbox in top right): when no papers are selected, the server can search and retrieve publications automatically. Find requests return ranked results for you to review and select; other research questions can use retrieval-grounded context and the HF Space model. With <code>USE_MCP=1</code>, those tools run through the MCP server. Bookmarking papers is available through the <strong>Bookmark</strong> button on each result.</p>
 </div>
 </div>
 </div>
@@ -207,8 +207,8 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <div class="agent-help-block">
 <h4><i class="fas fa-broom"></i> Before Agent search</h4>
 <ul>
-<li><strong>Clear selected papers</strong> under <em>Selected for chat</em> (or click below) before asking Agent to <strong>find</strong> new papers — otherwise chat uses your current selection and Agent auto-search is skipped.</li>
-<li>Agent mode (checkbox) runs search → select up to 4 papers → answer when nothing is selected.</li>
+<li><strong>Clear selected papers</strong> under <em>Selected for chat</em> (or click below) before asking Agent to <strong>find</strong> new papers — otherwise chat uses your current selection instead of starting a new search.</li>
+<li>Agent mode (checkbox) can automatically search and retrieve publications when nothing is selected; Find requests leave the returned papers unselected for you to review.</li>
 <li>Manual search on the left keeps your checkboxes until you clear them.</li>
 </ul>
 <button class="btn-secondary btn-compact" id="clear-selected-help" type="button">
