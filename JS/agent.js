@@ -137,6 +137,49 @@ function finishAgentSearchTimer() {
   updateAgentSearchTimer();
 }
 
+
+let searchOperationTimer = null;
+let modelOperationTimer = null;
+
+function formatOperationElapsed(startedAt) {
+  return formatSharedModelElapsed(Math.max(0, Date.now() - startedAt));
+}
+function startSearchOperationStatus() {
+  const startedAt = Date.now();
+  if (searchOperationTimer) clearInterval(searchOperationTimer);
+  const update = () => setSearchSystemStatus(`Processing… ${formatOperationElapsed(startedAt)}`, "status-processing");
+  update();
+  searchOperationTimer = setInterval(update, 100);
+}
+function finishSearchOperationStatus(message = "Connected", type = "status-ready") {
+  if (searchOperationTimer) clearInterval(searchOperationTimer);
+  searchOperationTimer = null;
+  setSearchSystemStatus(message, type);
+}
+function startModelOperationStatus() {
+  const startedAt = Date.now();
+  if (modelOperationTimer) clearInterval(modelOperationTimer);
+  const update = () => setChatModelStatus(`Processing… ${formatOperationElapsed(startedAt)}`, "status-processing");
+  update();
+  modelOperationTimer = setInterval(update, 100);
+}
+function finishModelOperationStatus(message = "Connected", type = "status-ready") {
+  if (modelOperationTimer) clearInterval(modelOperationTimer);
+  modelOperationTimer = null;
+  setChatModelStatus(message, type);
+}
+function clearPublicationResultsForAgentSearch() {
+  searchResults = [];
+  searchResultsPage = 0;
+  lastSearchQuery = "";
+  selectedDocumentIds.clear();
+  const countEl = document.getElementById("result-count");
+  if (countEl) countEl.textContent = "Searching…";
+  renderPublicationResults();
+  renderSelectedPublications();
+  renderSavedPapers();
+}
+
 const AGENT_SESSION_KEY = "waterscope_agent_session_v1";
 
 function saveAgentSessionState() {
@@ -446,33 +489,42 @@ async function unsavePaper(savedId) {
 }
 
 async function runPublicationSearch() {
-  const query = document.getElementById("publication-query").value.trim();
+  const queryInput = document.getElementById("publication-query");
+  const searchButton = document.getElementById("publication-search");
+  const query = queryInput.value.trim();
   if (!query) {
     document.getElementById("result-count").textContent = "Enter a search query";
     return;
   }
-
-  document.getElementById("result-count").textContent = "Searching…";
+  if (searchButton?.disabled) return;
   const topK = searchTopK();
-  const response = await fetch(api(`/api/search?q=${encodeURIComponent(query)}&top_k=${topK}`));
-  const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error || "Search failed");
-
-  lastSearchQuery = payload.search_query || query;
-  if (payload.search_query && payload.search_query !== query) {
-    document.getElementById("publication-query").value = payload.search_query;
+  if (searchButton) searchButton.disabled = true;
+  queryInput.disabled = true;
+  document.getElementById("result-count").textContent = "Searching…";
+  startSearchOperationStatus();
+  try {
+    const response = await fetch(api(`/api/search?q=${encodeURIComponent(query)}&top_k=${topK}`));
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Search failed");
+    lastSearchQuery = payload.search_query || query;
+    if (payload.search_query && payload.search_query !== query) queryInput.value = payload.search_query;
+    searchResults = payload.results || [];
+    searchResultsPage = 0;
+    searchScoreMode = payload.score_mode || "rrf";
+    const excluded = payload.query_parsed?.excluded_phrases || [];
+    let countText = `${searchResults.length} result${searchResults.length === 1 ? "" : "s"} (top ${topK})`;
+    if (excluded.length) countText += ` · excluded: ${excluded.join(", ")}`;
+    document.getElementById("result-count").textContent = countText;
+    renderPublicationResults();
+    saveAgentSessionState();
+    finishSearchOperationStatus();
+  } catch (error) {
+    finishSearchOperationStatus("Connection issue", "status-error");
+    throw error;
+  } finally {
+    if (searchButton) searchButton.disabled = false;
+    queryInput.disabled = false;
   }
-  searchResults = payload.results || [];
-  searchResultsPage = 0;
-  searchScoreMode = payload.score_mode || "rrf";
-  const excluded = payload.query_parsed?.excluded_phrases || [];
-  let countText = `${searchResults.length} result${searchResults.length === 1 ? "" : "s"} (top ${topK})`;
-  if (excluded.length) {
-    countText += ` · excluded: ${excluded.join(", ")}`;
-  }
-  document.getElementById("result-count").textContent = countText;
-  renderPublicationResults();
-  saveAgentSessionState();
 }
 
 function toggleDocument(documentId) {
@@ -1099,7 +1151,6 @@ async function runSamplePublicationQuery(query) {
 function runSampleAgentPrompt(prompt) {
   document.getElementById("agent-user-input").value = prompt;
   document.getElementById("agent-user-input").focus();
-  setAgentWorkspaceView("right");
   if (selectedDocumentIds.size > 0 && document.getElementById("agent-mode")?.checked) {
     updateAgentSelectionNotice();
   }
@@ -1137,7 +1188,7 @@ const AGENT_STEP_LABELS = {
   select_papers_from_search: "Select papers",
   build_paper_context: "Load summaries",
   waterscope_agent_run: "Generate answer",
-  format_discovery_results: "Format paper list",
+  format_discovery_results: "Summarize search results",
 };
 
 function describeAgentStep(step) {
@@ -1160,7 +1211,7 @@ function describeAgentStep(step) {
     return `Model: ${step.input?.model ?? "auto"} · ${output.strategy ?? "done"}`;
   }
   if (step.tool === "format_discovery_results") {
-    return `Listed ${step.input?.n_papers ?? 0} papers in search order`;
+    return `Summarized ${step.input?.n_results ?? step.input?.n_papers ?? 0} ranked search results`;
   }
   return label;
 }
@@ -1293,23 +1344,28 @@ async function sendAgentMessage() {
   const visibleMessage = input.value.trim();
   if (!visibleMessage || agentProcessing) return;
 
-  addAgentMessage(visibleMessage, "user");
-  input.value = "";
-  agentProcessing = true;
-  setAgentControlsDisabled(true);
-  setChatModelStatus("Processing…", "status-processing");
-
   const model = document.getElementById("agent-model").value;
   let application = document.getElementById("agent-task").value;
   const documentIds = [...selectedDocumentIds];
   const agentMode = document.getElementById("agent-mode").checked;
+  const agentDiscovery = agentMode && documentIds.length === 0;
+
+  addAgentMessage(visibleMessage, "user");
+  input.value = "";
+  agentProcessing = true;
+  setAgentControlsDisabled(true);
+  startModelOperationStatus();
+
+  if (agentDiscovery) {
+    clearPublicationResultsForAgentSearch();
+    startSearchOperationStatus();
+  }
 
   try {
     let payload;
     if (documentIds.length > 0) {
       payload = await sendViaFlask(visibleMessage, documentIds, model, application, { agentMode: false });
     } else if (agentMode) {
-      setChatModelStatus("Processing…", "status-processing");
       payload = await sendViaFlask(visibleMessage, [], model, application, { agentMode: true });
       applyAgentSelection(payload);
       addAgentSteps(payload.agent_steps, payload.search_query);
@@ -1318,7 +1374,7 @@ async function sendAgentMessage() {
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: reply });
       addAgentMessage(reply, "assistant");
-      setChatModelStatus("Connected", "status-ready");
+      finishModelOperationStatus();
       return;
     }
 
@@ -1328,11 +1384,13 @@ async function sendAgentMessage() {
     if (payload.agent_mode && !payload.discovery_mode && (payload.selected_papers || payload.sources)?.length) {
       addSelectedPapersPanel(payload.selected_papers || payload.sources);
     }
-    setChatModelStatus("Connected", "status-ready");
+    finishModelOperationStatus();
+    if (agentDiscovery) finishSearchOperationStatus();
   } catch (error) {
     console.error("Agent request error:", error);
     addAgentMessage(`Sorry, the request could not be completed: ${error.message}`, "assistant");
-    setChatModelStatus("Connection issue", "status-error");
+    finishModelOperationStatus("Connection issue", "status-error");
+    if (agentDiscovery) finishSearchOperationStatus("Connection issue", "status-error");
   } finally {
     agentProcessing = false;
     setAgentControlsDisabled(false);
