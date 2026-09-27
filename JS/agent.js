@@ -160,14 +160,10 @@ function startSearchOperationStatus() {
   update();
   searchOperationTimer = setInterval(update, 100);
 }
-function finishSearchOperationStatus(message = "Connected", type = "status-ready") {
+function finishSearchOperationStatus(message = "Processed", type = "status-ready") {
   if (searchOperationTimer) clearInterval(searchOperationTimer);
   searchOperationTimer = null;
   setSearchSystemStatus(message, type);
-  const elapsedEl = document.getElementById("search-system-elapsed");
-  if (elapsedEl && searchElapsedBeforeOperation !== null) {
-    elapsedEl.textContent = searchElapsedBeforeOperation;
-  }
   searchElapsedBeforeOperation = null;
 }
 function startModelOperationStatus() {
@@ -184,14 +180,10 @@ function startModelOperationStatus() {
   update();
   modelOperationTimer = setInterval(update, 100);
 }
-function finishModelOperationStatus(message = "Connected", type = "status-ready") {
+function finishModelOperationStatus(message = "Processed", type = "status-ready") {
   if (modelOperationTimer) clearInterval(modelOperationTimer);
   modelOperationTimer = null;
   setChatModelStatus(message, type);
-  const elapsedEl = document.getElementById("chat-model-elapsed");
-  if (elapsedEl && modelElapsedBeforeOperation !== null) {
-    elapsedEl.textContent = modelElapsedBeforeOperation;
-  }
   modelElapsedBeforeOperation = null;
 }
 function clearPublicationResultsForAgentSearch() {
