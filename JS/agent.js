@@ -140,14 +140,23 @@ function finishAgentSearchTimer() {
 
 let searchOperationTimer = null;
 let modelOperationTimer = null;
+let searchElapsedBeforeOperation = null;
+let modelElapsedBeforeOperation = null;
 
 function formatOperationElapsed(startedAt) {
   return formatSharedModelElapsed(Math.max(0, Date.now() - startedAt));
 }
 function startSearchOperationStatus() {
   const startedAt = Date.now();
+  const elapsedEl = document.getElementById("search-system-elapsed");
   if (searchOperationTimer) clearInterval(searchOperationTimer);
-  const update = () => setSearchSystemStatus(`Processing… ${formatOperationElapsed(startedAt)}`, "status-processing");
+  if (searchElapsedBeforeOperation === null) {
+    searchElapsedBeforeOperation = elapsedEl?.textContent || formatSharedModelElapsed(sharedSearchElapsedMs());
+  }
+  const update = () => {
+    setSearchSystemStatus("Processing…", "status-processing");
+    if (elapsedEl) elapsedEl.textContent = formatOperationElapsed(startedAt);
+  };
   update();
   searchOperationTimer = setInterval(update, 100);
 }
@@ -155,11 +164,23 @@ function finishSearchOperationStatus(message = "Connected", type = "status-ready
   if (searchOperationTimer) clearInterval(searchOperationTimer);
   searchOperationTimer = null;
   setSearchSystemStatus(message, type);
+  const elapsedEl = document.getElementById("search-system-elapsed");
+  if (elapsedEl && searchElapsedBeforeOperation !== null) {
+    elapsedEl.textContent = searchElapsedBeforeOperation;
+  }
+  searchElapsedBeforeOperation = null;
 }
 function startModelOperationStatus() {
   const startedAt = Date.now();
+  const elapsedEl = document.getElementById("chat-model-elapsed");
   if (modelOperationTimer) clearInterval(modelOperationTimer);
-  const update = () => setChatModelStatus(`Processing… ${formatOperationElapsed(startedAt)}`, "status-processing");
+  if (modelElapsedBeforeOperation === null) {
+    modelElapsedBeforeOperation = elapsedEl?.textContent || formatSharedModelElapsed(sharedModelElapsedMs());
+  }
+  const update = () => {
+    setChatModelStatus("Processing…", "status-processing");
+    if (elapsedEl) elapsedEl.textContent = formatOperationElapsed(startedAt);
+  };
   update();
   modelOperationTimer = setInterval(update, 100);
 }
@@ -167,6 +188,11 @@ function finishModelOperationStatus(message = "Connected", type = "status-ready"
   if (modelOperationTimer) clearInterval(modelOperationTimer);
   modelOperationTimer = null;
   setChatModelStatus(message, type);
+  const elapsedEl = document.getElementById("chat-model-elapsed");
+  if (elapsedEl && modelElapsedBeforeOperation !== null) {
+    elapsedEl.textContent = modelElapsedBeforeOperation;
+  }
+  modelElapsedBeforeOperation = null;
 }
 function clearPublicationResultsForAgentSearch() {
   searchResults = [];
@@ -498,8 +524,10 @@ async function runPublicationSearch() {
   }
   if (searchButton?.disabled) return;
   const topK = searchTopK();
+  const topKSelect = document.getElementById("search-top-k");
   if (searchButton) searchButton.disabled = true;
   queryInput.disabled = true;
+  if (topKSelect) topKSelect.disabled = true;
   document.getElementById("result-count").textContent = "Searching…";
   startSearchOperationStatus();
   try {
@@ -524,6 +552,7 @@ async function runPublicationSearch() {
   } finally {
     if (searchButton) searchButton.disabled = false;
     queryInput.disabled = false;
+    if (topKSelect) topKSelect.disabled = false;
   }
 }
 
@@ -1359,6 +1388,7 @@ async function sendAgentMessage() {
   if (agentDiscovery) {
     clearPublicationResultsForAgentSearch();
     startSearchOperationStatus();
+    setPublicationSearchControlsDisabled(true);
   }
 
   try {
@@ -1394,8 +1424,18 @@ async function sendAgentMessage() {
   } finally {
     agentProcessing = false;
     setAgentControlsDisabled(false);
+    if (agentDiscovery) setPublicationSearchControlsDisabled(false);
     input.focus();
   }
+}
+
+function setPublicationSearchControlsDisabled(disabled) {
+  const searchButton = document.getElementById("publication-search");
+  const queryInput = document.getElementById("publication-query");
+  const topKSelect = document.getElementById("search-top-k");
+  if (searchButton) searchButton.disabled = disabled;
+  if (queryInput) queryInput.disabled = disabled;
+  if (topKSelect) topKSelect.disabled = disabled;
 }
 
 function setAgentControlsDisabled(disabled) {
