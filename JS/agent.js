@@ -22,6 +22,7 @@ let papersById = new Map();
 let selectedDocumentIds = new Set();
 let agentConversation = [];
 let agentProcessing = false;
+let pendingMediaPaper = null;
 let lastSearchQuery = "";
 let searchResultsPage = 0;
 const RESULTS_PAGE_SIZE = 10;
@@ -760,9 +761,10 @@ function renderFigureGallery(payload) {
       const extraClass = index >= initialVisible ? " media-extra hidden" : "";
 
       return `
+        <div class="media-analysis-tile${extraClass}">
         <button
           type="button"
-          class="figure-thumb${extraClass}"
+          class="figure-thumb"
           data-figure-index="${index}"
           data-image-url="${escapeHTML(imageUrl)}"
           data-caption="${escapeHTML(caption)}"
@@ -773,7 +775,9 @@ function renderFigureGallery(payload) {
           <span class="figure-thumb-meta figure-thumb-meta-simple">
             <span class="figure-thumb-title">${escapeHTML(label)}</span>
           </span>
-        </button>`;
+        </button>
+        ${(entry.kind === "figure" || entry.kind === "table") ? `<button type="button" class="media-analyze-action" data-media-label="${escapeHTML(label)}" title="Extract approximate data and summarize"><i class="fas fa-chart-line" aria-hidden="true"></i> Analyze &amp; CSV</button>` : ""}
+        </div>`;
     })
     .join("");
 
@@ -814,7 +818,7 @@ async function loadPaperFigures(panel, item) {
     const payload = await response.json();
     body.innerHTML = renderFigureGallery(payload);
     body.dataset.loaded = "true";
-    wireFigureGallery(body);
+    wireFigureGallery(body, item);
   } catch (_error) {
     body.innerHTML = '<p class="figures-empty">Could not load media.</p>';
     body.dataset.loaded = "true";
@@ -860,7 +864,19 @@ function openFigureLightbox(imageUrl, caption, label) {
   overlay.classList.remove("hidden");
 }
 
-function wireFigureGallery(container) {
+function wireFigureGallery(container, paper) {
+  container.querySelectorAll(".media-analyze-action").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (agentProcessing) return;
+      const input = document.getElementById("agent-user-input");
+      // Bind gallery selection explicitly; never depend on the selected-paper set.
+      pendingMediaPaper = paper;
+      input.value = `Extract all readable data from ${button.dataset.mediaLabel} and summarize the findings.`;
+      setAgentWorkspaceView("right");
+      sendAgentMessage();
+    });
+  });
   container.querySelectorAll(".figure-thumb").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1360,6 +1376,55 @@ async function sendViaGradio(message, model, application) {
     : "No response generated.";
 }
 
+async function sendMediaAnalysis(message, paper) {
+  const index = Number(paper?.metadata_row_index);
+  if (!Number.isInteger(index) || index < 0 || paper?.metadata_row_index == null) {
+    throw new Error("This publication has no metadata index for media analysis.");
+  }
+  const response = await fetch(api("/api/media/analyze"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: message, metadata_row_index: index }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || `Media request failed (${response.status})`);
+  return payload;
+}
+
+function appendMediaCSV(payload) {
+  const attachment = payload?.csv_attachment;
+  if (!attachment?.content_base64 || attachment.encoding !== "base64") return;
+  const container = document.getElementById("agent-chat-messages");
+  const row = document.createElement("div");
+  row.className = "message bot-message";
+  const content = document.createElement("div");
+  content.className = "message-content";
+  const link = document.createElement("button");
+  link.type = "button";
+  link.className = "btn-secondary";
+  link.textContent = `Download extracted CSV (${attachment.row_count} rows)`;
+  link.addEventListener("click", () => {
+    const binary = atob(attachment.content_base64);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    const blobUrl = URL.createObjectURL(new Blob([bytes], {type:"text/csv;charset=utf-8"}));
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = String(attachment.filename || "waterscope_media_extracted.csv").split(/[\/]/).pop();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+  });
+  content.appendChild(link);
+  const note = document.createElement("p");
+  note.textContent = "Chart-derived values are visually estimated and require verification before quantitative use.";
+  note.style.fontSize = "0.82em";
+  content.appendChild(note);
+  row.appendChild(content);
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
 async function sendAgentMessage() {
   const input = document.getElementById("agent-user-input");
   const visibleMessage = input.value.trim();
@@ -1370,6 +1435,9 @@ async function sendAgentMessage() {
   const documentIds = [...selectedDocumentIds];
   const agentMode = document.getElementById("agent-mode").checked;
   const agentDiscovery = agentMode && documentIds.length === 0;
+  const mediaPaper = pendingMediaPaper || ((documentIds.length === 1 && /\b(?:figure|fig\.?|table)\s*\d+\b/i.test(visibleMessage) && /\b(?:extract|digitiz|csv|data from|analy[sz]e (?:figure|fig|table))\b/i.test(visibleMessage)) ? papersById.get(documentIds[0]) : null);
+  pendingMediaPaper = null;
+  const isMediaRequest = !!mediaPaper;
 
   addAgentMessage(visibleMessage, "user");
   input.value = "";
@@ -1377,7 +1445,7 @@ async function sendAgentMessage() {
   setAgentControlsDisabled(true);
   startModelOperationStatus();
 
-  if (agentDiscovery) {
+  if (agentDiscovery && !isMediaRequest) {
     clearPublicationResultsForAgentSearch();
     startSearchOperationStatus();
     setPublicationSearchControlsDisabled(true);
@@ -1385,7 +1453,16 @@ async function sendAgentMessage() {
 
   try {
     let payload;
-    if (documentIds.length > 0) {
+    if (isMediaRequest) {
+      payload = await sendMediaAnalysis(visibleMessage, mediaPaper);
+      agentConversation.push({ role: "user", content: visibleMessage });
+      agentConversation.push({ role: "assistant", content: payload.answer || "" });
+      addAgentMessage(payload.answer || "No extraction summary generated.", "assistant", { html: true });
+      appendMediaCSV(payload);
+      if (payload.export_warning) addAgentMessage(`CSV unavailable: ${payload.export_warning}`, "assistant");
+      finishModelOperationStatus();
+      return;
+    } else if (documentIds.length > 0) {
       payload = await sendViaFlask(visibleMessage, documentIds, model, application, { agentMode: false });
     } else if (agentMode) {
       payload = await sendViaFlask(visibleMessage, [], model, application, { agentMode: true });
