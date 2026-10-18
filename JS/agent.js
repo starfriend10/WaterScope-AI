@@ -23,6 +23,7 @@ let selectedDocumentIds = new Set();
 let agentConversation = [];
 let agentProcessing = false;
 let pendingMediaPaper = null;
+let pendingMediaExport = false;
 let activeMediaDetailsPaper = null;
 let activeModelDisplay = "llama";
 let mediaOperationTimer = null;
@@ -893,6 +894,7 @@ function wireFigureGallery(container, paper) {
       const input = document.getElementById("agent-user-input");
       // Bind gallery selection explicitly; never depend on the selected-paper set.
       pendingMediaPaper = paper;
+      pendingMediaExport = true;
       input.value = `Extract all readable data from ${button.dataset.mediaLabel} and summarize the findings.`;
       setAgentWorkspaceView("right");
       sendAgentMessage();
@@ -1143,7 +1145,9 @@ function renderSelectedPublications() {
       : '<i class="fas fa-times-circle" aria-hidden="true"></i> Clear selected';
   }
 
-  document.getElementById("context-status").textContent = count
+  // Context is shown in the Research Assistant panel, not the header status row.
+  const headerContext = document.getElementById("context-status");
+  if (headerContext) headerContext.textContent = count
     ? `${count} paper${count === 1 ? "" : "s"} selected`
     : "No papers selected";
   document.getElementById("chat-context-description").textContent = count
@@ -1401,7 +1405,20 @@ async function sendViaGradio(message, model, application) {
     : "No response generated.";
 }
 
-async function sendMediaAnalysis(message, paper) {
+
+// CSV intent is independent of selecting the multimodal path. Gallery Analyze & CSV
+// always exports; normal figure/table questions default to grounded answer-only mode.
+function mediaQuestionRequestsCsv(question) {
+  const text = String(question || "").trim();
+  if (!text) return false;
+  if (/\b(?:csv|download|export|dataset|spreadsheet|digitiz(?:e|ation)|tabulat(?:e|ion))\b/i.test(text)) return true;
+  if (/\b(?:all|every)\s+(?:readable\s+)?(?:data|values|rows|columns|points|observations)\b/i.test(text)) return true;
+  if (/\b(?:extract|transcribe)\b[^.!?]{0,120}\b(?:data|values|rows|columns|coordinates|points|measurements|observations|series)\b/i.test(text)) return true;
+  if (/\b(?:data|values|rows|columns|coordinates|points|measurements|observations|series)\b[^.!?]{0,120}\b(?:extract|transcribe)\b/i.test(text)) return true;
+  return false;
+}
+
+async function sendMediaAnalysis(message, paper, exportCsv = false) {
   const index = Number(paper?.metadata_row_index);
   if (!Number.isInteger(index) || index < 0 || paper?.metadata_row_index == null) {
     throw new Error("This publication has no metadata index for media analysis.");
@@ -1409,7 +1426,7 @@ async function sendMediaAnalysis(message, paper) {
   const response = await fetch(api("/api/media/analyze"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: message, metadata_row_index: index }),
+    body: JSON.stringify({ question: message, metadata_row_index: index, export_csv: exportCsv }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || `Media request failed (${response.status})`);
@@ -1463,7 +1480,9 @@ function appendMediaAnalysisResult(payload) {
   if (kind === "figure" || kind === "table") {
     const tag = document.createElement("span");
     tag.className = "media-result-tag";
-    tag.textContent = kind === "figure" ? "Estimated chart data" : "Table transcription";
+    tag.textContent = kind === "figure"
+      ? (attachment?.content_base64 ? "Estimated chart data" : "Figure interpretation")
+      : (attachment?.content_base64 ? "Table transcription" : "Table interpretation");
     header.appendChild(tag);
   }
   content.appendChild(header);
@@ -1499,7 +1518,7 @@ function appendMediaAnalysisResult(payload) {
   }
   const heading = document.createElement("div");
   heading.className = "media-result-subheading";
-  heading.textContent = "Scientific summary";
+  heading.textContent = attachment?.content_base64 ? "Scientific summary" : "Answer";
   content.appendChild(heading);
   const summary = document.createElement("p");
   summary.className = "media-result-summary";
@@ -1570,7 +1589,9 @@ async function sendAgentMessage() {
     ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null)) : null);
   const mediaContextMissing = mentionsNumberedMedia && !mediaPaper;
   const mediaIntent = mentionsNumberedMedia || !!pendingMediaPaper;
+  const mediaExportCsv = pendingMediaExport || mediaQuestionRequestsCsv(visibleMessage);
   pendingMediaPaper = null;
+  pendingMediaExport = false;
   const isMediaRequest = !!mediaPaper;
 
   addAgentMessage(visibleMessage, "user");
@@ -1593,7 +1614,7 @@ async function sendAgentMessage() {
         : "Select one publication or open its Details/media gallery before asking about a numbered figure or table.");
     }
     if (isMediaRequest) {
-      payload = await sendMediaAnalysis(visibleMessage, mediaPaper);
+      payload = await sendMediaAnalysis(visibleMessage, mediaPaper, mediaExportCsv);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
       appendMediaAnalysisResult(payload);
