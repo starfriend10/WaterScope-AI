@@ -45,6 +45,20 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 .media-analysis-tile .figure-thumb {width:100%}
 .media-analyze-action {margin:4px 5px 9px;padding:6px 10px;border:1px solid #b4cfdd;border-radius:8px;background:#f2f9fb;color:#164e70;cursor:pointer;font-size:12px}
 .media-analyze-action:hover {background:#ddecf5}
+
+/* Structured source-linked multimedia results in Research Agent chat */
+.media-result-message .media-result-content{max-width:min(100%,760px);width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+.media-result-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;color:#123b61}
+.media-result-tag{font-size:11px;padding:3px 8px;border-radius:999px;background:#eef5f8;color:#315d73;font-weight:600}
+.media-result-image-button{border:1px solid rgba(26,83,110,.15);background:#fff;border-radius:9px;padding:7px;cursor:zoom-in;display:block;width:100%;max-width:580px;text-align:center}
+.media-result-image-button img{display:block;width:100%;max-height:350px;object-fit:contain}
+.media-result-caption{font-size:12px;color:#465f70;margin:7px 0 3px}
+.media-result-source{font-size:11px;color:#6a8090;margin-bottom:13px}
+.media-result-subheading{font-weight:700;color:#123b61;margin:10px 0 5px}
+.media-result-summary{white-space:pre-wrap;line-height:1.55;margin:0 0 10px}
+.media-result-download{margin:12px 0 6px}
+.media-result-note{font-size:11px;color:#617581;margin:0}
+.media-result-warning{font-size:12px;color:#9a4f23;margin-top:8px}
 </style></head>
 <body>
 <div class="container">
@@ -266,7 +280,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261018-media1"></script>
+<script src="JS/agent.js?v=20261018-media2"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
