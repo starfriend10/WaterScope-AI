@@ -25,6 +25,7 @@ let agentProcessing = false;
 let pendingMediaPaper = null;
 let activeMediaDetailsPaper = null;
 let activeModelDisplay = "llama";
+let mediaOperationTimer = null;
 let lastSearchQuery = "";
 let searchResultsPage = 0;
 const RESULTS_PAGE_SIZE = 10;
@@ -66,7 +67,7 @@ function formatSharedModelElapsed(ms) {
 let modelTimerInterval = null;
 function updateAgentModelTimer() {
   const el = document.getElementById("chat-model-elapsed");
-  if (activeModelDisplay === "media" || modelOperationTimer) return;
+  if (modelOperationTimer) return;
   if (el) el.textContent = formatSharedModelElapsed(sharedModelElapsedMs());
 
   if (!agentApp && !agentProcessing && getSharedModelTimerStart()) {
@@ -170,31 +171,35 @@ function finishSearchOperationStatus(message = "Processed", type = "status-ready
   setSearchSystemStatus(message, type);
   searchElapsedBeforeOperation = null;
 }
-function setActiveModelDisplay(mode) {
-  activeModelDisplay = mode;
-  const label = document.querySelector("#chat-model-status")?.closest(".status-item")?.querySelector(".status-label");
-  if (label) label.textContent = mode === "media" ? "Media Analysis:" : "Chat Model:";
-}
 function startModelOperationStatus(mode = "llama") {
-  setActiveModelDisplay(mode);
+  const isMedia = mode === "media";
   const startedAt = Date.now();
-  const elapsedEl = document.getElementById("chat-model-elapsed");
-  if (modelOperationTimer) clearInterval(modelOperationTimer);
-  if (modelElapsedBeforeOperation === null) {
-    modelElapsedBeforeOperation = elapsedEl?.textContent || formatSharedModelElapsed(sharedModelElapsedMs());
-  }
+  const statusId = isMedia ? "media-analysis-status" : "chat-model-status";
+  const elapsedId = isMedia ? "media-analysis-elapsed" : "chat-model-elapsed";
+  const statusFn = isMedia ? setMediaAnalysisStatus : setChatModelStatus;
+  const elapsedEl = document.getElementById(elapsedId);
+  const activeTimer = isMedia ? mediaOperationTimer : modelOperationTimer;
+  if (activeTimer) clearInterval(activeTimer);
   const update = () => {
-    setChatModelStatus(activeModelDisplay === "media" ? "DeepSeek processing…" : "Processing…", "status-processing");
+    statusFn("Processing…", "status-processing");
     if (elapsedEl) elapsedEl.textContent = formatOperationElapsed(startedAt);
   };
   update();
-  modelOperationTimer = setInterval(update, 100);
+  const timer = setInterval(update, 100);
+  if (isMedia) mediaOperationTimer = timer;
+  else modelOperationTimer = timer;
 }
-function finishModelOperationStatus(message = "Processed", type = "status-ready") {
-  if (modelOperationTimer) clearInterval(modelOperationTimer);
-  modelOperationTimer = null;
-  setChatModelStatus(message, type);
-  modelElapsedBeforeOperation = null;
+function finishModelOperationStatus(message = "Processed", type = "status-ready", mode = "llama") {
+  const isMedia = mode === "media";
+  if (isMedia) {
+    if (mediaOperationTimer) clearInterval(mediaOperationTimer);
+    mediaOperationTimer = null;
+    setMediaAnalysisStatus(message, type);
+  } else {
+    if (modelOperationTimer) clearInterval(modelOperationTimer);
+    modelOperationTimer = null;
+    setChatModelStatus(message, type);
+  }
 }
 function clearPublicationResultsForAgentSearch() {
   activeMediaDetailsPaper = null;
@@ -320,6 +325,9 @@ function setSearchSystemStatus(message, type = "") {
 function setChatModelStatus(message, type = "") {
   setConnectionStatus("chat-model-status", message, type);
 }
+function setMediaAnalysisStatus(message, type = "") {
+  setConnectionStatus("media-analysis-status", message, type);
+}
 
 function canChat(documentId) {
   if (!documentId) return false;
@@ -356,7 +364,7 @@ let modelConnectionInProgress = false;
 let gradioClientModulePromise = null;
 
 function setLlamaConnectionStatus(message, type) {
-  if (activeModelDisplay !== "media" && !modelOperationTimer) setChatModelStatus(message, type);
+  if (!modelOperationTimer) setChatModelStatus(message, type);
 }
 function modelStartupStatusMessage() {
   return sharedModelElapsedMs() >= MODEL_LONG_STARTUP_MS
@@ -1552,10 +1560,16 @@ async function sendAgentMessage() {
   // Any direct question referring to a numbered Figure/Table should use the
   // image-grounded media pathway, not the text-only Llama workflow.
   const mentionsNumberedMedia = /\b(?:figure|fig\.?|table)\s*[#:. -]*\d+\b/i.test(visibleMessage);
-  const selectedMediaPaper = documentIds.length === 1 ? papersById.get(documentIds[0]) : null;
+  const selectedMediaPaper = documentIds.length === 1
+    ? (papersById.get(documentIds[0])
+       || searchResults.find(paper => String(paper.document_id) === String(documentIds[0]))
+       || savedPapers.find(paper => String(paper.document_id) === String(documentIds[0]))
+       || (activeMediaDetailsPaper && String(activeMediaDetailsPaper.document_id) === String(documentIds[0]) ? activeMediaDetailsPaper : null))
+    : null;
   const mediaPaper = pendingMediaPaper || (mentionsNumberedMedia
     ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null)) : null);
   const mediaContextMissing = mentionsNumberedMedia && !mediaPaper;
+  const mediaIntent = mentionsNumberedMedia || !!pendingMediaPaper;
   pendingMediaPaper = null;
   const isMediaRequest = !!mediaPaper;
 
@@ -1563,7 +1577,7 @@ async function sendAgentMessage() {
   input.value = "";
   agentProcessing = true;
   setAgentControlsDisabled(true);
-  startModelOperationStatus(isMediaRequest ? "media" : "llama");
+  startModelOperationStatus(mediaIntent ? "media" : "llama");
 
   if (agentDiscovery && !isMediaRequest) {
     clearPublicationResultsForAgentSearch();
@@ -1583,7 +1597,7 @@ async function sendAgentMessage() {
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
       appendMediaAnalysisResult(payload);
-      finishModelOperationStatus("DeepSeek processed");
+      finishModelOperationStatus("Processed", "status-ready", "media");
       return;
     } else if (documentIds.length > 0) {
       payload = await sendViaFlask(visibleMessage, documentIds, model, application, { agentMode: false });
@@ -1611,7 +1625,7 @@ async function sendAgentMessage() {
   } catch (error) {
     console.error("Agent request error:", error);
     addAgentMessage(`Sorry, the request could not be completed: ${error.message}`, "assistant");
-    finishModelOperationStatus("Connection issue", "status-error");
+    finishModelOperationStatus("Connection issue", "status-error", mediaIntent ? "media" : "llama");
     if (agentDiscovery) finishSearchOperationStatus("Connection issue", "status-error");
   } finally {
     agentProcessing = false;
