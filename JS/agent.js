@@ -1391,37 +1391,109 @@ async function sendMediaAnalysis(message, paper) {
   return payload;
 }
 
-function appendMediaCSV(payload) {
-  const attachment = payload?.csv_attachment;
-  if (!attachment?.content_base64 || attachment.encoding !== "base64") return;
+function appendMediaAnalysisResult(payload) {
   const container = document.getElementById("agent-chat-messages");
-  const row = document.createElement("div");
-  row.className = "message bot-message";
+  if (!container) return;
+  const sources = Array.isArray(payload?.sources) ? payload.sources :
+    (Array.isArray(payload?.source_identifiers) ? payload.source_identifiers : []);
+  const source = sources[0] || {};
+  const attachment = payload?.csv_attachment;
+  const kind = String(source.kind || "").toLowerCase();
+  const label = String(source.label || "").replace(/_/g, " ") || "Source media";
+  const card = document.createElement("div");
+  card.className = "message bot-message media-result-message";
   const content = document.createElement("div");
-  content.className = "message-content";
-  const link = document.createElement("button");
-  link.type = "button";
-  link.className = "btn-secondary";
-  link.textContent = `Download extracted CSV (${attachment.row_count} rows)`;
-  link.addEventListener("click", () => {
-    const binary = atob(attachment.content_base64);
-    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-    const blobUrl = URL.createObjectURL(new Blob([bytes], {type:"text/csv;charset=utf-8"}));
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = String(attachment.filename || "waterscope_media_extracted.csv").split(/[\/]/).pop();
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
-  });
-  content.appendChild(link);
-  const note = document.createElement("p");
-  note.textContent = "Chart-derived values are visually estimated and require verification before quantitative use.";
-  note.style.fontSize = "0.82em";
-  content.appendChild(note);
-  row.appendChild(content);
-  container.appendChild(row);
+  content.className = "message-content media-result-content";
+
+  const header = document.createElement("div");
+  header.className = "media-result-header";
+  const title = document.createElement("strong");
+  title.textContent = `${label.replace(/\b\w/g, c => c.toUpperCase())} · Media analysis`;
+  header.appendChild(title);
+  if (kind === "figure" || kind === "table") {
+    const tag = document.createElement("span");
+    tag.className = "media-result-tag";
+    tag.textContent = kind === "figure" ? "Estimated chart data" : "Table transcription";
+    header.appendChild(tag);
+  }
+  content.appendChild(header);
+
+  const mediaUrl = resolveApiUrl(source.image_url);
+  if (mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
+    const mediaButton = document.createElement("button");
+    mediaButton.type = "button";
+    mediaButton.className = "media-result-image-button";
+    mediaButton.title = "Enlarge original figure/table";
+    const image = document.createElement("img");
+    image.src = mediaUrl;
+    image.alt = `${label}: ${String(source.caption || "Published media")}`;
+    image.loading = "lazy";
+    mediaButton.appendChild(image);
+    mediaButton.addEventListener("click", () => openFigureLightbox(mediaUrl, String(source.caption || ""), label));
+    content.appendChild(mediaButton);
+  }
+
+  if (source.caption) {
+    const caption = document.createElement("p");
+    caption.className = "media-result-caption";
+    caption.textContent = String(source.caption);
+    content.appendChild(caption);
+  }
+  const attribution = [source.paper_title || source.paper_key, source.page != null ? `Page ${source.page}` : ""]
+    .filter(Boolean).join(" · ");
+  if (attribution) {
+    const cite = document.createElement("div");
+    cite.className = "media-result-source";
+    cite.textContent = `Source: ${attribution}`;
+    content.appendChild(cite);
+  }
+  const heading = document.createElement("div");
+  heading.className = "media-result-subheading";
+  heading.textContent = "Scientific summary";
+  content.appendChild(heading);
+  const summary = document.createElement("p");
+  summary.className = "media-result-summary";
+  summary.textContent = String(payload?.answer || "No extraction summary generated.");
+  content.appendChild(summary);
+
+  if (attachment?.content_base64 && attachment.encoding === "base64") {
+    const controls = document.createElement("div");
+    controls.className = "media-result-download";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-secondary";
+    btn.textContent = `Download extracted CSV (${Number(attachment.row_count) || 0} rows)`;
+    btn.addEventListener("click", () => {
+      try {
+        const binary = atob(attachment.content_base64);
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        const blobUrl = URL.createObjectURL(new Blob([bytes], {type:"text/csv;charset=utf-8"}));
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = String(attachment.filename || "waterscope_media_extracted.csv").split(/[\\/]/).pop();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      } catch (error) { console.error("Media CSV download error:", error); alert("Unable to prepare CSV download."); }
+    });
+    controls.appendChild(btn);
+    content.appendChild(controls);
+    const note = document.createElement("p");
+    note.className = "media-result-note";
+    note.textContent = kind === "figure"
+      ? "Chart-derived numerical values are visual estimates; verify coordinates and any omitted error bars before quantitative use."
+      : "Values are transcribed from the published table; verify against the source before quantitative use.";
+    content.appendChild(note);
+  }
+  if (payload?.export_warning) {
+    const warning = document.createElement("p");
+    warning.className = "media-result-warning";
+    warning.textContent = `CSV unavailable: ${payload.export_warning}`;
+    content.appendChild(warning);
+  }
+  card.appendChild(content);
+  container.appendChild(card);
   container.scrollTop = container.scrollHeight;
 }
 
@@ -1457,9 +1529,7 @@ async function sendAgentMessage() {
       payload = await sendMediaAnalysis(visibleMessage, mediaPaper);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
-      addAgentMessage(payload.answer || "No extraction summary generated.", "assistant", { html: true });
-      appendMediaCSV(payload);
-      if (payload.export_warning) addAgentMessage(`CSV unavailable: ${payload.export_warning}`, "assistant");
+      appendMediaAnalysisResult(payload);
       finishModelOperationStatus();
       return;
     } else if (documentIds.length > 0) {
