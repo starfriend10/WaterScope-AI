@@ -23,6 +23,8 @@ let selectedDocumentIds = new Set();
 let agentConversation = [];
 let agentProcessing = false;
 let pendingMediaPaper = null;
+let activeMediaDetailsPaper = null;
+let activeModelDisplay = "llama";
 let lastSearchQuery = "";
 let searchResultsPage = 0;
 const RESULTS_PAGE_SIZE = 10;
@@ -64,6 +66,7 @@ function formatSharedModelElapsed(ms) {
 let modelTimerInterval = null;
 function updateAgentModelTimer() {
   const el = document.getElementById("chat-model-elapsed");
+  if (activeModelDisplay === "media" || modelOperationTimer) return;
   if (el) el.textContent = formatSharedModelElapsed(sharedModelElapsedMs());
 
   if (!agentApp && !agentProcessing && getSharedModelTimerStart()) {
@@ -167,7 +170,13 @@ function finishSearchOperationStatus(message = "Processed", type = "status-ready
   setSearchSystemStatus(message, type);
   searchElapsedBeforeOperation = null;
 }
-function startModelOperationStatus() {
+function setActiveModelDisplay(mode) {
+  activeModelDisplay = mode;
+  const label = document.querySelector("#chat-model-status")?.closest(".status-item")?.querySelector(".status-label");
+  if (label) label.textContent = mode === "media" ? "Media Analysis:" : "Chat Model:";
+}
+function startModelOperationStatus(mode = "llama") {
+  setActiveModelDisplay(mode);
   const startedAt = Date.now();
   const elapsedEl = document.getElementById("chat-model-elapsed");
   if (modelOperationTimer) clearInterval(modelOperationTimer);
@@ -175,7 +184,7 @@ function startModelOperationStatus() {
     modelElapsedBeforeOperation = elapsedEl?.textContent || formatSharedModelElapsed(sharedModelElapsedMs());
   }
   const update = () => {
-    setChatModelStatus("Processing…", "status-processing");
+    setChatModelStatus(activeModelDisplay === "media" ? "DeepSeek processing…" : "Processing…", "status-processing");
     if (elapsedEl) elapsedEl.textContent = formatOperationElapsed(startedAt);
   };
   update();
@@ -188,6 +197,7 @@ function finishModelOperationStatus(message = "Processed", type = "status-ready"
   modelElapsedBeforeOperation = null;
 }
 function clearPublicationResultsForAgentSearch() {
+  activeMediaDetailsPaper = null;
   searchResults = [];
   searchResultsPage = 0;
   lastSearchQuery = "";
@@ -345,6 +355,9 @@ let modelRetryTimeout = null;
 let modelConnectionInProgress = false;
 let gradioClientModulePromise = null;
 
+function setLlamaConnectionStatus(message, type) {
+  if (activeModelDisplay !== "media" && !modelOperationTimer) setChatModelStatus(message, type);
+}
 function modelStartupStatusMessage() {
   return sharedModelElapsedMs() >= MODEL_LONG_STARTUP_MS
     ? "Taking too long…"
@@ -399,7 +412,7 @@ async function getHfSpaceRuntimeState() {
 async function initializeGradioClient() {
   if (agentApp) {
     clearModelRetry();
-    setChatModelStatus("Connected", "status-ready");
+    setLlamaConnectionStatus("Connected", "status-ready");
     return true;
   }
 
@@ -409,13 +422,13 @@ async function initializeGradioClient() {
   try {
     startAgentModelTimer();
     if (!agentProcessing) {
-      setChatModelStatus(modelStartupStatusMessage(), "status-processing");
+      setLlamaConnectionStatus(modelStartupStatusMessage(), "status-processing");
     }
 
     const runtimeBeforeConnect = await getHfSpaceRuntimeState();
     if (runtimeBeforeConnect.stage === "RUNTIME_ERROR") {
       finishAgentModelTimer();
-      if (!agentProcessing) setChatModelStatus("Unavailable", "status-error");
+      if (!agentProcessing) setLlamaConnectionStatus("Unavailable", "status-error");
       console.error(
         "HF Space runtime error:",
         runtimeBeforeConnect.errorText || "RUNTIME_ERROR"
@@ -434,7 +447,7 @@ async function initializeGradioClient() {
     agentApp = await Client.connect(SPACE_ID);
     clearModelRetry();
     finishAgentModelTimer();
-    if (!agentProcessing) setChatModelStatus("Connected", "status-ready");
+    if (!agentProcessing) setLlamaConnectionStatus("Connected", "status-ready");
     return true;
   } catch (error) {
     console.error("Chat model connection error:", error);
@@ -442,14 +455,14 @@ async function initializeGradioClient() {
     const runtimeAfterConnect = await getHfSpaceRuntimeState();
     if (runtimeAfterConnect.stage === "RUNTIME_ERROR") {
       finishAgentModelTimer();
-      if (!agentProcessing) setChatModelStatus("Unavailable", "status-error");
+      if (!agentProcessing) setLlamaConnectionStatus("Unavailable", "status-error");
       console.error(
         "HF Space runtime error:",
         runtimeAfterConnect.errorText || "RUNTIME_ERROR"
       );
     } else {
       if (!agentProcessing) {
-        setChatModelStatus(modelStartupStatusMessage(), "status-processing");
+        setLlamaConnectionStatus(modelStartupStatusMessage(), "status-processing");
       }
     }
 
@@ -914,13 +927,17 @@ function togglePaperDetails(container, items, index) {
 
   const willOpen = panel.classList.contains("hidden");
   closeAllPaperMenus();
-  if (!willOpen) return;
+  if (!willOpen) {
+    activeMediaDetailsPaper = null;
+    return;
+  }
 
   panel.classList.remove("hidden");
   container.querySelectorAll(`[data-result-index="${index}"].paper-card-menu-btn, [data-result-index="${index}"].btn-details`).forEach((button) => {
     button.setAttribute("aria-expanded", "true");
   });
   const item = items[Number(index)];
+  activeMediaDetailsPaper = item || null;
   if (item) loadPaperFigures(panel, item);
 }
 
@@ -1391,6 +1408,31 @@ async function sendMediaAnalysis(message, paper) {
   return payload;
 }
 
+// Construct an informative filename from citation metadata, not model-generated prose.
+function mediaCsvFilename(source) {
+  const rawTitle = String(source?.paper_title || source?.paper_key || "");
+  const basename = rawTitle.split(/[\\/]/).pop().trim();
+  const match = basename.match(/^(.+?\bet al\.)\s*-\s*(\d{4})(?:\s*-\s*.*)?$/i)
+    || basename.match(/^(.+?)\s*-\s*(\d{4})(?:\s*-\s*.*)?$/);
+  let authors = match ? match[1].trim() : "";
+  const year = match ? match[2] : (basename.match(/\b(?:19|20)\d{2}\b/) || [])[0] || "";
+  if (!authors && basename) authors = basename.split(" - ")[0].trim();
+  if (authors && !/\bet al\.?$/i.test(authors) && /,|\band\b/i.test(authors)) {
+    authors = authors.split(/,|\band\b/i)[0].trim() + " et al.";
+  }
+  const labelRaw = String(source?.label || "").trim();
+  const media = labelRaw.match(/\b(figure|fig|table)[ _.-]*0*(\d+)\b/i);
+  const mediaLabel = media ? `${media[1].toLowerCase() === "table" ? "Table" : "Figure"} ${Number(media[2])}` : "Media";
+  let description = String(source?.caption || "").replace(/^(?:fig(?:ure)?|table)\s*\d+[.:-]?\s*/i, "").trim();
+  // File-safe, concise description; don't let separators create folders.
+  const clean = value => String(value).replace(/[\\/:*?"<>|\x00-\x1F]/g, " ").replace(/\s+/g, " ").replace(/[. ]+$/g, "").trim();
+  authors = clean(authors);
+  description = clean(description);
+  if (description.length > 75) description = description.slice(0, 75).replace(/\s+\S*$/, "").trim();
+  const parts = [authors || "WaterScope-AI", year, mediaLabel, description].filter(Boolean);
+  return `${parts.join(" - ")}.csv`;
+}
+
 function appendMediaAnalysisResult(payload) {
   const container = document.getElementById("agent-chat-messages");
   if (!container) return;
@@ -1470,7 +1512,7 @@ function appendMediaAnalysisResult(payload) {
         const blobUrl = URL.createObjectURL(new Blob([bytes], {type:"text/csv;charset=utf-8"}));
         const a = document.createElement("a");
         a.href = blobUrl;
-        a.download = String(attachment.filename || "waterscope_media_extracted.csv").split(/[\\/]/).pop();
+        a.download = mediaCsvFilename(source);
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -1507,7 +1549,13 @@ async function sendAgentMessage() {
   const documentIds = [...selectedDocumentIds];
   const agentMode = document.getElementById("agent-mode").checked;
   const agentDiscovery = agentMode && documentIds.length === 0;
-  const mediaPaper = pendingMediaPaper || ((documentIds.length === 1 && /\b(?:figure|fig\.?|table)\s*\d+\b/i.test(visibleMessage) && /\b(?:extract|digitiz|csv|data from|analy[sz]e (?:figure|fig|table))\b/i.test(visibleMessage)) ? papersById.get(documentIds[0]) : null);
+  // Any direct question referring to a numbered Figure/Table should use the
+  // image-grounded media pathway, not the text-only Llama workflow.
+  const mentionsNumberedMedia = /\b(?:figure|fig\.?|table)\s*[#:. -]*\d+\b/i.test(visibleMessage);
+  const selectedMediaPaper = documentIds.length === 1 ? papersById.get(documentIds[0]) : null;
+  const mediaPaper = pendingMediaPaper || (mentionsNumberedMedia
+    ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null)) : null);
+  const mediaContextMissing = mentionsNumberedMedia && !mediaPaper;
   pendingMediaPaper = null;
   const isMediaRequest = !!mediaPaper;
 
@@ -1515,7 +1563,7 @@ async function sendAgentMessage() {
   input.value = "";
   agentProcessing = true;
   setAgentControlsDisabled(true);
-  startModelOperationStatus();
+  startModelOperationStatus(isMediaRequest ? "media" : "llama");
 
   if (agentDiscovery && !isMediaRequest) {
     clearPublicationResultsForAgentSearch();
@@ -1525,12 +1573,17 @@ async function sendAgentMessage() {
 
   try {
     let payload;
+    if (mediaContextMissing) {
+      throw new Error(documentIds.length > 1
+        ? "Select just one paper for Figure/Table analysis, then retry."
+        : "Select one publication or open its Details/media gallery before asking about a numbered figure or table.");
+    }
     if (isMediaRequest) {
       payload = await sendMediaAnalysis(visibleMessage, mediaPaper);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
       appendMediaAnalysisResult(payload);
-      finishModelOperationStatus();
+      finishModelOperationStatus("DeepSeek processed");
       return;
     } else if (documentIds.length > 0) {
       payload = await sendViaFlask(visibleMessage, documentIds, model, application, { agentMode: false });
