@@ -1457,12 +1457,30 @@ function resolveImplicitMediaReference(question) {
   return { referenced: true, context: previous };
 }
 
-function rememberMediaResult(payload, paper, question) {
+function validatedMediaSource(payload, question) {
+  // A single-figure/table chat request must return exactly the requested media.
+  // Never show a different image or poison follow-up context with the first
+  // source in an accidentally multi-media response.
   const sources = Array.isArray(payload?.sources) ? payload.sources :
     (Array.isArray(payload?.source_identifiers) ? payload.source_identifiers : []);
-  const source = sources[0] || {};
-  const label = mediaLabelFromText(source.label) || mediaLabelFromText(question);
-  if (label && paper) lastMediaContext = { paper, ...label };
+  const asked = mediaLabelFromText(question);
+  if (!asked || sources.length !== 1) {
+    throw new Error("Media source mismatch: expected one identified figure or table. Please retry.");
+  }
+  const source = sources[0];
+  const actual = mediaLabelFromText(source?.label);
+  if (!actual || actual.kind !== asked.kind || actual.number !== asked.number) {
+    throw new Error(`Media source mismatch: requested ${asked.displayLabel}, but the service returned ${source?.label || "an unidentified source"}.`);
+  }
+  return actual;
+}
+
+function rememberMediaResult(payload, paper, question) {
+  const label = validatedMediaSource(payload, question);
+  if (paper && String(payload?.status || "ok") === "ok" &&
+      !payload?.empty_answer && String(payload?.answer || "").trim()) {
+    lastMediaContext = { paper, ...label };
+  }
 }
 
 async function sendMediaAnalysis(message, paper, exportCsv = false) {
@@ -1642,8 +1660,10 @@ async function sendAgentMessage() {
   const mediaIntent = mentionsNumberedMedia || followup.referenced || !!pendingMediaPaper;
   // Keep the user's message unchanged in chat; only add the resolved referent to
   // the server-bound question (which needs a numbered figure/table).
+  // The backend searches the entire question for numbered media labels. Give it
+  // exactly the resolved referent—never add unrelated Figure/Table examples.
   const mediaQuestion = followup.context
-    ? `${visibleMessage}\n\nPrevious media reference: ${followup.context.displayLabel}. Please use this ${followup.context.kind} from the preceding analysis.`
+    ? `Regarding ${followup.context.displayLabel}: ${visibleMessage}`
     : visibleMessage;
   const mediaExportCsv = pendingMediaExport || mediaQuestionRequestsCsv(visibleMessage);
   pendingMediaPaper = null;
@@ -1673,6 +1693,7 @@ async function sendAgentMessage() {
     }
     if (isMediaRequest) {
       payload = await sendMediaAnalysis(mediaQuestion, mediaPaper, mediaExportCsv);
+      validatedMediaSource(payload, mediaQuestion);
       rememberMediaResult(payload, mediaPaper, mediaQuestion);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
