@@ -25,6 +25,8 @@ let agentProcessing = false;
 let pendingMediaPaper = null;
 let pendingMediaExport = false;
 let activeMediaDetailsPaper = null;
+// Last successful figure/table analysis, for natural-language follow-ups like "the table".
+let lastMediaContext = null;
 let activeModelDisplay = "llama";
 let mediaOperationTimer = null;
 let lastSearchQuery = "";
@@ -204,6 +206,7 @@ function finishModelOperationStatus(message = "Processed", type = "status-ready"
 }
 function clearPublicationResultsForAgentSearch() {
   activeMediaDetailsPaper = null;
+  lastMediaContext = null;
   searchResults = [];
   searchResultsPage = 0;
   lastSearchQuery = "";
@@ -1418,6 +1421,50 @@ function mediaQuestionRequestsCsv(question) {
   return false;
 }
 
+// Read a human-friendly source label without exposing internal labels such as table_01.
+function mediaLabelFromText(text) {
+  const m = String(text || "").match(/\b(table|figure|fig\.?)[\s_.:-]*0*(\d+)\b/i);
+  if (!m) return null;
+  const kind = m[1].toLowerCase() === "table" ? "table" : "figure";
+  const number = Number(m[2]);
+  if (!Number.isInteger(number) || number <= 0) return null;
+  return { kind, number, displayLabel: `${kind === "table" ? "Table" : "Figure"} ${number}` };
+}
+
+// Resolve a follow-up against the LAST successfully analyzed media item, not an
+// arbitrary paper/table. Never use stale context if another paper is selected.
+function resolveImplicitMediaReference(question) {
+  const q = String(question || "");
+  const named = q.match(/\b(?:the|this|that|same|previous|above|last|earlier)\s+(?:(?:same|above|previous|last|earlier|published|original|selected|analyzed|analysed|current|extracted)\s+){0,2}(table|figure|fig\.?|chart|plot|diagram)\b/i);
+  const impliesDataExport = mediaQuestionRequestsCsv(q);
+  const usesPronoun = impliesDataExport && /\b(?:it|them|these|those)\b/i.test(q);
+  if (!named && !usesPronoun) return { referenced: false, context: null };
+
+  const previous = lastMediaContext;
+  if (!previous) return { referenced: true, context: null };
+  const namedKind = named ? (named[1].toLowerCase() === "table" ? "table" : "figure") : null;
+  if (namedKind && namedKind !== previous.kind) return { referenced: true, context: null };
+  const selected = [...selectedDocumentIds];
+  if (selected.length > 1) return { referenced: true, context: null };
+  if (selected.length === 1 && String(selected[0]) !== String(previous.paper?.document_id)) {
+    return { referenced: true, context: null };
+  }
+  // Details may have moved to another paper when no paper is selected.
+  if (selected.length === 0 && activeMediaDetailsPaper &&
+      String(activeMediaDetailsPaper.document_id) !== String(previous.paper?.document_id)) {
+    return { referenced: true, context: null };
+  }
+  return { referenced: true, context: previous };
+}
+
+function rememberMediaResult(payload, paper, question) {
+  const sources = Array.isArray(payload?.sources) ? payload.sources :
+    (Array.isArray(payload?.source_identifiers) ? payload.source_identifiers : []);
+  const source = sources[0] || {};
+  const label = mediaLabelFromText(source.label) || mediaLabelFromText(question);
+  if (label && paper) lastMediaContext = { paper, ...label };
+}
+
 async function sendMediaAnalysis(message, paper, exportCsv = false) {
   const index = Number(paper?.metadata_row_index);
   if (!Number.isInteger(index) || index < 0 || paper?.metadata_row_index == null) {
@@ -1585,10 +1632,19 @@ async function sendAgentMessage() {
        || savedPapers.find(paper => String(paper.document_id) === String(documentIds[0]))
        || (activeMediaDetailsPaper && String(activeMediaDetailsPaper.document_id) === String(documentIds[0]) ? activeMediaDetailsPaper : null))
     : null;
+  const followup = (!mentionsNumberedMedia && !pendingMediaPaper)
+    ? resolveImplicitMediaReference(visibleMessage)
+    : { referenced: false, context: null };
   const mediaPaper = pendingMediaPaper || (mentionsNumberedMedia
-    ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null)) : null);
-  const mediaContextMissing = mentionsNumberedMedia && !mediaPaper;
-  const mediaIntent = mentionsNumberedMedia || !!pendingMediaPaper;
+    ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null))
+    : followup.context?.paper || null);
+  const mediaContextMissing = (mentionsNumberedMedia || followup.referenced) && !mediaPaper;
+  const mediaIntent = mentionsNumberedMedia || followup.referenced || !!pendingMediaPaper;
+  // Keep the user's message unchanged in chat; only add the resolved referent to
+  // the server-bound question (which needs a numbered figure/table).
+  const mediaQuestion = followup.context
+    ? `${visibleMessage}\n\nPrevious media reference: ${followup.context.displayLabel}. Please use this ${followup.context.kind} from the preceding analysis.`
+    : visibleMessage;
   const mediaExportCsv = pendingMediaExport || mediaQuestionRequestsCsv(visibleMessage);
   pendingMediaPaper = null;
   pendingMediaExport = false;
@@ -1611,10 +1667,13 @@ async function sendAgentMessage() {
     if (mediaContextMissing) {
       throw new Error(documentIds.length > 1
         ? "Select just one paper for Figure/Table analysis, then retry."
-        : "Select one publication or open its Details/media gallery before asking about a numbered figure or table.");
+        : followup.referenced
+          ? "I can't identify which figure or table you mean. Please specify its number, for example 'Table 1'."
+          : "Select one publication or open its Details/media gallery before asking about a numbered figure or table.");
     }
     if (isMediaRequest) {
-      payload = await sendMediaAnalysis(visibleMessage, mediaPaper, mediaExportCsv);
+      payload = await sendMediaAnalysis(mediaQuestion, mediaPaper, mediaExportCsv);
+      rememberMediaResult(payload, mediaPaper, mediaQuestion);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
       appendMediaAnalysisResult(payload);
@@ -1674,6 +1733,7 @@ function setAgentControlsDisabled(disabled) {
 
 function clearAgentChat() {
   agentConversation = [];
+  lastMediaContext = null;
   document.getElementById("agent-chat-messages").innerHTML = `
     <div class="message bot-message"><div class="message-content"><p>Chat cleared. Search and select papers for retrieval-grounded chat, or ask a general question.</p></div></div>`;
 }
