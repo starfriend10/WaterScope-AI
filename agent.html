@@ -143,6 +143,24 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
   }
   .agent-chat-toolbar.v17-compact-toolbar > .panel-corner-control {grid-column:3;grid-row:1;}
 }
+/* V18.3.3: one-line title + Model + Research Task + Agent mode on desktop. */
+@media (min-width: 1000px) {
+  .agent-chat-toolbar.v17-compact-toolbar {
+    grid-template-columns:minmax(190px,1fr) minmax(0,380px) 26px;
+    align-items:center;column-gap:9px;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar > .agent-selectors {
+    display:grid;grid-column:2;grid-row:1;
+    grid-template-columns:90px minmax(140px,1fr) 92px;
+    column-gap:7px;align-items:center;row-gap:0;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .agent-mode-toggle {
+    grid-column:3;grid-row:1;white-space:nowrap;align-self:end;padding-bottom:8px;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .model-selector {min-width:0;}
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .task-selector {grid-column:2;grid-row:1;}
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors select {width:100%;min-width:0;}
+}
 </style></head>
 <body>
 <div class="container">
@@ -370,7 +388,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261019-report18-3-2"></script>
+<script src="JS/agent.js?v=20261019-report18-3-3"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
