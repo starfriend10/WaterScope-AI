@@ -121,6 +121,28 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 .report-scope-label select{max-width:125px;padding:7px 3px;border:1px solid #cedae1;border-radius:6px;background:#fff;color:#172c40;font-size:11px;}
 .v17-composer-actions button {white-space:nowrap;min-width:0;padding:9px 8px;font-size:12px;}
 @media (max-width: 920px) {.v17-composer-actions {flex-wrap:wrap}.v17-composer-actions button {white-space:normal}}
+
+/* V18.3.2: align model/task settings to the right of the heading. */
+@media (min-width: 760px) {
+  .agent-chat-toolbar.v17-compact-toolbar {
+    grid-template-columns:minmax(0,1fr) minmax(280px, 48%) 28px;
+    grid-template-rows:auto;
+    align-items:start;
+    column-gap:12px;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar > .agent-heading-block {grid-column:1;grid-row:1;}
+  .agent-chat-toolbar.v17-compact-toolbar > .agent-selectors {
+    grid-column:2;grid-row:1;width:100%;display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
+    column-gap:10px;row-gap:5px;align-items:start;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .model-selector {min-width:0;width:100%;}
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors select {max-width:100%;width:100%;}
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .agent-mode-toggle {
+    grid-column:1/-1;flex-basis:auto;justify-self:start;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar > .panel-corner-control {grid-column:3;grid-row:1;}
+}
 </style></head>
 <body>
 <div class="container">
@@ -262,7 +284,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <div class="message bot-message">
 <div class="message-content">
 <p>Search or select publications on the left, then ask research questions here.</p>
-<p>Select papers for grounded research questions, or enable <strong>Agent mode</strong> to search automatically when none are selected. Use <strong>Analyze &amp; CSV</strong> for figures and tables.</p>
+<p>Use <strong>Agent mode</strong> for automatic search, or <strong>Analyze &amp; CSV</strong> for figures and tables.</p>
 </div>
 </div>
 </div>
@@ -348,7 +370,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261019-report18-3-1"></script>
+<script src="JS/agent.js?v=20261019-report18-3-2"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
