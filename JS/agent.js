@@ -21,6 +21,60 @@ let savedRenderItems = [];
 let papersById = new Map();
 let selectedDocumentIds = new Set();
 let agentConversation = [];
+// V16: report-ready records for the CURRENT page session. No credentials,
+// image binaries, or base64 CSV blobs are stored in these records.
+let researchRecords = [];
+let researchRecordSequence = 0;
+const REPORT_RECORDS_SCHEMA = "waterscope.research-records.v1";
+function recordResearchExchange({question, answer, type, scope, sources = [], model = null,
+                                 strategy = null, media = null, csv = null, status = "completed"}) {
+  const safeSources = (Array.isArray(sources) ? sources : []).map(s => ({
+    document_id: s?.document_id ?? s?.paper_id ?? null,
+    title: String(s?.paper_title || s?.title || s?.paper_key || ""),
+    doi: String(s?.doi || ""),
+    year: s?.year ?? null,
+    media_kind: s?.kind || null,
+    media_label: s?.label || null,
+    caption: s?.caption || null,
+    page: s?.page ?? null,
+    image_url: s?.image_url || null,
+    image_sha256: s?.image_sha256 || null,
+    paper_key: s?.paper_key || null
+  }));
+  const record = {
+    id: `research-${++researchRecordSequence}`,
+    timestamp: new Date().toISOString(),
+    type, scope, status,
+    question: String(question || ""),
+    answer: String(answer || ""),
+    sources: safeSources,
+    model: model == null ? null : String(model),
+    strategy: strategy == null ? null : String(strategy),
+    media: media ? {kind: media.kind || null, label: media.label || null,
+      estimated: media.estimated == null ? null : Boolean(media.estimated)} : null,
+    csv: csv ? {available: Boolean(csv.available), row_count: Number(csv.row_count || 0),
+      filename: csv.filename || null, generated: Boolean(csv.generated)} : null
+  };
+  researchRecords.push(record);
+  return record;
+}
+function exportResearchRecords() {
+  const bundle = {
+    schema: REPORT_RECORDS_SCHEMA,
+    exported_at: new Date().toISOString(),
+    scope: "current_page_session",
+    records: researchRecords
+  };
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], {type: "application/json;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `WaterScopeAI-research-records-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(link);
+  link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
 let agentProcessing = false;
 let pendingMediaPaper = null;
 let pendingMediaExport = false;
@@ -1871,6 +1925,11 @@ async function sendAgentMessage() {
   pendingMediaExport = false;
   const isMediaRequest = mediaIntent && !!mediaPaper && !needsClarification;
 
+  const selectedSourceRecords = documentIds.map(id =>
+    resolveMediaPublication(searchResults.find(p => String(p.document_id) === String(id)) ||
+      savedPapers.find(p => String(p.document_id) === String(id)) ||
+      [...papersById.values()].find(p => String(p.document_id) === String(id)))
+  ).filter(Boolean);
   addAgentMessage(visibleMessage, "user");
   input.value = "";
   agentProcessing = true;
@@ -1896,6 +1955,9 @@ async function sendAgentMessage() {
       addAgentMessage(reply, "assistant");
       agentConversation.push({role: "user", content: visibleMessage});
       agentConversation.push({role: "assistant", content: reply});
+      recordResearchExchange({question: visibleMessage, answer: reply,
+        type: "clarification", scope: "routing", status: "needs_clarification",
+        sources: mediaPaper ? [mediaPaper] : selectedSourceRecords});
       if (activeFollowup) mediaDialog = {...(mediaDialog || {}), answer: reply};
       finishModelOperationStatus("Clarification needed", "status-ready", "media");
       return;
@@ -1909,6 +1971,19 @@ async function sendAgentMessage() {
       rememberMediaResult(payload, mediaPaper, mediaQuestion);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
+      const mediaSourceRecords = Array.isArray(payload?.sources) ? payload.sources :
+        (Array.isArray(payload?.source_identifiers) ? payload.source_identifiers : []);
+      const mediaAttachment = payload?.csv_attachment;
+      recordResearchExchange({question: visibleMessage, answer: cleanPublicMediaAnswer(payload.answer || ""),
+        type: "media_analysis", scope: "media", sources: mediaSourceRecords,
+        model: payload?.model || payload?.model_used || null,
+        strategy: payload?.strategy || null,
+        media: {kind: matched.kind, label: matched.displayLabel,
+          estimated: matched.kind === "figure" && Boolean(mediaAttachment?.content_base64)},
+        csv: {available: Boolean(mediaAttachment?.content_base64),
+          generated: Boolean(mediaAttachment?.content_base64),
+          row_count: mediaAttachment?.row_count || 0,
+          filename: mediaAttachment?.content_base64 ? mediaCsvFilename(mediaSourceRecords[0] || {}) : null}});
       appendMediaAnalysisResult(payload, {repeatSource});
       lastRenderedMediaKey = mediaKey;
       finishModelOperationStatus("Processed", "status-ready", "media");
@@ -1924,6 +1999,8 @@ async function sendAgentMessage() {
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: reply });
       addAgentMessage(reply, "assistant");
+      recordResearchExchange({question: visibleMessage, answer: reply,
+        type: "research_chat", scope: "general", model, strategy: "direct_gradio"});
       finishModelOperationStatus();
       return;
     }
@@ -1931,6 +2008,11 @@ async function sendAgentMessage() {
     agentConversation.push({ role: "user", content: visibleMessage });
     agentConversation.push({ role: "assistant", content: payload.answer });
     addAgentMessage(payload.answer || "No response generated.", "assistant", { html: true });
+    recordResearchExchange({question: visibleMessage, answer: payload.answer || "",
+      type: "research_chat", scope: documentIds.length ? "selected_publications" : "agent_discovery",
+      sources: (payload.selected_papers || payload.sources || selectedSourceRecords),
+      model: payload.model_used || payload.model || model,
+      strategy: payload.strategy || null});
     if (String(payload.strategy || "").startsWith("deepseek_fallback:")) {
       addAgentMessage("Research answer generated using the fallback model because Llama was unavailable.", "assistant");
     }
@@ -1942,6 +2024,9 @@ async function sendAgentMessage() {
   } catch (error) {
     console.error("Agent request error:", error);
     addAgentMessage(`Sorry, the request could not be completed: ${error.message}`, "assistant");
+    recordResearchExchange({question: visibleMessage, answer: String(error.message || ""),
+      type: "error", scope: mediaIntent ? "media" : "research", status: "failed",
+      sources: mediaPaper ? [mediaPaper] : selectedSourceRecords});
     const sourceProblem = mediaIntent && /^(?:Source metadata unavailable|Media source mismatch|Select (?:just )?one paper|I can't identify which figure|Select one publication)/i.test(String(error.message || ""));
     finishModelOperationStatus(sourceProblem ? "Source issue" : "Connection issue", "status-error", mediaIntent ? "media" : "llama");
     if (agentDiscovery) finishSearchOperationStatus("Connection issue", "status-error");
@@ -1971,6 +2056,8 @@ function setAgentControlsDisabled(disabled) {
 
 function clearAgentChat() {
   agentConversation = [];
+  researchRecords = [];
+  researchRecordSequence = 0;
   lastMediaContext = null;
   mediaDialog = null;
   lastRenderedMediaKey = null;
@@ -2111,6 +2198,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
   document.getElementById("clear-agent-chat").addEventListener("click", clearAgentChat);
+  document.getElementById("export-research-records")?.addEventListener("click", exportResearchRecords);
   document.querySelectorAll(".suggestion-chip").forEach((button) => {
     button.addEventListener("click", () => {
       document.getElementById("agent-user-input").value = button.dataset.prompt;
