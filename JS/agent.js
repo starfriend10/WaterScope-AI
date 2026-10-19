@@ -75,6 +75,74 @@ function exportResearchRecords() {
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
+
+// V17: deterministic, source-grounded Markdown summary of this page session.
+// Does not make an additional model call or assert unrecorded conclusions.
+function reportPlain(value) {
+  return String(value == null ? "" : value).replace(/\r/g, "").trim();
+}
+function reportSourceDescription(source) {
+  const s = source || {};
+  const title = reportPlain(s.title) || "Publication (title unavailable)";
+  const extra = [s.year ? String(s.year) : "", s.media_label ? String(s.media_label).replace(/_/g," ") : "",
+    s.page != null ? `page ${s.page}` : ""].filter(Boolean).join(" · ");
+  return `${title}${extra ? ` (${extra})` : ""}${s.doi ? ` · DOI: ${s.doi}` : ""}`;
+}
+function buildResearchSummaryMarkdown(records) {
+  const valid = (Array.isArray(records) ? records : []).filter(r => r && r.status === "completed" &&
+    (r.type === "media_analysis" || r.type === "research_chat"));
+  if (!valid.length) return "";
+  const lines = ["# WaterScope-AI Research Summary", "",
+    `Generated: ${new Date().toISOString()}`, "",
+    "This document summarizes completed analyses recorded in the current browser session. It preserves the original research answers; it is not an independently verified synthesis.", "",
+    "## Session overview", "", `- Completed research exchanges: ${valid.length}`,
+    `- Publication research exchanges: ${valid.filter(r=>r.type === "research_chat").length}`,
+    `- Figure/table analysis exchanges: ${valid.filter(r=>r.type === "media_analysis").length}`, ""];
+  const seen = new Set(), sources = [];
+  valid.forEach(r => (r.sources || []).forEach(s => {
+    const key = [s.document_id,s.media_label,s.paper_key,s.title].join("|");
+    if (!seen.has(key)) { seen.add(key); sources.push(s); }
+  }));
+  lines.push("## Research questions and findings", "");
+  valid.forEach((r,i) => {
+    lines.push(`### ${i+1}. ${r.type === "media_analysis" ? "Media analysis" : "Publication research"}`, "",
+      `**Question:** ${reportPlain(r.question)}`, "", "**Findings:**", "", reportPlain(r.answer) || "No answer recorded", "");
+    if (r.sources?.length) {
+      lines.push("**Supporting source(s):**", "");
+      r.sources.forEach(s => {
+        lines.push(`- ${reportSourceDescription(s)}`);
+        if (s.caption) lines.push(`  - Caption: ${reportPlain(s.caption)}`);
+        if (s.image_url && /^https?:\/\//i.test(s.image_url)) lines.push(`  - Original media: ${s.image_url}`);
+      }); lines.push("");
+    }
+    if (r.csv?.available) lines.push(`**Extracted data:** ${r.csv.row_count} rows; CSV: ${r.csv.filename || "available in chat"}. The CSV file must be downloaded separately.`, "");
+    if (r.media?.estimated) lines.push("**Uncertainty:** Figure-derived numerical readings are approximate and require verification against the original source.", "");
+    if (r.strategy && /^deepseek_fallback:/i.test(r.strategy)) lines.push("**Model:** Backup research model used because the primary model was unavailable.", "");
+  });
+  lines.push("## Source inventory", "");
+  if (sources.length) sources.forEach((s,i)=>lines.push(`${i+1}. ${reportSourceDescription(s)}`));
+  else lines.push("Source details were not available in the recorded exchange metadata.");
+  lines.push("", "## Limitations", "", "- Source descriptions and scientific claims reflect the stored chat responses; verify them against the original papers.",
+    "- The summary excludes failed requests and clarification-only turns.",
+    "- Source images and CSV attachments are referenced, not embedded. Download CSV files separately.",
+    "- This session's records are not retained after a page reload.", "");
+  return lines.join("\n");
+}
+function downloadResearchSummary() {
+  const content = buildResearchSummaryMarkdown(researchRecords);
+  if (!content) {
+    window.alert("No completed research answers to summarize yet. Ask a publication or media question first.");
+    return;
+  }
+  const blob = new Blob([content], {type:"text/markdown;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `WaterScopeAI-Research-Summary-${new Date().toISOString().slice(0,10)}.md`;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
 let agentProcessing = false;
 let pendingMediaPaper = null;
 let pendingMediaExport = false;
@@ -2199,6 +2267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   document.getElementById("clear-agent-chat").addEventListener("click", clearAgentChat);
   document.getElementById("export-research-records")?.addEventListener("click", exportResearchRecords);
+  document.getElementById("download-research-summary")?.addEventListener("click", downloadResearchSummary);
   document.querySelectorAll(".suggestion-chip").forEach((button) => {
     button.addEventListener("click", () => {
       document.getElementById("agent-user-input").value = button.dataset.prompt;
