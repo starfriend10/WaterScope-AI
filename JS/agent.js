@@ -1431,32 +1431,63 @@ function mediaLabelFromText(text) {
   return { kind, number, displayLabel: `${kind === "table" ? "Table" : "Figure"} ${number}` };
 }
 
-// Resolve a follow-up against the LAST successfully analyzed media item, not an
-// arbitrary paper/table. Never use stale context if another paper is selected.
-function resolveImplicitMediaReference(question) {
-  const q = String(question || "");
-  const named = q.match(/\b(?:the|this|that|same|previous|above|last|earlier)\s+(?:(?:same|above|previous|last|earlier|published|original|selected|analyzed|analysed|current|extracted)\s+){0,2}(table|figure|fig\.?|chart|plot|diagram)\b/i);
-  const impliesDataExport = mediaQuestionRequestsCsv(q);
-  const usesPronoun = impliesDataExport && /\b(?:it|them|these|those)\b/i.test(q);
-  const shortFollowup = /^(?:how about|what about|and (?:the |its )?|what(?:'s| is| are) (?:the |its )?|does it|can you (?:also )?(?:show|explain|compare|tell))\b/i.test(q.trim())
-    && q.trim().length <= 150;
-  if (!named && !usesPronoun && !shortFollowup) return { referenced: false, context: null };
+// Hybrid source routing: explicit numbered source > unambiguous active source >
+// clarification. Do not let unrelated paper-level research requests inherit media.
+function mediaReferencesInQuestion(question) {
+  const refs = [];
+  const re = /\b(table|figure|fig\.?)[\s_.:#-]*0*(\d+)\b/ig;
+  for (const match of String(question || "").matchAll(re)) {
+    const kind = match[1].toLowerCase() === "table" ? "table" : "figure";
+    const number = Number(match[2]);
+    if (Number.isSafeInteger(number) && number > 0 &&
+        !refs.some(ref => ref.kind === kind && ref.number === number)) {
+      refs.push({kind, number, displayLabel: `${kind === "table" ? "Table" : "Figure"} ${number}`});
+    }
+  }
+  return refs;
+}
 
-  const previous = lastMediaContext;
-  if (!previous) return { referenced: true, context: null };
+function mediaRoutingIntent(question) {
+  const q = String(question || "").trim();
+  const refs = mediaReferencesInQuestion(q);
+  if (refs.length) return {intent: true, explicit: refs, followup: false, referencedKind: null};
+  // Requests about the entire publication stay in the regular research agent.
+  if (/\b(?:paper|publication|article|study|literature|methodology|abstract)\b/i.test(q) &&
+      !/\b(?:table|figure|fig\.?|chart|plot|diagram)\b/i.test(q)) {
+    return {intent: false, explicit: [], followup: false, referencedKind: null};
+  }
+  const pluralSources = /\b(?:figures|tables|charts|plots|diagrams)\b/i.test(q);
+  const named = q.match(/\b(?:the|this|that|same|previous|above|last|earlier)\s+(?:(?:same|above|previous|last|earlier|published|original|selected|analyzed|analysed|current|extracted)\s+){0,2}(table|figure|fig\.?|chart|plot|diagram)\b/i);
   const namedKind = named ? (named[1].toLowerCase() === "table" ? "table" : "figure") : null;
-  if (namedKind && namedKind !== previous.kind) return { referenced: true, context: null };
+  const exportRequest = mediaQuestionRequestsCsv(q);
+  const shortExport = exportRequest && /^(?:(?:please|can you|could you|would you)\s+)?(?:extract|download|export|digitize|transcribe|save|give me|provide|show)\b/i.test(q) && q.length <= 145;
+  const shortFollowup = /^(?:how about|what about|and (?:the |its )?|what(?:'s| is| are) (?:the |its )?|does it|can you (?:also )?(?:show|explain|compare|tell))\b/i.test(q) && q.length <= 150;
+  const refersToPrior = exportRequest && /\b(?:it|them|these|those|this|that)\b/i.test(q);
+  const genericShortFollowup = /^(?:summarize|explain|interpret|describe)\s+(?:it|this|that|them|these)(?:[.!?]|$)/i.test(q);
+  const intent = pluralSources || !!named || shortExport || ((shortFollowup || refersToPrior || genericShortFollowup) && !!lastMediaContext);
+  return {intent, explicit: [], followup: intent && !pluralSources, referencedKind: namedKind, multipleUnspecified: pluralSources};
+}
+
+function matchingLastMediaContext(intent) {
+  const previous = lastMediaContext;
+  if (!intent.followup || !previous) return null;
+  if (intent.referencedKind && intent.referencedKind !== previous.kind) return null;
   const selected = [...selectedDocumentIds];
-  if (selected.length > 1) return { referenced: true, context: null };
-  if (selected.length === 1 && String(selected[0]) !== String(previous.paper?.document_id)) {
-    return { referenced: true, context: null };
-  }
-  // Details may have moved to another paper when no paper is selected.
+  if (selected.length > 1) return null;
+  if (selected.length === 1 && String(selected[0]) !== String(previous.paper?.document_id)) return null;
   if (selected.length === 0 && activeMediaDetailsPaper &&
-      String(activeMediaDetailsPaper.document_id) !== String(previous.paper?.document_id)) {
-    return { referenced: true, context: null };
+      String(activeMediaDetailsPaper.document_id) !== String(previous.paper?.document_id)) return null;
+  return previous;
+}
+
+function mediaClarificationText(intent) {
+  if (intent.multipleUnspecified) return "Which figures or tables do you want to analyze? Please specify their numbers. For now, analyze one source at a time.";
+  if (intent.explicit.length > 1) {
+    return `Which source should I analyze: ${intent.explicit.map(ref => ref.displayLabel).join(" or ")}? Please specify one figure or table.`;
   }
-  return { referenced: true, context: previous };
+  if (intent.referencedKind === "table") return "Which table do you mean? Please specify its number, such as Table 1.";
+  if (intent.referencedKind === "figure") return "Which figure do you mean? Please specify its number, such as Figure 7.";
+  return "Which figure or table should I analyze? Please specify its number, or use Analyze & CSV in the media gallery.";
 }
 
 function validatedMediaSource(payload, question) {
@@ -1722,9 +1753,9 @@ async function sendAgentMessage() {
   const documentIds = [...selectedDocumentIds];
   const agentMode = document.getElementById("agent-mode").checked;
   const agentDiscovery = agentMode && documentIds.length === 0;
-  // Any direct question referring to a numbered Figure/Table should use the
-  // image-grounded media pathway, not the text-only Llama workflow.
-  const mentionsNumberedMedia = /\b(?:figure|fig\.?|table)\s*[#:. -]*\d+\b/i.test(visibleMessage);
+  const routing = pendingMediaPaper
+    ? {intent: true, explicit: mediaReferencesInQuestion(visibleMessage), followup: false, referencedKind: null}
+    : mediaRoutingIntent(visibleMessage);
   const selectedMediaPaper = documentIds.length === 1
     ? resolveMediaPublication(
         searchResults.find(paper => String(paper.document_id) === String(documentIds[0]))
@@ -1735,25 +1766,23 @@ async function sendAgentMessage() {
         || [...papersById.values()].find(paper => String(paper.document_id) === String(documentIds[0]))
       )
     : null;
-  const followup = (!mentionsNumberedMedia && !pendingMediaPaper)
-    ? resolveImplicitMediaReference(visibleMessage)
-    : { referenced: false, context: null };
-  const mediaPaper = resolveMediaPublication(pendingMediaPaper || (mentionsNumberedMedia
-    ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null))
-    : followup.context?.paper || null));
-  const mediaContextMissing = (mentionsNumberedMedia || followup.referenced) && !mediaPaper;
-  const mediaIntent = mentionsNumberedMedia || followup.referenced || !!pendingMediaPaper;
-  // Keep the user's message unchanged in chat; only add the resolved referent to
-  // the server-bound question (which needs a numbered figure/table).
-  // The backend searches the entire question for numbered media labels. Give it
-  // exactly the resolved referent—never add unrelated Figure/Table examples.
-  const mediaQuestion = followup.context
-    ? `Regarding ${followup.context.displayLabel}, continue the previous discussion about this same source. User follow-up: ${visibleMessage}`
+  const activeFollowup = matchingLastMediaContext(routing);
+  const mediaPaper = resolveMediaPublication(pendingMediaPaper ||
+    (routing.explicit.length === 1
+      ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null))
+      : activeFollowup?.paper || null));
+  const needsClarification = routing.intent && !pendingMediaPaper &&
+    (routing.explicit.length > 1 || routing.multipleUnspecified || !mediaPaper);
+  const mediaIntent = routing.intent;
+  // Backend media selection reads numbered references from the question. For
+  // contextual follow-ups, add exactly the resolved single label (no examples).
+  const mediaQuestion = activeFollowup && routing.explicit.length === 0
+    ? `Regarding ${activeFollowup.displayLabel}: ${visibleMessage}`
     : visibleMessage;
   const mediaExportCsv = pendingMediaExport || mediaQuestionRequestsCsv(visibleMessage);
   pendingMediaPaper = null;
   pendingMediaExport = false;
-  const isMediaRequest = !!mediaPaper;
+  const isMediaRequest = mediaIntent && !!mediaPaper && !needsClarification;
 
   addAgentMessage(visibleMessage, "user");
   input.value = "";
@@ -1769,12 +1798,13 @@ async function sendAgentMessage() {
 
   try {
     let payload;
-    if (mediaContextMissing) {
-      throw new Error(documentIds.length > 1
-        ? "Select just one paper for Figure/Table analysis, then retry."
-        : followup.referenced
-          ? "I can't identify which figure or table you mean. Please specify its number, for example 'Table 1'."
-          : "Select one publication or open its Details/media gallery before asking about a numbered figure or table.");
+    if (needsClarification) {
+      const reply = mediaClarificationText(routing);
+      addAgentMessage(reply, "assistant");
+      agentConversation.push({role: "user", content: visibleMessage});
+      agentConversation.push({role: "assistant", content: reply});
+      finishModelOperationStatus("Clarification needed", "status-ready", "media");
+      return;
     }
     if (isMediaRequest) {
       payload = await sendMediaAnalysis(mediaQuestion, mediaPaper, mediaExportCsv);
