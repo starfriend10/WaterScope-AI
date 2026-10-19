@@ -29,6 +29,7 @@ let activeMediaDetailsPaper = null;
 let lastMediaContext = null;
 // Lightweight session-only dialog state for the media pathway.
 let mediaDialog = null;
+let lastRenderedMediaKey = null;
 let activeModelDisplay = "llama";
 let mediaOperationTimer = null;
 let lastSearchQuery = "";
@@ -210,6 +211,7 @@ function clearPublicationResultsForAgentSearch() {
   activeMediaDetailsPaper = null;
   lastMediaContext = null;
   mediaDialog = null;
+  lastRenderedMediaKey = null;
   searchResults = [];
   searchResultsPage = 0;
   lastSearchQuery = "";
@@ -1455,6 +1457,13 @@ function mediaReferencesInQuestion(question) {
 function mediaRoutingIntent(question) {
   const q = String(question || "").trim();
   const refs = mediaReferencesInQuestion(q);
+  if (!refs.length && /\b(?:selected papers?|whole paper|entire paper|all papers|the publication|the article|literature review)\b/i.test(q)) {
+    return {intent: false, explicit: [], followup: false, referencedKind: null};
+  }
+  if (!refs.length && lastMediaContext && /\b(?:research gaps?|knowledge gaps?|future research|main findings|summar(?:y|ize)|limitations?|methodology|research methods?)\b/i.test(q) &&
+      !/\b(?:of|in|from|about|for)\s+(?:this|that|the)?\s*(?:figure|fig\.?|table|plot|chart)\b/i.test(q)) {
+    return {intent: true, explicit: [], followup: true, referencedKind: null, scopeClarification: true};
+  }
   if (refs.length) return {intent: true, explicit: refs, followup: false, referencedKind: null};
   // Whole-paper and unrelated tasks must never be hijacked by an active figure.
   if (/\b(?:paper|publication|article|study|literature|methodology|abstract|entire document|whole document)\b/i.test(q) &&
@@ -1621,7 +1630,22 @@ function cleanPublicMediaAnswer(value) {
   text = text.replace(/\(\s*Source\s*\d+\s*;?\s*paper_id\s*=\s*[^);\s]+\s*;?\s*label\s*=\s*[^)]+\)/gi, "");
   text = text.replace(/\(\s*paper(?:_id)?\s*[:= ]\s*\d+\s*[,;]\s*label\s*[:= ]\s*(?:table|figure|fig)[_.-]0*\d+\s*\)/gi, "");
   text = text.replace(/\bSource\s*\d+\s*;\s*paper_id\s*=\s*[^;\s]+\s*;\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+\b/gi, "");
+  text = text.replace(/\(\s*(?:source\s*\d+\s*[,;:]?\s*)?paper_id\s*=\s*\d+\s*[,;]\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+(?:\s*[,;]\s*p\.?\s*\d+)?\s*\)/gi, "");
+  text = text.replace(/\bpaper_id\s*=\s*\d+\s*[,;]\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+\b/gi, "");
   return text.replace(/\s+([,;:.])/g, "$1").trim();
+}
+function appendSafeInlineMarkdown(node, text) {
+  const pattern = /(\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|`([^`\n]+)`)/g;
+  let last = 0, match;
+  while ((match = pattern.exec(String(text))) !== null) {
+    if (match.index > last) node.appendChild(document.createTextNode(text.slice(last, match.index)));
+    const tag = match[2] != null ? "strong" : match[3] != null ? "em" : "code";
+    const span = document.createElement(tag);
+    span.textContent = match[2] ?? match[3] ?? match[4];
+    node.appendChild(span);
+    last = pattern.lastIndex;
+  }
+  if (last < text.length) node.appendChild(document.createTextNode(text.slice(last)));
 }
 function renderMediaAnswerInto(container, rawAnswer) {
   const lines = cleanPublicMediaAnswer(rawAnswer).split(/\r?\n/);
@@ -1632,7 +1656,7 @@ function renderMediaAnswerInto(container, rawAnswer) {
     if (!paragraph.length) return;
     const p = document.createElement("p");
     p.className = "media-answer-paragraph";
-    p.textContent = paragraph.join(" ").trim();
+    appendSafeInlineMarkdown(p, paragraph.join(" ").trim());
     container.appendChild(p); paragraph = [];
   };
   for (let i = 0; i < lines.length;) {
@@ -1641,12 +1665,12 @@ function renderMediaAnswerInto(container, rawAnswer) {
       const headers = parseCells(lines[i]);
       const table = document.createElement("table"); table.className = "media-answer-table";
       const thead = document.createElement("thead"), headRow = document.createElement("tr");
-      headers.forEach(h => { const th=document.createElement("th"); th.textContent=h; headRow.appendChild(th); });
+      headers.forEach(h => { const th=document.createElement("th"); appendSafeInlineMarkdown(th,h); headRow.appendChild(th); });
       thead.appendChild(headRow);table.appendChild(thead);
       const tbody=document.createElement("tbody"); i+=2;
       while (i < lines.length && lines[i].trim().startsWith("|") && lines[i].includes("|")) {
         const cells=parseCells(lines[i]); if (cells.length !== headers.length) break;
-        const row=document.createElement("tr"); cells.forEach(c => { const td=document.createElement("td");td.textContent=c;row.appendChild(td); });
+        const row=document.createElement("tr"); cells.forEach(c => { const td=document.createElement("td");appendSafeInlineMarkdown(td,c);row.appendChild(td); });
         tbody.appendChild(row);i++;
       }
       table.appendChild(tbody);
@@ -1654,12 +1678,27 @@ function renderMediaAnswerInto(container, rawAnswer) {
       continue;
     }
     if (!lines[i].trim()) { flush();i++;continue; }
+    if (/^\s*#{1,4}\s+/.test(lines[i])) {
+      flush();
+      const heading = document.createElement("div");
+      heading.className = "media-answer-heading";
+      appendSafeInlineMarkdown(heading, lines[i].replace(/^\s*#{1,4}\s+/, ""));
+      container.appendChild(heading); i++; continue;
+    }
+    if (/^\s*[-*]\s+/.test(lines[i])) {
+      flush(); const list = document.createElement("ul");list.className="media-answer-list";
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+        const item=document.createElement("li"); appendSafeInlineMarkdown(item, lines[i].replace(/^\s*[-*]\s+/, ""));
+        list.appendChild(item);i++;
+      }
+      container.appendChild(list);continue;
+    }
     paragraph.push(lines[i].trim());i++;
   }
   flush();
 }
 
-function appendMediaAnalysisResult(payload) {
+function appendMediaAnalysisResult(payload, {repeatSource=false} = {}) {
   const container = document.getElementById("agent-chat-messages");
   if (!container) return;
   const sources = Array.isArray(payload?.sources) ? payload.sources :
@@ -1689,7 +1728,7 @@ function appendMediaAnalysisResult(payload) {
   content.appendChild(header);
 
   const mediaUrl = resolveApiUrl(source.image_url);
-  if (mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
+  if (!repeatSource && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
     const mediaButton = document.createElement("button");
     mediaButton.type = "button";
     mediaButton.className = "media-result-image-button";
@@ -1703,7 +1742,7 @@ function appendMediaAnalysisResult(payload) {
     content.appendChild(mediaButton);
   }
 
-  if (source.caption) {
+  if (!repeatSource && source.caption) {
     const caption = document.createElement("p");
     caption.className = "media-result-caption";
     caption.textContent = String(source.caption);
@@ -1711,7 +1750,7 @@ function appendMediaAnalysisResult(payload) {
   }
   const attribution = [source.paper_title || source.paper_key, source.page != null ? `Page ${source.page}` : ""]
     .filter(Boolean).join(" · ");
-  if (attribution) {
+  if (!repeatSource && attribution) {
     const cite = document.createElement("div");
     cite.className = "media-result-source";
     cite.textContent = `Source: ${attribution}`;
@@ -1797,7 +1836,7 @@ async function sendAgentMessage() {
       : activeFollowup?.paper || null));
   const assentAction = routing.assent && activeFollowup ? mediaAssentAction(visibleMessage) : null;
   const needsClarification = routing.intent && !pendingMediaPaper &&
-    (routing.explicit.length > 1 || routing.multipleUnspecified || !mediaPaper ||
+    (routing.explicit.length > 1 || routing.multipleUnspecified || routing.scopeClarification || !mediaPaper ||
      assentAction === "clarify" || (routing.assent && /^no\b/i.test(visibleMessage)));
   const mediaIntent = routing.intent;
   // Backend media selection reads numbered references from the question. For
@@ -1839,7 +1878,9 @@ async function sendAgentMessage() {
   try {
     let payload;
     if (needsClarification) {
-      const reply = assentAction === "clarify"
+      const reply = routing.scopeClarification
+        ? `Would you like me to discuss ${visibleMessage.toLowerCase().includes("gap") ? "research gaps" : "the question"} in the selected publication or discuss what ${lastMediaContext?.displayLabel || "the current figure"} shows? Please specify “the paper” or “the figure/table”.`
+        : assentAction === "clarify"
         ? "Certainly. What would you like me to do with the current figure or table—explain it further, extract the data as CSV, or change the presentation?"
         : routing.assent && /^no\b/i.test(visibleMessage)
           ? "Understood. What would you like to explore next?"
@@ -1854,10 +1895,14 @@ async function sendAgentMessage() {
     if (isMediaRequest) {
       payload = await sendMediaAnalysis(mediaQuestion, mediaPaper, mediaExportCsv);
       validatedMediaSource(payload, mediaQuestion);
+      const matched = validatedMediaSource(payload, mediaQuestion);
+      const mediaKey = `${String(mediaPaper.document_id)}:${matched.kind}:${matched.number}`;
+      const repeatSource = mediaKey === lastRenderedMediaKey;
       rememberMediaResult(payload, mediaPaper, mediaQuestion);
       agentConversation.push({ role: "user", content: visibleMessage });
       agentConversation.push({ role: "assistant", content: payload.answer || "" });
-      appendMediaAnalysisResult(payload);
+      appendMediaAnalysisResult(payload, {repeatSource});
+      lastRenderedMediaKey = mediaKey;
       finishModelOperationStatus("Processed", "status-ready", "media");
       return;
     } else if (documentIds.length > 0) {
@@ -1878,6 +1923,9 @@ async function sendAgentMessage() {
     agentConversation.push({ role: "user", content: visibleMessage });
     agentConversation.push({ role: "assistant", content: payload.answer });
     addAgentMessage(payload.answer || "No response generated.", "assistant", { html: true });
+    if (String(payload.strategy || "").startsWith("deepseek_fallback:")) {
+      addAgentMessage("Research answer generated using the fallback model because Llama was unavailable.", "assistant");
+    }
     if (payload.agent_mode && !payload.discovery_mode && (payload.selected_papers || payload.sources)?.length) {
       addSelectedPapersPanel(payload.selected_papers || payload.sources);
     }
@@ -1917,6 +1965,7 @@ function clearAgentChat() {
   agentConversation = [];
   lastMediaContext = null;
   mediaDialog = null;
+  lastRenderedMediaKey = null;
   document.getElementById("agent-chat-messages").innerHTML = `
     <div class="message bot-message"><div class="message-content"><p>Chat cleared. Search and select papers for retrieval-grounded chat, or ask a general question.</p></div></div>`;
 }
