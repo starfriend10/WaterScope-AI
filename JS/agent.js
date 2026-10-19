@@ -7,11 +7,11 @@ const MAX_SELECT = 4;
 const RESEARCH_TASKS = [
   { value: "auto", label: "Auto-detect task", minPapers: 0 },
   { value: "general_qa", label: "General environmental QA", minPapers: 0 },
-  { value: "document_qa", label: "Document-grounded QA", minPapers: 1 },
+  { value: "document_qa", label: "Document QA", minPapers: 1 },
   { value: "paper_synthesis", label: "Multi-paper synthesis", minPapers: 2 },
   { value: "method_recommendation", label: "Method recommendation", minPapers: 0 },
-  { value: "research_gaps", label: "Research-gap identification", minPapers: 1 },
-  { value: "claim_check", label: "Unsupported-claim check", minPapers: 1 },
+  { value: "research_gaps", label: "Research gaps", minPapers: 1 },
+  { value: "claim_check", label: "Claim verification", minPapers: 1 },
 ];
 
 let agentApp = null;
@@ -1440,7 +1440,7 @@ function updateResearchTaskOptions() {
   select.innerHTML = RESEARCH_TASKS.map((task) => {
     const disabled = paperCount < task.minPapers;
     const requirement =
-      task.minPapers === 1 ? " (select a paper)" : task.minPapers === 2 ? " (select 2+ papers)" : "";
+      "";
     return `<option value="${task.value}" ${disabled ? "disabled" : ""}>${task.label}${disabled ? requirement : ""}</option>`;
   }).join("");
 
