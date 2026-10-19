@@ -1486,7 +1486,7 @@ function renderSelectedPublications() {
   document.getElementById("chat-context-description").textContent = count
     ? `Grounded in ${count} selected paper${count === 1 ? "" : "s"}`
     : document.getElementById("agent-mode").checked
-      ? "Agent mode — automatic search when no papers are selected"
+      ? "Agent mode — automatic search"
       : "General chat mode (HF Space)";
   updateAgentSelectionNotice();
   updateResearchTaskOptions();
