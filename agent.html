@@ -73,6 +73,16 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
   .agent-intro { flex-direction: column !important; align-items: stretch !important; }
   .agent-intro .agent-status { width: 100%; }
 }
+
+/* V9: Safe readable scientific tables in media answers */
+.media-result-summary{white-space:normal}
+.media-answer-paragraph{margin:6px 0 10px;white-space:pre-wrap}
+.media-answer-table-wrap{overflow-x:auto;max-width:100%;margin:10px 0 14px}
+.media-answer-table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.45}
+.media-answer-table th,.media-answer-table td{padding:8px 11px;border-bottom:1px solid #dce5eb;text-align:left;vertical-align:top}
+.media-answer-table thead{background:#f2f7fa;color:#173d57}
+.media-answer-table tbody tr:nth-child(even){background:#fafcfd}
+
 </style></head>
 <body>
 <div class="container">
@@ -295,7 +305,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261018-media8"></script>
+<script src="JS/agent.js?v=20261018-media9"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
