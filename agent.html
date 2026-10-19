@@ -115,12 +115,12 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 @media(max-width:640px){ .agent-chat-toolbar.v17-compact-toolbar { grid-template-columns:minmax(0,1fr) auto; } }
 .agent-input-container.v17-composer {display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:8px !important;}
 .agent-input-container.v17-composer #agent-user-input {width:100% !important;flex:none !important;box-sizing:border-box;min-height:58px;resize:vertical;}
-.v17-composer-actions {display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:7px;min-width:0;}
+.v17-composer-actions {display:flex;flex-wrap:nowrap;justify-content:flex-end;align-items:center;gap:7px;min-width:0;}
 .v17-composer-actions #send-agent-message{margin-right:auto;}
 .report-scope-label{display:flex;align-items:center;gap:5px;font-size:11px;color:#516776;white-space:nowrap;}
 .report-scope-label select{max-width:125px;padding:7px 3px;border:1px solid #cedae1;border-radius:6px;background:#fff;color:#172c40;font-size:11px;}
-.v17-composer-actions button {white-space:nowrap;min-width:0;}
-@media (max-width: 640px) {.v17-composer-actions {flex-wrap:wrap}.v17-composer-actions button {white-space:normal}}
+.v17-composer-actions button {white-space:nowrap;min-width:0;padding:9px 8px;font-size:12px;}
+@media (max-width: 920px) {.v17-composer-actions {flex-wrap:wrap}.v17-composer-actions button {white-space:normal}}
 </style></head>
 <body>
 <div class="container">
@@ -275,10 +275,9 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <textarea id="agent-user-input" placeholder="Ask a question..." rows="2"></textarea>
 <div class="v17-composer-actions">
 <button type="button" class="btn-primary" id="send-agent-message"><i class="fas fa-paper-plane"></i> Send</button>
-<label class="report-scope-label" for="research-export-scope">Export scope <select id="research-export-scope"><option value="all">Entire session</option><option value="selected">Selected papers</option></select></label>
-<button type="button" id="export-research-records" class="btn-secondary" title="Download structured session records (JSON)">Export records (JSON)</button>
-<button type="button" id="download-research-summary" class="btn-secondary" title="Download a source-linked summary of this conversation"><i class="fas fa-file-arrow-down"></i> Research Summary</button>
-<button type="button" id="download-research-report" class="btn-secondary" title="Generate a source-linked printable HTML research report"><i class="fas fa-file-lines"></i> Research Report</button>
+<button type="button" id="export-research-records" class="btn-secondary" title="Download structured session records (JSON)">Session Data (JSON)</button>
+<button type="button" id="download-research-summary" class="btn-secondary" title="Download a source-linked summary of this conversation"><i class="fas fa-file-arrow-down"></i> Brief Summary</button>
+<button type="button" id="download-research-report" class="btn-secondary" title="Generate a source-linked printable HTML research report"><i class="fas fa-file-lines"></i> Full Report</button>
 <button type="button" class="btn-secondary" id="clear-agent-chat"><i class="fas fa-broom"></i> Clear</button>
 </div>
 </div>
@@ -349,7 +348,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261019-report18-2"></script>
+<script src="JS/agent.js?v=20261019-report18-3"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
