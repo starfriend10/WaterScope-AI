@@ -91,6 +91,24 @@ function completeResearchRecords() {
   return researchRecords.filter(r => r && r.status === "completed" &&
     (r.type === "media_analysis" || r.type === "research_chat") && reportPlain(r.answer));
 }
+function resolveReportPaperIds(records) {
+  const known = [...searchResults, ...savedRenderItems, ...savedPapers, ...papersById.values()];
+  const ids = new Set();
+  for (const record of records) for (const source of (record.sources || [])) {
+    const requestedId = source.document_id == null ? "" : String(source.document_id);
+    const title = simplifyPublicationTitle(source.title || "");
+    // Prefer a validated title match where the media backend supplied a
+    // separate internal paper ID rather than the frontend document ID.
+    const matched = known.filter(p => {
+      const pt = simplifyPublicationTitle(p.title || p.paper_title || "");
+      return title.length >= 12 && pt && (pt === title || pt.includes(title) || title.includes(pt));
+    });
+    const uniqueIds = [...new Set(matched.map(p => String(p.document_id)).filter(x => x !== 'undefined'))];
+    if (uniqueIds.length === 1) ids.add(uniqueIds[0]);
+    else if (requestedId && known.some(p => String(p.document_id) === requestedId)) ids.add(requestedId);
+  }
+  return [...ids];
+}
 function researchSummaryPrompt(records) {
   const excerpts = records.slice(-24).map((r,i) => ({
     number:i+1, question: reportPlain(r.question).slice(0,400),
@@ -112,14 +130,9 @@ async function downloadResearchSummary() {
   const records = completeResearchRecords();
   if (!records.length) {window.alert("No completed research answers yet. Ask a question first.");return;}
   if (agentProcessing) {window.alert("Please wait for the current request to finish.");return;}
-  const paperIds = [...new Set(records.flatMap(r=>(r.sources||[]).map(s=>s.document_id)
-    .filter(id=>id != null).map(String)))];
-  const selected = [...selectedDocumentIds].map(String);
-  // /api/chat uses publication retrieval. For a genuinely grounded synthesis,
-  // require the recorded sources to fit the supported selected-paper context.
-  if (!paperIds.length || paperIds.length > MAX_SELECT ||
-      paperIds.some(id=>!selected.includes(id))) {
-    window.alert("To synthesize this session, please select the publication(s) represented in the recorded research findings (up to four), then retry. Your session records remain available as JSON.");
+  const paperIds = resolveReportPaperIds(records);
+  if (!paperIds.length || paperIds.length > MAX_SELECT) {
+    window.alert("The session requires one to four identifiable source publications for a grounded synthesis. Please select the relevant papers or start a new focused session. Session records remain available as JSON.");
     return;
   }
   const button=document.getElementById("download-research-summary");
@@ -144,6 +157,92 @@ async function downloadResearchSummary() {
   } finally {
     agentProcessing=false;
     if(button){button.disabled=false;button.innerHTML=button.dataset.originalText||"Research Summary";}
+  }
+}
+
+
+// V18: print-friendly, source-linked research report from V16 records.
+// External source images remain linked; report does not claim unverified numerical accuracy.
+function v18SafeHttpUrl(value) {
+  try {
+    const url = new URL(resolveApiUrl(String(value || "")), location.href);
+    return /^https?:$/.test(url.protocol) ? url.href : "";
+  } catch (_) { return ""; }
+}
+function v18ReportTextToHtml(text) {
+  // Safe, intentionally minimal Markdown conversion. All model text is escaped first.
+  const lines = reportPlain(text).split(/\n/);
+  let list = false;
+  const output = [];
+  const inline = value => escapeHTML(value)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+  const endList = () => { if (list) { output.push("</ul>"); list = false; } };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { endList(); continue; }
+    const heading = /^(#{1,4})\s+(.+)$/.exec(trimmed);
+    if (heading) { endList(); const level = Math.min(4, heading[1].length + 1); output.push(`<h${level}>${inline(heading[2])}</h${level}>`); continue; }
+    const bullet = /^[-*]\s+(.+)$/.exec(trimmed);
+    if (bullet) { if (!list) { output.push("<ul>"); list = true; } output.push(`<li>${inline(bullet[1])}</li>`); continue; }
+    endList(); output.push(`<p>${inline(trimmed)}</p>`);
+  }
+  endList();
+  return output.join("\n");
+}
+function v18ReportHtml(synthesis, records, sources) {
+  const timestamp = new Date().toLocaleString();
+  const items = sources.map((source, i) => {
+    const doi = reportPlain(source.doi).replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, "");
+    const doiUrl = doi && /^10\.\d{4,9}\//.test(doi) ? `https://doi.org/${encodeURIComponent(doi).replace(/%2F/i,"/")}` : "";
+    const label = reportSourceDescription(source);
+    return `<li>${escapeHTML(label)}${doiUrl ? ` · <a href="${escapeHTML(doiUrl)}">DOI</a>` : ""}</li>`;
+  }).join("\n");
+  const mediaItems = [];
+  const seen = new Set();
+  for (const r of records) for (const src of r.sources || []) {
+    if (!src.media_label || !src.image_url) continue;
+    const key = `${src.paper_key || src.title}:${src.media_label}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const url = v18SafeHttpUrl(src.image_url);
+    if (!url) continue;
+    const kind = String(src.media_kind || "media").toLowerCase();
+    const estimated = kind === "figure";
+    mediaItems.push(`<figure><img loading="lazy" src="${escapeHTML(url)}" alt="${escapeHTML(src.media_label)}"/><figcaption><strong>${escapeHTML(src.media_label.replace(/_/g, " "))}</strong> — ${escapeHTML(src.caption || "Source media")}. ${escapeHTML(reportPlain(src.title))}${src.page != null ? `, p. ${escapeHTML(src.page)}` : ""}.${estimated ? " Chart-derived values, if discussed, are visual estimates." : ""} <a href="${escapeHTML(url)}">Original image</a></figcaption></figure>`);
+    if (mediaItems.length >= 20) break;
+  }
+  const datasets = records.filter(r => r.csv?.available).map(r => `<li>${escapeHTML(r.csv.filename || "Extracted dataset")} — ${Number(r.csv.row_count || 0)} row(s); ${escapeHTML(r.media?.label || "media")}. Download the actual CSV separately from the chat.</li>`).join("\n");
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WaterScope-AI Research Report</title><style>
+  :root{font-family:Arial,Helvetica,sans-serif;color:#172c40} body{max-width:920px;margin:36px auto;padding:0 28px;line-height:1.6} h1{font-size:30px;border-bottom:3px solid #376c83;padding-bottom:12px} h2{font-size:21px;margin-top:28px;border-bottom:1px solid #b7c9d2;padding-bottom:6px}h3{font-size:17px;margin-top:19px} p,li{font-size:14px} .meta{color:#516776;font-size:13px}.controls{display:flex;gap:12px;margin:15px 0 26px}.controls button{padding:10px 16px;background:#326b85;color:white;border:0;border-radius:6px;cursor:pointer}figure{break-inside:avoid;margin:20px 0;padding:12px;border:1px solid #d6e0e5;border-radius:7px}figure img{width:100%;max-height:400px;object-fit:contain}figcaption{font-size:12px;color:#4a6070}.note{background:#f1f5f7;padding:12px;border-left:4px solid #7897aa}a{color:#126184;overflow-wrap:anywhere} @media print{body{margin:0;max-width:none;padding:0}.controls{display:none}h2{break-after:avoid}figure{break-inside:avoid}a{text-decoration:none;color:#172c40}}
+  </style></head><body><div class="controls"><button onclick="window.print()">Print / Save as PDF</button></div><h1>WaterScope-AI Research Report</h1><p class="meta">Generated ${escapeHTML(timestamp)} · ${records.length} completed exchange(s) · ${sources.length} recorded source(s)</p><section><h2>Research Synthesis</h2>${v18ReportTextToHtml(synthesis)}</section><section><h2>Source Publications and Media</h2><ol>${items || "<li>Source records unavailable; verify all claims.</li>"}</ol></section>${mediaItems.length ? `<section><h2>Figures and Tables</h2><p class="meta">Original image URLs are referenced; an internet connection may be required to view them when opening this file.</p>${mediaItems.join("\n")}</section>` : ""}<section><h2>Extracted Data Inventory</h2>${datasets ? `<ul>${datasets}</ul>` : "<p>No CSV exports were recorded.</p>"}</section><section><h2>Evidence and Uncertainty</h2><p class="note">This report is an AI-assisted synthesis of research-session records and retrieved evidence. Verify scientific claims against the cited publications. Figure coordinates estimated visually are not original experimental measurements. The original CSV files are not embedded in this report.</p></section></body></html>`;
+}
+async function downloadResearchReport() {
+  const records = completeResearchRecords();
+  if (!records.length) { window.alert("No completed research answers yet. Ask a research question first."); return; }
+  if (agentProcessing) { window.alert("Please wait for the active request to finish."); return; }
+  const paperIds = resolveReportPaperIds(records);
+  if (!paperIds.length || paperIds.length > MAX_SELECT) {
+    window.alert("The report needs one to four identifiable source publications. Please use a focused research session; session records remain available as JSON."); return;
+  }
+  const button = document.getElementById("download-research-report");
+  agentProcessing = true;
+  if (button) { button.disabled = true; button.textContent = "Preparing report…"; }
+  try {
+    const model = document.getElementById("agent-model")?.value || "base";
+    const synthesisPrompt = researchSummaryPrompt(records) + "\nWrite a detailed but focused research REPORT, with sections for Overview, Methods and Evidence, Findings, Research Gaps or Implications (only if supported), and Limitations. This report must preserve the original source and uncertainty distinctions.";
+    const payload = await sendViaFlask(synthesisPrompt, paperIds, model, "document_qa", {agentMode:false});
+    const synthesis = reportPlain(payload?.answer);
+    if (!synthesis) throw new Error("The research model returned no report.");
+    const sources = [...new Map(records.flatMap(r => r.sources || []).map(s => [reportSourceDescription(s), s])).values()];
+    const html = v18ReportHtml(synthesis, records, sources);
+    downloadTextFile(html, `WaterScopeAI-Research-Report-${new Date().toISOString().slice(0,10)}.html`, "text/html;charset=utf-8");
+  } catch (error) {
+    console.error("Research report generation failed:", error);
+    window.alert(`Unable to generate research report: ${error.message}`);
+  } finally {
+    agentProcessing = false;
+    if (button) { button.disabled = false; button.innerHTML = '<i class="fas fa-file-lines"></i> Research Report'; }
   }
 }
 
@@ -1632,8 +1731,8 @@ function matchingLastMediaContext(intent) {
   if (!intent.followup || !previous) return null;
   if (intent.referencedKind && intent.referencedKind !== previous.kind) return null;
   const selected = [...selectedDocumentIds];
-  if (selected.length > 1) return null;
-  if (selected.length === 1 && String(selected[0]) !== String(previous.paper?.document_id)) return null;
+  if (selected.length > 0 && !selected.some(id =>
+      String(id) === String(previous.paper?.document_id))) return null;
   if (selected.length === 0 && activeMediaDetailsPaper &&
       String(activeMediaDetailsPaper.document_id) !== String(previous.paper?.document_id)) return null;
   return previous;
@@ -2023,7 +2122,12 @@ async function sendAgentMessage() {
   const activeFollowup = matchingLastMediaContext(routing);
   const mediaPaper = resolveMediaPublication(resolvedClarification?.paper || pendingMediaPaper ||
     (routing.explicit.length === 1
-      ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null))
+      ? (selectedMediaPaper ||
+         (lastMediaContext && lastMediaContext.kind === routing.explicit[0].kind &&
+          lastMediaContext.number === routing.explicit[0].number &&
+          documentIds.some(id => String(id) === String(lastMediaContext.paper?.document_id))
+            ? lastMediaContext.paper : null) ||
+         (documentIds.length === 0 ? activeMediaDetailsPaper : null))
       : activeFollowup?.paper || null));
   const assentAction = routing.assent && activeFollowup ? mediaAssentAction(visibleMessage) : null;
   const needsClarification = routing.intent && !pendingMediaPaper &&
@@ -2109,8 +2213,17 @@ async function sendAgentMessage() {
       const mediaSourceRecords = Array.isArray(payload?.sources) ? payload.sources :
         (Array.isArray(payload?.source_identifiers) ? payload.source_identifiers : []);
       const mediaAttachment = payload?.csv_attachment;
+      // Model source IDs are not always the search document IDs. Associate
+      // the validated media result with the selected publication for reports.
+      const reportMediaSources = mediaSourceRecords.map(source => ({
+        ...source,
+        document_id: mediaPaper.document_id,
+        paper_title: mediaPaper.title || mediaPaper.paper_title || source.paper_title || source.paper_key,
+        year: mediaPaper.year || source.year,
+        doi: mediaPaper.doi || source.doi
+      }));
       recordResearchExchange({question: visibleMessage, answer: cleanPublicMediaAnswer(payload.answer || ""),
-        type: "media_analysis", scope: "media", sources: mediaSourceRecords,
+        type: "media_analysis", scope: "media", sources: reportMediaSources,
         model: payload?.model || payload?.model_used || null,
         strategy: payload?.strategy || null,
         media: {kind: matched.kind, label: matched.displayLabel,
@@ -2336,6 +2449,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("clear-agent-chat").addEventListener("click", clearAgentChat);
   document.getElementById("export-research-records")?.addEventListener("click", exportResearchRecords);
   document.getElementById("download-research-summary")?.addEventListener("click", downloadResearchSummary);
+  document.getElementById("download-research-report")?.addEventListener("click", downloadResearchReport);
   document.querySelectorAll(".suggestion-chip").forEach((button) => {
     button.addEventListener("click", () => {
       document.getElementById("agent-user-input").value = button.dataset.prompt;
