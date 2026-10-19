@@ -161,6 +161,42 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
   .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .task-selector {grid-column:2;grid-row:1;}
   .agent-chat-toolbar.v17-compact-toolbar .agent-selectors select {width:100%;min-width:0;}
 }
+
+/* V18.3.4: one actual grid row; prevent the nested settings wrapper
+   from creating a second row. Keep selectors' IDs and values intact. */
+@media (min-width: 1100px) {
+  .agent-chat-toolbar.v17-compact-toolbar {
+    display:grid !important;
+    grid-template-columns:minmax(170px,1fr) 86px 150px 104px 24px !important;
+    grid-template-rows:auto !important;
+    align-items:center !important;
+    gap:8px !important;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar > .agent-heading-block {
+    grid-column:1 !important; grid-row:1 !important; align-self:center;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar > .agent-selectors {
+    display:contents !important;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors > .model-selector:not(.task-selector):not(.agent-mode-toggle) {
+    grid-column:2 !important; grid-row:1 !important;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors > .task-selector {
+    grid-column:3 !important; grid-row:1 !important;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors > .agent-mode-toggle {
+    grid-column:4 !important; grid-row:1 !important;
+    width:auto !important; flex-basis:auto !important;
+    align-self:center !important; justify-self:start !important;
+    padding:15px 0 0 !important; white-space:nowrap;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar > .panel-corner-control {
+    grid-column:5 !important; grid-row:1 !important;
+    justify-self:end !important;
+  }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors .model-selector { width:100% !important; min-width:0 !important; }
+  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors select { width:100% !important; min-width:0 !important; }
+}
 </style></head>
 <body>
 <div class="container">
@@ -388,7 +424,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261019-report18-3-3"></script>
+<script src="JS/agent.js?v=20261019-report18-3-4"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
