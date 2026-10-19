@@ -85,6 +85,17 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 .media-answer-table thead{background:#f2f7fa;color:#173d57}
 .media-answer-table tbody tr:nth-child(even){background:#fafcfd}
 
+/* V17 desktop: balanced research panes and full-width chat composer */
+@media (min-width: 960px) {
+  #agent-workspace.agent-workspace {display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:14px !important;}
+  #agent-workspace:not(.publications-expanded):not(.agent-expanded) > .publication-panel,
+  #agent-workspace:not(.publications-expanded):not(.agent-expanded) > .agent-chat-panel {width:auto !important;min-width:0 !important;max-width:none !important;flex:initial !important;}
+}
+.agent-input-container.v17-composer {display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:8px !important;}
+.agent-input-container.v17-composer #agent-user-input {width:100% !important;flex:none !important;box-sizing:border-box;min-height:58px;resize:vertical;}
+.v17-composer-actions {display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:7px;min-width:0;}
+.v17-composer-actions button {white-space:nowrap;min-width:0;}
+@media (max-width: 640px) {.v17-composer-actions {flex-wrap:wrap}.v17-composer-actions button {white-space:normal}}
 </style></head>
 <body>
 <div class="container">
@@ -235,11 +246,14 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <button class="suggestion-chip" data-prompt="Compare the methods and main findings of the selected papers.">Compare methods</button>
 <button class="suggestion-chip" data-prompt="What research gaps are suggested by the selected papers?">Research gaps</button>
 </div>
-<div class="chat-input-container agent-input-container">
+<div class="chat-input-container agent-input-container v17-composer">
 <textarea id="agent-user-input" placeholder="Ask a question..." rows="2"></textarea>
-<button class="btn-secondary" id="clear-agent-chat"><i class="fas fa-broom"></i> Clear</button>
-<button type="button" id="export-research-records" class="btn-secondary" title="Download structured research records for report preparation">Export session records (JSON)</button>
-<button class="btn-primary" id="send-agent-message"><i class="fas fa-paper-plane"></i> Send</button>
+<div class="v17-composer-actions">
+<button type="button" class="btn-secondary" id="clear-agent-chat"><i class="fas fa-broom"></i> Clear</button>
+<button type="button" id="export-research-records" class="btn-secondary" title="Download structured session records (JSON)">Export records (JSON)</button>
+<button type="button" id="download-research-summary" class="btn-secondary" title="Download a source-linked summary of this conversation"><i class="fas fa-file-arrow-down"></i> Research Summary</button>
+<button type="button" class="btn-primary" id="send-agent-message"><i class="fas fa-paper-plane"></i> Send</button>
+</div>
 </div>
 </div>
 </div>
@@ -308,7 +322,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261019-records16"></script>
+<script src="JS/agent.js?v=20261019-summary17"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
