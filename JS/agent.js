@@ -1486,7 +1486,7 @@ function renderSelectedPublications() {
   document.getElementById("chat-context-description").textContent = count
     ? `Grounded in ${count} selected paper${count === 1 ? "" : "s"}`
     : document.getElementById("agent-mode").checked
-      ? "Agent mode — auto search & select when you send a message"
+      ? "Agent mode — automatic search when no papers are selected"
       : "General chat mode (HF Space)";
   updateAgentSelectionNotice();
   updateResearchTaskOptions();
@@ -1528,7 +1528,7 @@ function updateAgentSelectionNotice() {
   if (notice) {
     notice.classList.toggle("hidden", !showWarning);
     notice.textContent = showWarning
-      ? `${count} paper${count === 1 ? "" : "s"} selected — Agent will not run a new search until you clear them.`
+      ? `${count} paper${count === 1 ? "" : "s"} selected — Using selected papers as context.`
       : "";
   }
 }
