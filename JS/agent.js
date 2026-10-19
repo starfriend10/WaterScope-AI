@@ -1523,6 +1523,51 @@ function mediaCsvFilename(source) {
   return `${parts.join(" - ")}.csv`;
 }
 
+// Render simple model-supplied Markdown tables as safe native HTML tables.
+// Use textContent throughout: never inject model-generated HTML.
+function cleanPublicMediaAnswer(value) {
+  let text = String(value || "");
+  text = text.replace(/\(\s*Source\s*\d+\s*;?\s*paper_id\s*=\s*[^);\s]+\s*;?\s*label\s*=\s*[^)]+\)/gi, "");
+  text = text.replace(/\(\s*paper(?:_id)?\s*[:= ]\s*\d+\s*[,;]\s*label\s*[:= ]\s*(?:table|figure|fig)[_.-]0*\d+\s*\)/gi, "");
+  text = text.replace(/\bSource\s*\d+\s*;\s*paper_id\s*=\s*[^;\s]+\s*;\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+\b/gi, "");
+  return text.replace(/\s+([,;:.])/g, "$1").trim();
+}
+function renderMediaAnswerInto(container, rawAnswer) {
+  const lines = cleanPublicMediaAnswer(rawAnswer).split(/\r?\n/);
+  const parseCells = line => line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(v => v.trim());
+  const isSeparator = line => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+  let paragraph = [];
+  const flush = () => {
+    if (!paragraph.length) return;
+    const p = document.createElement("p");
+    p.className = "media-answer-paragraph";
+    p.textContent = paragraph.join(" ").trim();
+    container.appendChild(p); paragraph = [];
+  };
+  for (let i = 0; i < lines.length;) {
+    if (i + 1 < lines.length && lines[i].includes("|") && isSeparator(lines[i+1])) {
+      flush();
+      const headers = parseCells(lines[i]);
+      const table = document.createElement("table"); table.className = "media-answer-table";
+      const thead = document.createElement("thead"), headRow = document.createElement("tr");
+      headers.forEach(h => { const th=document.createElement("th"); th.textContent=h; headRow.appendChild(th); });
+      thead.appendChild(headRow);table.appendChild(thead);
+      const tbody=document.createElement("tbody"); i+=2;
+      while (i < lines.length && lines[i].trim().startsWith("|") && lines[i].includes("|")) {
+        const cells=parseCells(lines[i]); if (cells.length !== headers.length) break;
+        const row=document.createElement("tr"); cells.forEach(c => { const td=document.createElement("td");td.textContent=c;row.appendChild(td); });
+        tbody.appendChild(row);i++;
+      }
+      table.appendChild(tbody);
+      const wrap=document.createElement("div");wrap.className="media-answer-table-wrap";wrap.appendChild(table);container.appendChild(wrap);
+      continue;
+    }
+    if (!lines[i].trim()) { flush();i++;continue; }
+    paragraph.push(lines[i].trim());i++;
+  }
+  flush();
+}
+
 function appendMediaAnalysisResult(payload) {
   const container = document.getElementById("agent-chat-messages");
   if (!container) return;
@@ -1587,7 +1632,7 @@ function appendMediaAnalysisResult(payload) {
   content.appendChild(heading);
   const summary = document.createElement("p");
   summary.className = "media-result-summary";
-  summary.textContent = String(payload?.answer || "No extraction summary generated.");
+  renderMediaAnswerInto(summary, payload?.answer || "No extraction summary generated.");
   content.appendChild(summary);
 
   if (attachment?.content_base64 && attachment.encoding === "base64") {
