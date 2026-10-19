@@ -85,12 +85,34 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 .media-answer-table thead{background:#f2f7fa;color:#173d57}
 .media-answer-table tbody tr:nth-child(even){background:#fafcfd}
 
-/* V17 desktop: balanced research panes and full-width chat composer */
+/* V17.1: preserve native expanded/collapsed workspace states. */
 @media (min-width: 960px) {
-  #agent-workspace.agent-workspace {display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:14px !important;}
-  #agent-workspace:not(.publications-expanded):not(.agent-expanded) > .publication-panel,
-  #agent-workspace:not(.publications-expanded):not(.agent-expanded) > .agent-chat-panel {width:auto !important;min-width:0 !important;max-width:none !important;flex:initial !important;}
+  #agent-workspace.agent-workspace { display:grid !important; gap:14px !important; min-width:0; }
+  #agent-workspace.agent-workspace:not(.view-left):not(.view-right) { grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
+  #agent-workspace.agent-workspace.view-left { grid-template-columns:minmax(0,1fr) 44px !important; }
+  #agent-workspace.agent-workspace.view-right { grid-template-columns:44px minmax(0,1fr) !important; }
+  #agent-workspace.agent-workspace > .publication-panel,
+  #agent-workspace.agent-workspace > .agent-chat-panel { box-sizing:border-box; width:auto !important; min-width:0 !important; max-width:none !important; flex:initial !important; }
+  #agent-workspace.agent-workspace.view-left > .agent-chat-panel,
+  #agent-workspace.agent-workspace.view-right > .publication-panel { overflow:hidden; }
+  #agent-workspace.agent-workspace.view-left > .agent-chat-panel > .panel-content,
+  #agent-workspace.agent-workspace.view-right > .publication-panel > .panel-content { display:none !important; }
+  #agent-workspace.agent-workspace.view-left > .agent-chat-panel > .collapsed-panel-tab,
+  #agent-workspace.agent-workspace.view-right > .publication-panel > .collapsed-panel-tab { display:flex !important; }
+  #agent-workspace.agent-workspace:not(.view-left) > .agent-chat-panel > .collapsed-panel-tab,
+  #agent-workspace.agent-workspace:not(.view-right) > .publication-panel > .collapsed-panel-tab { display:none !important; }
 }
+/* Compact settings bar; retain every existing selector/control. */
+.agent-chat-toolbar.v17-compact-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:8px 12px; }
+.agent-chat-toolbar.v17-compact-toolbar > .agent-heading-block { min-width:0; }
+.agent-chat-toolbar.v17-compact-toolbar .agent-heading-block h3 { margin:0; }
+.agent-chat-toolbar.v17-compact-toolbar #chat-context-description { margin:2px 0 0; font-size:12px; }
+.agent-chat-toolbar.v17-compact-toolbar .agent-selection-notice { margin:3px 0 0; padding:0; border:0; background:transparent; font-size:12px; }
+.agent-chat-toolbar.v17-compact-toolbar .agent-selectors { grid-column:1 / -1; width:100%; display:flex; flex-wrap:wrap; align-items:end; gap:7px 12px; }
+.agent-chat-toolbar.v17-compact-toolbar .agent-selectors .model-selector { margin:0; }
+.agent-chat-toolbar.v17-compact-toolbar .agent-selectors .agent-mode-toggle { flex-basis:100%; }
+.agent-chat-toolbar.v17-compact-toolbar .panel-corner-control { justify-self:end; }
+@media(max-width:640px){ .agent-chat-toolbar.v17-compact-toolbar { grid-template-columns:minmax(0,1fr) auto; } }
 .agent-input-container.v17-composer {display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:8px !important;}
 .agent-input-container.v17-composer #agent-user-input {width:100% !important;flex:none !important;box-sizing:border-box;min-height:58px;resize:vertical;}
 .v17-composer-actions {display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:7px;min-width:0;}
@@ -205,8 +227,8 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <i class="fas fa-comments"></i><span>Agent Chat</span>
 </button>
 <div class="panel-content agent-chat-panel-content">
-<div class="agent-chat-toolbar">
-<div>
+<div class="agent-chat-toolbar v17-compact-toolbar">
+<div class="agent-heading-block">
 <h3><i class="fas fa-comments"></i> Paper Research Assistant</h3>
 <p id="chat-context-description">General chat mode (HF Space)</p>
 <p class="agent-selection-notice hidden" id="agent-selection-notice"></p>
@@ -236,8 +258,8 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 <div class="chat-messages" id="agent-chat-messages">
 <div class="message bot-message">
 <div class="message-content">
-<p>Search publications on the left, select papers, then ask questions here.</p>
-<p><strong>Agent mode</strong> (checkbox in top right): when no papers are selected, the server can search and retrieve publications automatically. Find requests return ranked results for you to review and select; other research questions can use retrieval-grounded context and the HF Space model. With <code>USE_MCP=1</code>, those tools run through the MCP server. Bookmarking papers is available through the <strong>Bookmark</strong> button on each result.</p>
+<p>Search or select publications on the left, then ask research questions here.</p>
+<p><strong>Agent mode</strong> can automatically search when no paper is selected. Use <strong>Bookmark</strong> to save papers; selected papers provide context for research answers. Media questions can analyze figures and tables directly.</p>
 </div>
 </div>
 </div>
@@ -322,7 +344,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261019-summary17"></script>
+<script src="JS/agent.js?v=20261019-layout17-1"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
