@@ -27,6 +27,8 @@ let pendingMediaExport = false;
 let activeMediaDetailsPaper = null;
 // Last successful figure/table analysis, for natural-language follow-ups like "the table".
 let lastMediaContext = null;
+// Lightweight session-only dialog state for the media pathway.
+let mediaDialog = null;
 let activeModelDisplay = "llama";
 let mediaOperationTimer = null;
 let lastSearchQuery = "";
@@ -207,6 +209,7 @@ function finishModelOperationStatus(message = "Processed", type = "status-ready"
 function clearPublicationResultsForAgentSearch() {
   activeMediaDetailsPaper = null;
   lastMediaContext = null;
+  mediaDialog = null;
   searchResults = [];
   searchResultsPage = 0;
   lastSearchQuery = "";
@@ -1415,6 +1418,8 @@ function mediaQuestionRequestsCsv(question) {
   const text = String(question || "").trim();
   if (!text) return false;
   if (/\b(?:csv|download|export|dataset|spreadsheet|digitiz(?:e|ation)|tabulat(?:e|ion))\b/i.test(text)) return true;
+  if (/\b(?:provide|give|send|share|show)\s+(?:me\s+)?(?:all\s+)?(?:the\s+)?(?:readable\s+)?(?:data|values|coordinates|points|observations)\b/i.test(text)) return true;
+  if (/\b(?:i\s+(?:want|need|would\s+like)\s+(?:to\s+have\s+)?|show\s+me\s+)(?:all\s+)?(?:the\s+)?(?:readable\s+)?(?:data|dataset)\b/i.test(text)) return true;
   if (/\b(?:all|every)\s+(?:readable\s+)?(?:data|values|rows|columns|points|observations)\b/i.test(text)) return true;
   if (/\b(?:extract|transcribe)\b[^.!?]{0,120}\b(?:data|values|rows|columns|coordinates|points|measurements|observations|series)\b/i.test(text)) return true;
   if (/\b(?:data|values|rows|columns|coordinates|points|measurements|observations|series)\b[^.!?]{0,120}\b(?:extract|transcribe)\b/i.test(text)) return true;
@@ -1451,21 +1456,38 @@ function mediaRoutingIntent(question) {
   const q = String(question || "").trim();
   const refs = mediaReferencesInQuestion(q);
   if (refs.length) return {intent: true, explicit: refs, followup: false, referencedKind: null};
-  // Requests about the entire publication stay in the regular research agent.
-  if (/\b(?:paper|publication|article|study|literature|methodology|abstract)\b/i.test(q) &&
+  // Whole-paper and unrelated tasks must never be hijacked by an active figure.
+  if (/\b(?:paper|publication|article|study|literature|methodology|abstract|entire document|whole document)\b/i.test(q) &&
       !/\b(?:table|figure|fig\.?|chart|plot|diagram)\b/i.test(q)) {
     return {intent: false, explicit: [], followup: false, referencedKind: null};
   }
   const pluralSources = /\b(?:figures|tables|charts|plots|diagrams)\b/i.test(q);
   const named = q.match(/\b(?:the|this|that|same|previous|above|last|earlier)\s+(?:(?:same|above|previous|last|earlier|published|original|selected|analyzed|analysed|current|extracted)\s+){0,2}(table|figure|fig\.?|chart|plot|diagram)\b/i);
-  const namedKind = named ? (named[1].toLowerCase() === "table" ? "table" : "figure") : null;
+  const referencedKind = named ? (named[1].toLowerCase() === "table" ? "table" : "figure") : null;
+  const assent = /^(?:yes|yeah|yep|sure|ok(?:ay)?|please do|go ahead|of course|no|no thanks)[.!]?$/i.test(q);
   const exportRequest = mediaQuestionRequestsCsv(q);
-  const shortExport = exportRequest && /^(?:(?:please|can you|could you|would you)\s+)?(?:extract|download|export|digitize|transcribe|save|give me|provide|show)\b/i.test(q) && q.length <= 145;
-  const shortFollowup = /^(?:how about|what about|and (?:the |its )?|what(?:'s| is| are) (?:the |its )?|does it|can you (?:also )?(?:show|explain|compare|tell))\b/i.test(q) && q.length <= 150;
-  const refersToPrior = exportRequest && /\b(?:it|them|these|those|this|that)\b/i.test(q);
-  const genericShortFollowup = /^(?:summarize|explain|interpret|describe)\s+(?:it|this|that|them|these)(?:[.!?]|$)/i.test(q);
-  const intent = pluralSources || !!named || shortExport || ((shortFollowup || refersToPrior || genericShortFollowup) && !!lastMediaContext);
-  return {intent, explicit: [], followup: intent && !pluralSources, referencedKind: namedKind, multipleUnspecified: pluralSources};
+  const exportPhrase = exportRequest || /\b(?:extract|digitize|download|transcribe|export)\b/i.test(q);
+  const followup = /^(?:how about|what about|and\b|what(?:'s| is| are)\b|does it|can you|could you|would you|please|explain|elaborate|compare|summarize|interpret|describe|tell me|show me|i want|i need|give me|provide|more details|why|how|is it|are they)\b/i.test(q);
+  const deictic = /\b(?:it|its|this|that|these|those|them|above|previous|same|other|more|again)\b/i.test(q);
+  const mediaTopic = /\b(?:axis|axes|value|range|maximum|minimum|trend|unit|concentration|index|parameter|classification|data|dataset|coordinate|point|sample|curve|line|series|error bar|legend|panel|table|figure|plot|chart)\b/i.test(q);
+  // Keep context for short, topical conversational follow-ups, not arbitrary new subjects.
+  const conversational = !!lastMediaContext && q.length <= 220 &&
+    (assent || exportPhrase || !!named || followup || deictic || mediaTopic || q.split(/\s+/).length <= 4);
+  const intent = pluralSources || !!named || exportPhrase || conversational;
+  return {intent, explicit: [], followup: intent && !pluralSources, referencedKind,
+          multipleUnspecified: pluralSources, assent};
+}
+
+// Determine whether a short affirmative reply can safely execute an explicit
+// preceding offer. Generic model pleasantries must lead to clarification.
+function mediaAssentAction(question) {
+  const text = String(question || "").trim().toLowerCase();
+  if (!/^(?:yes|yeah|yep|sure|ok(?:ay)?|please do|go ahead|of course)[.!]?$/.test(text)) return null;
+  const answer = String(mediaDialog?.answer || "").trim();
+  const lastLine = answer.split(/\n/).filter(x => x.trim()).slice(-2).join(" ");
+  if (/\b(?:would you like|shall i|should i|do you want)\b[^?]*\b(?:csv|download|export|extract all data)\b/i.test(lastLine)) return "csv";
+  if (/\b(?:would you like|shall i|should i|do you want)\b[^?]*\b(?:explain further|more detailed|further explanation|elaborate)\b/i.test(lastLine)) return "explain";
+  return "clarify";
 }
 
 function matchingLastMediaContext(intent) {
@@ -1513,6 +1535,8 @@ function rememberMediaResult(payload, paper, question) {
   if (paper && String(payload?.status || "ok") === "ok" &&
       !payload?.empty_answer && String(payload?.answer || "").trim()) {
     lastMediaContext = { paper, ...label };
+    mediaDialog = {paperId: String(paper.document_id), label: label.displayLabel,
+                   answer: String(payload.answer || ""), question: String(question || "")};
   }
 }
 
@@ -1771,15 +1795,31 @@ async function sendAgentMessage() {
     (routing.explicit.length === 1
       ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null))
       : activeFollowup?.paper || null));
+  const assentAction = routing.assent && activeFollowup ? mediaAssentAction(visibleMessage) : null;
   const needsClarification = routing.intent && !pendingMediaPaper &&
-    (routing.explicit.length > 1 || routing.multipleUnspecified || !mediaPaper);
+    (routing.explicit.length > 1 || routing.multipleUnspecified || !mediaPaper ||
+     assentAction === "clarify" || (routing.assent && /^no\b/i.test(visibleMessage)));
   const mediaIntent = routing.intent;
   // Backend media selection reads numbered references from the question. For
   // contextual follow-ups, add exactly the resolved single label (no examples).
-  const mediaQuestion = activeFollowup && routing.explicit.length === 0
-    ? `Regarding ${activeFollowup.displayLabel}: ${visibleMessage}`
+  // Only the one resolved label is appended; never include sample labels
+  // that could be accidentally interpreted as additional media sources.
+  const contextual = activeFollowup && routing.explicit.length === 0;
+  const previousTopic = contextual ? String(mediaDialog?.question || "").slice(0, 260) : "";
+  // Keep a short preceding answer for conversational continuity. Remove any
+  // numbered media labels to prevent accidental multi-source selection.
+  const previousAnswer = contextual ? String(mediaDialog?.answer || "")
+    .replace(/\b(?:table|figure|fig\.?)[\s_.:#-]*0*\d+\b/ig, "the current source")
+    .replace(/\b(?:paper_id|metadata_row_index|label)\s*[=:]\s*[^\s,;)]*/ig, "")
+    .slice(0, 700) : "";
+  const mediaQuestion = contextual
+    ? assentAction === "csv"
+      ? `Extract all readable data from ${activeFollowup.displayLabel} and provide a CSV.`
+      : assentAction === "explain"
+        ? `Explain ${activeFollowup.displayLabel} in greater detail, continuing the prior discussion.`
+        : `Regarding ${activeFollowup.displayLabel}, previous question: ${previousTopic}. Previous answer (context only): ${previousAnswer}. Follow-up: ${visibleMessage}`
     : visibleMessage;
-  const mediaExportCsv = pendingMediaExport || mediaQuestionRequestsCsv(visibleMessage);
+  const mediaExportCsv = pendingMediaExport || assentAction === "csv" || mediaQuestionRequestsCsv(visibleMessage);
   pendingMediaPaper = null;
   pendingMediaExport = false;
   const isMediaRequest = mediaIntent && !!mediaPaper && !needsClarification;
@@ -1799,10 +1839,15 @@ async function sendAgentMessage() {
   try {
     let payload;
     if (needsClarification) {
-      const reply = mediaClarificationText(routing);
+      const reply = assentAction === "clarify"
+        ? "Certainly. What would you like me to do with the current figure or table—explain it further, extract the data as CSV, or change the presentation?"
+        : routing.assent && /^no\b/i.test(visibleMessage)
+          ? "Understood. What would you like to explore next?"
+          : mediaClarificationText(routing);
       addAgentMessage(reply, "assistant");
       agentConversation.push({role: "user", content: visibleMessage});
       agentConversation.push({role: "assistant", content: reply});
+      if (activeFollowup) mediaDialog = {...(mediaDialog || {}), answer: reply};
       finishModelOperationStatus("Clarification needed", "status-ready", "media");
       return;
     }
@@ -1871,6 +1916,7 @@ function setAgentControlsDisabled(disabled) {
 function clearAgentChat() {
   agentConversation = [];
   lastMediaContext = null;
+  mediaDialog = null;
   document.getElementById("agent-chat-messages").innerHTML = `
     <div class="message bot-message"><div class="message-content"><p>Chat cleared. Search and select papers for retrieval-grounded chat, or ask a general question.</p></div></div>`;
 }
