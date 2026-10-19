@@ -1420,7 +1420,7 @@ function mediaQuestionRequestsCsv(question) {
   const text = String(question || "").trim();
   if (!text) return false;
   if (/\b(?:csv|download|export|dataset|spreadsheet|digitiz(?:e|ation)|tabulat(?:e|ion))\b/i.test(text)) return true;
-  if (/\b(?:provide|give|send|share|show)\s+(?:me\s+)?(?:all\s+)?(?:the\s+)?(?:readable\s+)?(?:data|values|coordinates|points|observations)\b/i.test(text)) return true;
+  if (/\b(?:provide|give|send|share|show|get|obtain|retrieve)\s+(?:me\s+)?(?:all\s+)?(?:the\s+)?(?:readable\s+)?(?:data|values|coordinates|points|observations)\b/i.test(text)) return true;
   if (/\b(?:i\s+(?:want|need|would\s+like)\s+(?:to\s+have\s+)?|show\s+me\s+)(?:all\s+)?(?:the\s+)?(?:readable\s+)?(?:data|dataset)\b/i.test(text)) return true;
   if (/\b(?:all|every)\s+(?:readable\s+)?(?:data|values|rows|columns|points|observations)\b/i.test(text)) return true;
   if (/\b(?:extract|transcribe)\b[^.!?]{0,120}\b(?:data|values|rows|columns|coordinates|points|measurements|observations|series)\b/i.test(text)) return true;
@@ -1632,6 +1632,14 @@ function cleanPublicMediaAnswer(value) {
   text = text.replace(/\bSource\s*\d+\s*;\s*paper_id\s*=\s*[^;\s]+\s*;\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+\b/gi, "");
   text = text.replace(/\(\s*(?:source\s*\d+\s*[,;:]?\s*)?paper_id\s*=\s*\d+\s*[,;]\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+(?:\s*[,;]\s*p\.?\s*\d+)?\s*\)/gi, "");
   text = text.replace(/\bpaper_id\s*=\s*\d+\s*[,;]\s*label\s*=\s*(?:table|figure|fig)[_.-]0*\d+\b/gi, "");
+  // Model-generated explanations sometimes echo source indices and database IDs.
+  // Keep source IDs in structured metadata, never in visitor-facing prose.
+  text = text.replace(/\(\s*(?:source\s*\d+\s*[,;:]?\s*)?paper\s*(?:id\s*[=:]\s*|#?\s+)\d+(?:\s*[,;]\s*(?:label\s*[=:]\s*[\w.-]+|p\.?\s*\d+|page\s*\d+))*\s*\)/gi, "");
+  text = text.replace(/\bpaper\s+(?:id\s*)?\d+\b/gi, "");
+  text = text.replace(/\bpaper_id\s*[=:]\s*\d+\b/gi, "");
+  text = text.replace(/\b(?:label|metadata_row_index)\s*[=:]\s*(?:table|figure|fig)[_.-]0*\d+\b/gi, "");
+  text = text.replace(/^[ \t]*(?:#{1,6}\s*)?(?:\*\*)?Source\s*\d+(?:\*\*)?[ \t]*:?\s*$/gim, "");
+  text = text.replace(/\(\s*[,;:]?\s*\)/g, "");
   return text.replace(/\s+([,;:.])/g, "$1").trim();
 }
 function appendSafeInlineMarkdown(node, text) {
