@@ -1438,7 +1438,9 @@ function resolveImplicitMediaReference(question) {
   const named = q.match(/\b(?:the|this|that|same|previous|above|last|earlier)\s+(?:(?:same|above|previous|last|earlier|published|original|selected|analyzed|analysed|current|extracted)\s+){0,2}(table|figure|fig\.?|chart|plot|diagram)\b/i);
   const impliesDataExport = mediaQuestionRequestsCsv(q);
   const usesPronoun = impliesDataExport && /\b(?:it|them|these|those)\b/i.test(q);
-  if (!named && !usesPronoun) return { referenced: false, context: null };
+  const shortFollowup = /^(?:how about|what about|and (?:the |its )?|what(?:'s| is| are) (?:the |its )?|does it|can you (?:also )?(?:show|explain|compare|tell))\b/i.test(q.trim())
+    && q.trim().length <= 150;
+  if (!named && !usesPronoun && !shortFollowup) return { referenced: false, context: null };
 
   const previous = lastMediaContext;
   if (!previous) return { referenced: true, context: null };
@@ -1483,10 +1485,44 @@ function rememberMediaResult(payload, paper, question) {
   }
 }
 
+// Resolve the exact selected publication to a media-indexed record. Different
+// sources (/api/papers, search results, bookmarks, Details) may hold partial
+// versions of the same paper. Never use an unrelated publication as fallback.
+function validMediaIndex(paper) {
+  if (!paper || paper.metadata_row_index == null || paper.metadata_row_index === "") return null;
+  const raw = paper.metadata_row_index;
+  if (typeof raw === "string" && !/^\d+$/.test(raw.trim())) return null;
+  const index = Number(raw);
+  return Number.isSafeInteger(index) && index >= 0 ? index : null;
+}
+
+function resolveMediaPublication(paper) {
+  if (!paper) return null;
+  const id = paper.document_id == null ? "" : String(paper.document_id);
+  const matches = (candidate) => {
+    if (!candidate) return false;
+    if (id) return candidate.document_id != null && String(candidate.document_id) === id;
+    // Without a stable document ID, only the original object is safe.
+    return candidate === paper;
+  };
+  const candidates = [
+    paper,
+    activeMediaDetailsPaper,
+    ...searchResults,
+    ...savedRenderItems,
+    ...savedPapers,
+    ...papersById.values(),
+  ].filter(matches);
+  // Prefer actual search/gallery metadata, retaining the originally selected ID.
+  const indexed = candidates.find(candidate => validMediaIndex(candidate) !== null);
+  return indexed || paper;
+}
+
 async function sendMediaAnalysis(message, paper, exportCsv = false) {
-  const index = Number(paper?.metadata_row_index);
-  if (!Number.isInteger(index) || index < 0 || paper?.metadata_row_index == null) {
-    throw new Error("This publication has no metadata index for media analysis.");
+  const resolvedPaper = resolveMediaPublication(paper);
+  const index = validMediaIndex(resolvedPaper);
+  if (index === null) {
+    throw new Error("Source metadata unavailable for this publication. Reopen its Details or refresh the search results, then retry.");
   }
   const response = await fetch(api("/api/media/analyze"), {
     method: "POST",
@@ -1690,17 +1726,21 @@ async function sendAgentMessage() {
   // image-grounded media pathway, not the text-only Llama workflow.
   const mentionsNumberedMedia = /\b(?:figure|fig\.?|table)\s*[#:. -]*\d+\b/i.test(visibleMessage);
   const selectedMediaPaper = documentIds.length === 1
-    ? (papersById.get(documentIds[0])
-       || searchResults.find(paper => String(paper.document_id) === String(documentIds[0]))
-       || savedPapers.find(paper => String(paper.document_id) === String(documentIds[0]))
-       || (activeMediaDetailsPaper && String(activeMediaDetailsPaper.document_id) === String(documentIds[0]) ? activeMediaDetailsPaper : null))
+    ? resolveMediaPublication(
+        searchResults.find(paper => String(paper.document_id) === String(documentIds[0]))
+        || (activeMediaDetailsPaper && String(activeMediaDetailsPaper.document_id) === String(documentIds[0]) ? activeMediaDetailsPaper : null)
+        || savedRenderItems.find(paper => String(paper.document_id) === String(documentIds[0]))
+        || savedPapers.find(paper => String(paper.document_id) === String(documentIds[0]))
+        || papersById.get(documentIds[0])
+        || [...papersById.values()].find(paper => String(paper.document_id) === String(documentIds[0]))
+      )
     : null;
   const followup = (!mentionsNumberedMedia && !pendingMediaPaper)
     ? resolveImplicitMediaReference(visibleMessage)
     : { referenced: false, context: null };
-  const mediaPaper = pendingMediaPaper || (mentionsNumberedMedia
+  const mediaPaper = resolveMediaPublication(pendingMediaPaper || (mentionsNumberedMedia
     ? (selectedMediaPaper || (documentIds.length === 0 ? activeMediaDetailsPaper : null))
-    : followup.context?.paper || null);
+    : followup.context?.paper || null));
   const mediaContextMissing = (mentionsNumberedMedia || followup.referenced) && !mediaPaper;
   const mediaIntent = mentionsNumberedMedia || followup.referenced || !!pendingMediaPaper;
   // Keep the user's message unchanged in chat; only add the resolved referent to
@@ -1708,7 +1748,7 @@ async function sendAgentMessage() {
   // The backend searches the entire question for numbered media labels. Give it
   // exactly the resolved referent—never add unrelated Figure/Table examples.
   const mediaQuestion = followup.context
-    ? `Regarding ${followup.context.displayLabel}: ${visibleMessage}`
+    ? `Regarding ${followup.context.displayLabel}, continue the previous discussion about this same source. User follow-up: ${visibleMessage}`
     : visibleMessage;
   const mediaExportCsv = pendingMediaExport || mediaQuestionRequestsCsv(visibleMessage);
   pendingMediaPaper = null;
@@ -1771,7 +1811,8 @@ async function sendAgentMessage() {
   } catch (error) {
     console.error("Agent request error:", error);
     addAgentMessage(`Sorry, the request could not be completed: ${error.message}`, "assistant");
-    finishModelOperationStatus("Connection issue", "status-error", mediaIntent ? "media" : "llama");
+    const sourceProblem = mediaIntent && /^(?:Source metadata unavailable|Media source mismatch|Select (?:just )?one paper|I can't identify which figure|Select one publication)/i.test(String(error.message || ""));
+    finishModelOperationStatus(sourceProblem ? "Source issue" : "Connection issue", "status-error", mediaIntent ? "media" : "llama");
     if (agentDiscovery) finishSearchOperationStatus("Connection issue", "status-error");
   } finally {
     agentProcessing = false;
