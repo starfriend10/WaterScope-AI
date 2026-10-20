@@ -1758,7 +1758,7 @@ function mediaQuestionRequestsCsv(question) {
 
 // Read a human-friendly source label without exposing internal labels such as table_01.
 function mediaLabelFromText(text) {
-  const m = String(text || "").match(/\b(table|figure|fig\.?)[\s_.:-]*0*(\d+)\b/i);
+  const m = String(text || "").match(/\b(table|figure|fig\.?)[\s_.:-]*0*(\d+)(?!\d)/i);
   if (!m) return null;
   const kind = m[1].toLowerCase() === "table" ? "table" : "figure";
   const number = Number(m[2]);
