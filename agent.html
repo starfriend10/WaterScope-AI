@@ -219,6 +219,28 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
     grid-column:1 !important;grid-row:1 !important;
   }
 }
+
+/* V18.4.1: anchor BOTH V15.1-style collapse controls to their panel corners,
+   not to independently sized header/toolbar rows. No chat logic changes. */
+#agent-workspace > .publication-panel,
+#agent-workspace > .agent-chat-panel { position:relative !important; }
+#agent-workspace > .publication-panel > .publication-panel-content,
+#agent-workspace > .agent-chat-panel > .agent-chat-panel-content,
+#agent-workspace .publication-panel .panel-heading,
+#agent-workspace .agent-chat-panel .agent-chat-toolbar.v17-compact-toolbar { position:static !important; }
+#agent-workspace .publication-panel #toggle-publications-panel,
+#agent-workspace .agent-chat-panel #toggle-agent-chat-panel {
+  position:absolute !important;
+  top:19px !important;
+  margin:0 !important;
+  transform:none !important;
+  align-self:auto !important;
+  justify-self:auto !important;
+  z-index:5 !important;
+}
+#agent-workspace .publication-panel #toggle-publications-panel {right:16px !important;left:auto !important;}
+#agent-workspace .agent-chat-panel #toggle-agent-chat-panel {left:16px !important;right:auto !important;}
+
 </style></head>
 <body>
 <div class="container">
