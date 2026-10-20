@@ -310,6 +310,24 @@ function v18ReportHtml(synthesis, records, sources) {
   :root{font-family:Arial,Helvetica,sans-serif;color:#172c40} body{max-width:920px;margin:36px auto;padding:0 28px;line-height:1.6} h1{font-size:30px;border-bottom:3px solid #376c83;padding-bottom:12px} h2{font-size:21px;margin-top:28px;border-bottom:1px solid #b7c9d2;padding-bottom:6px}h3{font-size:17px;margin-top:19px} p,li{font-size:14px} .meta{color:#516776;font-size:13px}.controls{display:flex;gap:12px;margin:15px 0 26px}.controls button{padding:10px 16px;background:#326b85;color:white;border:0;border-radius:6px;cursor:pointer}figure{break-inside:avoid;margin:20px 0;padding:12px;border:1px solid #d6e0e5;border-radius:7px}figure img{width:100%;max-height:400px;object-fit:contain}.report-table-scroll{width:100%;overflow-x:auto;margin:14px 0 22px}.report-data-table{width:100%;border-collapse:collapse;font-size:12px}.report-data-table th,.report-data-table td{padding:7px 9px;border:1px solid #d6e0e5;vertical-align:top;text-align:left;overflow-wrap:anywhere}.report-data-table th{background:#edf4f7}.report-data-table tbody tr:nth-child(even){background:#f8fafb}figcaption{font-size:12px;color:#4a6070}.note{background:#f1f5f7;padding:12px;border-left:4px solid #7897aa}a{color:#126184;overflow-wrap:anywhere} @media print{body{margin:0;max-width:none;padding:0}.controls{display:none}h2{break-after:avoid}figure{break-inside:avoid}a{text-decoration:none;color:#172c40}}
   </style></head><body><div class="controls"><button onclick="window.print()">Print / Save as PDF</button></div><h1>WaterScope-AI Full Report</h1><p class="meta">Generated ${escapeHTML(timestamp)} · ${records.length} completed exchange(s) · ${sources.length} recorded source(s)</p><section><h2>Research Synthesis</h2>${v18ReportTextToHtml(synthesis)}</section><section><h2>Source Publications and Media</h2><ol>${items || "<li>Source records unavailable; verify all claims.</li>"}</ol></section>${mediaItems.length ? `<section><h2>Figures and Tables</h2><p class="meta">Original image URLs are referenced; an internet connection may be required to view them when opening this file.</p>${mediaItems.join("\n")}</section>` : ""}${extractedTables.length ? `<section><h2>Recorded Extracted Data Tables</h2><p class="note">Data below are copied from session extraction records and are not reconstructed by the research model. Very large datasets may be truncated; use original CSV for complete data.</p>${extractedTables.join("\n")}</section>` : ""}<section><h2>Extracted Data Inventory</h2>${datasets ? `<ul>${datasets}</ul>` : "<p>No CSV exports were recorded.</p>"}</section><section><h2>Evidence and Uncertainty</h2><p class="note">This report is an AI-assisted synthesis of research-session records and retrieved evidence. Verify scientific claims against the cited publications. Figure coordinates estimated visually are not original experimental measurements. The original CSV files are not embedded in this report.</p></section></body></html>`;
 }
+// When the research model cannot finish a long report, still export the verified
+// session record, with explicit provenance; never label this as an LLM synthesis.
+function v1839EvidenceDigest(records) {
+  const lines = [
+    "## Recorded Evidence (automated synthesis unavailable)",
+    "The requested long-form synthesis did not pass completeness checks. The sections below reproduce the completed session answers, with their sources. They are NOT a synthesized research conclusion. The report also includes the original image links and recorded extracted data tables.",
+    ""
+  ];
+  records.forEach((r,i) => {
+    lines.push(`### Evidence ${i+1}: ${reportPlain(r.question || r.type || "Research exchange")}`);
+    lines.push(reportPlain(r.answer || "No answer recorded."));
+    for (const source of r.sources || []) lines.push(`Source: ${reportSourceDescription(source)}`);
+    if (r.csv?.available) lines.push(`Recorded CSV: ${r.csv.filename || "Extracted data"} (${r.csv.row_count || 0} rows; CSV downloaded separately)`);
+    lines.push("");
+  });
+  lines.push("## Limitations", "Session answers and source tables have not been independently verified. No new conclusions were generated for this fallback report.", "");
+  return lines.join("\n");
+}
 async function downloadResearchReport() {
   const records = reportSelectedScopeRecords();
   if (!records.length) { window.alert("No completed research answers yet. Ask a research question first."); return; }
@@ -331,10 +349,15 @@ async function downloadResearchReport() {
       const retry = await sendViaFlask(retryPrompt, paperIds, model, "document_qa", {agentMode:false});
       synthesis = reportPlain(retry?.answer);
     }
-    if (reportSynthesisLooksIncomplete(synthesis)) throw new Error("Report synthesis is incomplete after a retry; no partial report was exported. Please retry with a shorter session.");
+    const synthesisComplete = !reportSynthesisLooksIncomplete(synthesis);
+    if (!synthesisComplete) {
+      console.warn("Full Report: model synthesis incomplete after retry; exporting an explicitly labeled evidence digest with original stored datasets.");
+      synthesis = v1839EvidenceDigest(records);
+    }
     const sources = canonicalReportSources(records);
     const html = v18ReportHtml(synthesis, records, sources);
     downloadTextFile(html, `WaterScopeAI-Full-Report-${new Date().toISOString().slice(0,10)}.html`, "text/html;charset=utf-8");
+    if (!synthesisComplete) window.alert("The research model did not complete the long-form synthesis. An evidence-based Full Report was exported instead, including all recorded answers, sources, figures, and extracted data tables.");
   } catch (error) {
     console.error("Research report generation failed:", error);
     window.alert(`Unable to generate research report: ${error.message}`);
