@@ -333,25 +333,32 @@ async function downloadResearchReport() {
   if (!records.length) { window.alert("No completed research answers yet. Ask a research question first."); return; }
   if (agentProcessing) { window.alert("Please wait for the active request to finish."); return; }
   const paperIds = resolveReportPaperIds(records);
-  if (!paperIds.length || paperIds.length > MAX_SELECT) {
-    window.alert("The report needs one to four identifiable source publications. Please use a focused research session; session records remain available as JSON."); return;
-  }
+  // Report files are assembled from recorded evidence, which is already source-attributed.
+  // A missing catalog mapping must not block an evidence-only HTML export.
+  const canSynthesize = paperIds.length > 0 && paperIds.length <= MAX_SELECT;
   const button = document.getElementById("download-research-report");
   agentProcessing = true;
   if (button) { button.disabled = true; button.textContent = "Preparing report…"; }
   try {
     const model = document.getElementById("agent-model")?.value || "base";
     const synthesisPrompt = researchSummaryPrompt(records) + "\nRESEARCH REPORT REQUIREMENTS: Write a detailed research narrative (not a short summary) grouped by publication and scientific topic. Explain methods, findings, comparisons, interpretation vs evidence, limitations and references. Do NOT reconstruct full numerical tables, or say the data are unavailable merely because the answer excerpts are short: extracted tables will be appended directly from stored structured session records. Cite sources explicitly. Sections: Scope, Methods and Evidence, Detailed Findings, Cross-Source Discussion, Research Gaps or Implications, Limitations, References.";
-    const payload = await sendViaFlask(synthesisPrompt, paperIds, model, "document_qa", {agentMode:false});
-    let synthesis = reportPlain(payload?.answer);
-    if (reportSynthesisLooksIncomplete(synthesis)) {
-      const retryPrompt = researchSummaryPrompt(records) + "\nFULL REPORT RETRY: The previous report was incomplete. Write a self-contained, complete report of roughly 900–1400 words, with headings Overview, Methods, Findings, Cross-Source Discussion, Limitations, References. Finish with a complete final References section. Do not write out numerical datasets because they will be inserted directly from stored extraction records. No markdown tables are needed.";
-      const retry = await sendViaFlask(retryPrompt, paperIds, model, "document_qa", {agentMode:false});
-      synthesis = reportPlain(retry?.answer);
+    let synthesis = "";
+    let synthesisComplete = false;
+    if (canSynthesize) {
+      try {
+        const payload = await sendViaFlask(synthesisPrompt, paperIds, model, "document_qa", {agentMode:false});
+        synthesis = reportPlain(payload?.answer);
+        if (reportSynthesisLooksIncomplete(synthesis)) {
+          const retryPrompt = researchSummaryPrompt(records) + "\nFULL REPORT RETRY: Write a concise, complete report with headings Overview, Methods, Findings, Limitations, References. Finish with a complete References section. Numerical datasets are appended independently.";
+          const retry = await sendViaFlask(retryPrompt, paperIds, model, "document_qa", {agentMode:false});
+          synthesis = reportPlain(retry?.answer);
+        }
+        synthesisComplete = !reportSynthesisLooksIncomplete(synthesis);
+      } catch (synthesisError) {
+        console.warn("Full Report: model synthesis failed; preserving recorded evidence instead.", synthesisError);
+      }
     }
-    const synthesisComplete = !reportSynthesisLooksIncomplete(synthesis);
     if (!synthesisComplete) {
-      console.warn("Full Report: model synthesis incomplete after retry; exporting an explicitly labeled evidence digest with original stored datasets.");
       synthesis = v1839EvidenceDigest(records);
     }
     const sources = canonicalReportSources(records);
@@ -2587,7 +2594,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("download-research-report")?.addEventListener("click", downloadResearchReport);
   document.querySelectorAll(".suggestion-chip").forEach((button) => {
     button.addEventListener("click", () => {
-      document.getElementById("agent-user-input").value = button.dataset.prompt;
+      // Suggestions are document questions, NEVER publication-search requests.
+      // Do not send a research-gap prompt to auto discovery without selected papers.
+      if (!selectedDocumentIds.size) {
+        window.alert("Select the publication(s) you want to analyze before using this research suggestion.");
+        return;
+      }
+      const prompt = button.dataset.prompt || "";
+      document.getElementById("agent-user-input").value = prompt;
+      const task = document.getElementById("agent-task");
+      if (task) task.value = /research gaps/i.test(prompt) ? "research_gaps" : /summarize/i.test(prompt) ? "paper_synthesis" : "document_qa";
       document.getElementById("agent-user-input").focus();
     });
   });
