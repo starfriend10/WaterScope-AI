@@ -199,26 +199,6 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 
 /* V18.3.6: compact composer, without disturbing action buttons. */
 .agent-input-container.v17-composer #agent-user-input{height:44px !important;min-height:40px !important;padding-top:10px !important;padding-bottom:9px !important;}
-
-/* V18.3.7: retain the compact single-row header but restore the V15.1
-   corner-toggle placement. The control is positioned relative to the toolbar
-   instead of consuming a grid track and drifting below the title. */
-@media (min-width:1100px) {
-  .agent-chat-toolbar.v17-compact-toolbar { position:relative !important;
-    padding-left:47px !important;
-    grid-template-columns:minmax(155px,1fr) 86px 150px 104px !important;
-    column-gap:10px !important;
-  }
-  .agent-chat-toolbar.v17-compact-toolbar > .panel-corner-control {
-    position:absolute !important; top:10px !important; left:10px !important;
-    margin:0 !important; transform:none !important;
-    grid-column:auto !important; grid-row:auto !important;
-  }
-  .agent-chat-toolbar.v17-compact-toolbar > .agent-heading-block {grid-column:1 !important;}
-  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors > .model-selector:not(.task-selector):not(.agent-mode-toggle) {grid-column:2 !important;}
-  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors > .task-selector {grid-column:3 !important;}
-  .agent-chat-toolbar.v17-compact-toolbar .agent-selectors > .agent-mode-toggle {grid-column:4 !important;}
-}
 </style></head>
 <body>
 <div class="container">
@@ -446,7 +426,7 @@ input[type="text"]:focus,input[type="search"]:focus,textarea:focus,select:focus 
 </footer>
 </div>
 <script src="JS/waterscope-api-config.js"></script>
-<script src="JS/agent.js?v=20261020-media18-3-7"></script>
+<script src="JS/agent.js?v=20261020-media18-3-8"></script>
 <script src="JS/runtime-monitor-trigger.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
