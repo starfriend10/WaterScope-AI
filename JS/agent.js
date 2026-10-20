@@ -345,6 +345,7 @@ async function downloadResearchReport() {
 }
 
 let agentProcessing = false;
+let pendingMediaImage = null;
 let pendingMediaPaper = null;
 let pendingSourceClarification = null;
 let pendingMediaExport = false;
@@ -1131,7 +1132,7 @@ function renderFigureGallery(payload) {
             <span class="figure-thumb-title">${escapeHTML(label)}</span>
           </span>
         </button>
-        ${(entry.kind === "figure" || entry.kind === "table") ? `<button type="button" class="media-analyze-action" data-media-label="${escapeHTML(label)}" title="Extract approximate data and summarize"><i class="fas fa-chart-line" aria-hidden="true"></i> Analyze &amp; CSV</button>` : ""}
+        ${(entry.kind === "figure" || entry.kind === "table") ? `<button type="button" class="media-analyze-action" data-media-label="${escapeHTML(label)}" data-media-image="${escapeHTML(entry.image || String(entry.image_url || "").split("/").pop())}" title="Extract approximate data and summarize"><i class="fas fa-chart-line" aria-hidden="true"></i> Analyze &amp; CSV</button>` : ""}
         </div>`;
     })
     .join("");
@@ -1227,6 +1228,7 @@ function wireFigureGallery(container, paper) {
       const input = document.getElementById("agent-user-input");
       // Bind gallery selection explicitly; never depend on the selected-paper set.
       pendingMediaPaper = paper;
+      pendingMediaImage = button.dataset.mediaImage || null;
       pendingMediaExport = true;
       input.value = `Extract all readable data from ${button.dataset.mediaLabel} and summarize the findings.`;
       setAgentWorkspaceView("right");
@@ -1950,10 +1952,12 @@ async function sendMediaAnalysis(message, paper, exportCsv = false) {
   if (index === null) {
     throw new Error("Source metadata unavailable for this publication. Reopen its Details or refresh the search results, then retry.");
   }
+  const selectedImage = pendingMediaImage;
+  pendingMediaImage = null;
   const response = await fetch(api("/api/media/analyze"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: message, metadata_row_index: index, export_csv: exportCsv }),
+    body: JSON.stringify({ question: message, metadata_row_index: index, export_csv: exportCsv, ...(selectedImage ? {media_image: selectedImage} : {}) }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || `Media request failed (${response.status})`);
