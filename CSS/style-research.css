@@ -1204,7 +1204,7 @@ tr.highlighted {
 .agent-intro h2 { color:var(--primary); font-size:1.25rem; margin-bottom:5px; }
 .agent-intro p, .panel-heading p, .agent-chat-toolbar p { color:#6c757d; }
 .agent-status { margin-top:0; justify-content:flex-end; }
-.agent-workspace { display:grid; grid-template-columns:minmax(420px, 40%) minmax(0, 60%); gap:20px; min-height:900px; }
+.agent-workspace { display:grid; grid-template-columns:minmax(420px, 40%) minmax(0, 60%); gap:20px; min-height:1100px; }
 .publication-panel, .agent-chat-panel { position:relative; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,.04); }
 .publication-panel { position:relative; display:flex; flex-direction:column; min-height:900px; }
 .panel-heading h3, .agent-chat-toolbar h3 { color:var(--primary); font-size:1.08rem; margin-bottom:3px; }
