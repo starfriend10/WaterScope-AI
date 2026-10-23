@@ -1399,7 +1399,7 @@ tr.highlighted {
     display: flex;
 }
 .agent-workspace.view-left .publication-results { max-height: 650px; }
-.agent-workspace.view-right .agent-chat-container { height: 900px; }
+.agent-workspace.view-right .agent-chat-container { height: 1100px; }
 .agent-workspace.view-left #toggle-publications-panel,
 .agent-workspace.view-right #toggle-agent-chat-panel {
     background: #eef7fc;
