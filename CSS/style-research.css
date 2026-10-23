@@ -2307,19 +2307,19 @@ table thead th {
 
 /* 2026-09 Agent layout: prioritize the interactive workspace above guidance */
 .agent-workspace {
-    min-height: 1100px;
+    min-height: 1300px;
 }
 
 .publication-panel {
-    min-height: 1100px;
+    min-height: 1300px;
 }
 
 .agent-chat-container {
-    height: 1045px;
+    height: 1245px;
 }
 
 .collapsed-panel-tab {
-    min-height: 1100px;
+    min-height: 1300px;
 }
 
 .agent-workspace.view-right .agent-chat-container {
