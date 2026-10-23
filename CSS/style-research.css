@@ -1236,7 +1236,7 @@ tr.highlighted {
 .agent-chat-toolbar { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:16px 18px; border-bottom:1px solid var(--border); }
 .model-selector { display:flex; align-items:center; gap:8px; font-weight:600; color:var(--primary); }
 .model-selector select { min-width:130px; padding:8px 9px; border:1px solid var(--border); border-radius:5px; background:#fff; }
-.agent-chat-container { display:flex; flex-direction:column; height:845px; }
+.agent-chat-container { display:flex; flex-direction:column; height:1045px; }
 .agent-chat-container .chat-messages { min-height:0; }
 .agent-chat-container .message-content p { white-space:pre-wrap; }
 .agent-suggestion-row { display:flex; gap:7px; flex-wrap:wrap; padding:9px 15px; background:#fafbfc; border-top:1px solid #edf0f2; }
