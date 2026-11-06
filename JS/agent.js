@@ -385,7 +385,7 @@ let lastMediaContext = null;
 // Lightweight session-only dialog state for the media pathway.
 let mediaDialog = null;
 let lastRenderedMediaKey = null;
-let activeModelDisplay = "pending"; // pending | llama | fallback | paused | search-only
+let activeModelDisplay = "pending"; // pending | llama | fallback | paused | search-only | media
 let modelOperationResultShown = false;
 let mediaOperationTimer = null;
 let lastSearchQuery = "";
@@ -569,37 +569,51 @@ function finishModelOperationStatus(message = "Processed", type = "status-ready"
 }
 // The CPU API reports which provider actually answered the request. A paused
 // GPU alone does not prove that a fallback answer succeeded.
+function researchFallbackWasUsed(payload) {
+  // Examine the actual completed CPU response (including nested agent steps).
+  // A paused GPU is not by itself proof that the fallback model answered.
+  const steps = Array.isArray(payload?.agent_steps) ? payload.agent_steps : [];
+  const strategies = [payload?.strategy, payload?.research_strategy,
+    ...steps.map(step => step?.output?.strategy)].filter(Boolean).map(String);
+  const diagnostics = payload?.diagnostics || {};
+  const diagText = typeof diagnostics === "string" ? diagnostics : JSON.stringify(diagnostics);
+  const diagProvider = diagText.match(/(?:^|[;,\s{\"])(?:provider|provider_used)[\"']?\s*[=:]\s*[\"']?([\w.-]+)/i)?.[1] || "";
+  const provider = String(payload?.provider_used || payload?.fallback_provider ||
+    (typeof diagnostics === "object" ? diagnostics?.provider_used || diagnostics?.provider : "") || diagProvider).toLowerCase();
+  const modelUsed = String(payload?.model_used || "").toLowerCase();
+  return payload?.fallback_used === true || payload?.used_fallback === true ||
+    (typeof diagnostics === "object" && (diagnostics?.fallback_used === true || diagnostics?.used_fallback === true)) ||
+    strategies.some(x => /(?:^|[_:\s-])fallback(?:[_:\s-]|$)/i.test(x) ||
+      /deepseek_fallback|fallback_deepseek/i.test(x)) ||
+    /^(?:deepseek|openai|azure|gpt[-_])/.test(provider) ||
+    /^(?:deepseek|gpt[-_])/.test(modelUsed) ||
+    /deepseek_fallback|fallback_used\s*[=:]\s*true/i.test(diagText);
+}
 function finishResearchModelStatus(payload) {
-  // Use evidence from the completed response, not the HF runtime state alone.
-  // A paused Llama Space is not proof that a fallback request succeeded.
-  const strategies = [payload?.strategy, ...(Array.isArray(payload?.agent_steps)
-    ? payload.agent_steps.map(step => step?.output?.strategy) : [])]
-    .filter(Boolean).map(String).join("; ");
-  const diagnostics = typeof payload?.diagnostics === "string"
-    ? payload.diagnostics : JSON.stringify(payload?.diagnostics || {});
-  const diagnosticProvider = diagnostics.match(/(?:^|[;,\s])provider(?:_used)?[=:]\s*([^;,\s}]+)/i)?.[1] || "";
-  const provider = String(payload?.provider_used || diagnosticProvider).trim().toLowerCase();
-  const modelUsed = String(payload?.model_used || "").trim().toLowerCase();
-  const fallbackUsed = payload?.fallback_used === true || payload?.used_fallback === true ||
-    /(?:^|[_:\s])fallback(?::|[_\s]|$)/i.test(strategies) ||
-    /(?:^|[\s:])(?:deepseek|gpt|openai|azure)[-_\w]*fallback/i.test(strategies) ||
-    /^(?:deepseek|openai|azure|gpt[-_])/i.test(provider) ||
-    /^(?:deepseek|gpt[-_])/i.test(modelUsed);
-  // Preserve the request's elapsed time; stop the independent Gradio startup
-  // stopwatch so it cannot replace the completed-request status later.
-  finishAgentModelTimer();
+  const fallbackUsed = researchFallbackWasUsed(payload);
+  finishAgentModelTimer(); // do not let Gradio's startup clock overwrite request time
   if (fallbackUsed) {
     activeModelDisplay = "fallback";
     finishModelOperationStatus("Fallback model", "status-ready");
-  } else if (payload?.discovery_mode && !modelUsed && !provider &&
-             !(payload?.agent_steps || []).some(step => step?.tool === "waterscope_agent_run")) {
+  } else if (payload?.discovery_mode &&
+             !(payload?.agent_steps || []).some(step => step?.tool === "waterscope_agent_run") &&
+             !payload?.model_used && !payload?.provider_used) {
     activeModelDisplay = "search-only";
     finishModelOperationStatus("Search only", "status-ready");
   } else {
+    // The research path has completed without a fallback signal. It therefore
+    // used Llama, which remains the default in this CPU backend workflow.
     activeModelDisplay = "llama";
     finishModelOperationStatus("Llama loaded", "status-ready");
   }
   return fallbackUsed;
+}
+function finishMediaLanguageModelStatus() {
+  // /api/media/analyze has its own model provider. A successful media request
+  // does not imply Llama was resumed or the research fallback ran.
+  finishAgentModelTimer();
+  activeModelDisplay = "media";
+  finishModelOperationStatus("Media model", "status-ready");
 }
 function clearPublicationResultsForAgentSearch() {
   activeMediaDetailsPaper = null;
@@ -770,11 +784,12 @@ let gradioClientModulePromise = null;
 function setLlamaConnectionStatus(message, type) {
   // After a successful fallback request, retain "Fallback model" until a later
   // actual Llama answer; Gradio connection retries are not model responses.
-  if (!modelOperationTimer && activeModelDisplay !== "fallback") setChatModelStatus(message, type);
+  if (modelOperationTimer || modelOperationResultShown) return;
+  setChatModelStatus(message, type);
 }
 function handlePausedLlamaSpace() {
   finishAgentModelTimer();
-  if (activeModelDisplay !== "fallback") {
+  if (!modelOperationResultShown && !modelOperationTimer) {
     activeModelDisplay = "paused";
     if (!agentProcessing) {
       setLlamaConnectionStatus("Llama paused", "status-processing");
@@ -847,10 +862,12 @@ async function initializeGradioClient() {
   modelConnectionInProgress = true;
 
   try {
-    if (activeModelDisplay === "paused") activeModelDisplay = "pending";
-    startAgentModelTimer();
-    if (!agentProcessing) {
-      setLlamaConnectionStatus(modelStartupStatusMessage(), "status-processing");
+    if (!modelOperationResultShown) {
+      if (activeModelDisplay === "paused") activeModelDisplay = "pending";
+      startAgentModelTimer();
+      if (!agentProcessing) {
+        setLlamaConnectionStatus(modelStartupStatusMessage(), "status-processing");
+      }
     }
 
     const runtimeBeforeConnect = await getHfSpaceRuntimeState();
@@ -879,7 +896,7 @@ async function initializeGradioClient() {
     agentApp = await Client.connect(SPACE_ID);
     clearModelRetry();
     finishAgentModelTimer();
-    if (!agentProcessing && activeModelDisplay !== "fallback") {
+    if (!agentProcessing && !modelOperationResultShown) {
       activeModelDisplay = "llama";
       setLlamaConnectionStatus("Llama loaded", "status-ready");
     }
@@ -2404,6 +2421,9 @@ async function sendAgentMessage() {
       return;
     }
     if (isMediaRequest) {
+      // Media analysis is an independent LLM call. Reflect it in Language Model
+      // while retaining the separate Media Analysis request timer.
+      startModelOperationStatus("llama");
       payload = await sendMediaAnalysis(operationQuestion, mediaPaper, mediaExportCsv);
       validatedMediaSource(payload, operationQuestion);
       const matched = validatedMediaSource(payload, operationQuestion);
@@ -2441,6 +2461,7 @@ async function sendAgentMessage() {
       }
       lastRenderedMediaKey = mediaKey;
       finishModelOperationStatus("Processed", "status-ready", "media");
+      finishMediaLanguageModelStatus();
       return;
     } else if (documentIds.length > 0) {
       payload = await sendViaFlask(visibleMessage, documentIds, model, application, { agentMode: false });
@@ -2485,6 +2506,11 @@ async function sendAgentMessage() {
       sources: mediaPaper ? [mediaPaper] : selectedSourceRecords});
     const sourceProblem = mediaIntent && /^(?:Source metadata unavailable|Media source mismatch|Select (?:just )?one paper|I can't identify which figure|Select one publication)/i.test(String(error.message || ""));
     finishModelOperationStatus(sourceProblem ? "Source issue" : "Connection issue", "status-error", mediaIntent ? "media" : "llama");
+    if (isMediaRequest && modelOperationTimer) {
+      activeModelDisplay = "pending";
+      finishAgentModelTimer();
+      finishModelOperationStatus(sourceProblem ? "Source issue" : "Unavailable", "status-error", "llama");
+    }
     if (agentDiscovery) finishSearchOperationStatus("Connection issue", "status-error");
   } finally {
     agentProcessing = false;
