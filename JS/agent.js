@@ -2376,21 +2376,44 @@ function addGeneralChatUsage(question, answer) {
   if (next >= GENERAL_CHAT_TOKEN_BUDGET) showGeneralChatLimitNotice();
 }
 
-// Only explicit literature-discovery instructions invoke the agent when no
-// papers have been selected. Other messages go to direct LLM + fallback.
-// Keyword logic decides the route, never manufactures an answer.
+// V6: A clear request to FIND publications always takes priority over the
+// no-paper chat quota, old selections, and the previous figure/table context.
+// This classifier changes routing only; answers still come from the backend.
+function publicationSearchShorthand(message) {
+  const q = String(message || "").replace(/\s+/g, " ").trim();
+  const match = q.match(/^(?:(?:please|can you|could you|would you(?: please)?)\s+)?(?:find|search(?: for)?|look for|locate|retrieve|discover)\s+(.+)$/i);
+  if (!match) return "";
+  const topic = match[1].trim().replace(/[.!?]+$/, "").trim();
+  // 'Find out why...', 'find Figure 3', etc. are not literature searches.
+  if (!topic || /^(?:out|why|how|what|whether|if)\b/i.test(topic) ||
+      /^(?:(?:the|this|that)\s+)?(?:figure|fig\.?|table|chart|plot|diagram|image|answer|value|number)\b/i.test(topic) ||
+      /^a\s+way\b/i.test(topic)) return "";
+  // Already explicit about publications: preserve the user's original request.
+  if (/\b(?:papers?|articles?|publications?|studies|literature|references?)\b/i.test(topic)) return "";
+  return topic.replace(/^(?:more|some)\s+/i, "");
+}
 function isPublicationDiscoveryIntent(message) {
   const q = String(message || "").toLowerCase().replace(/\s+/g, " ").trim();
-  return /\b(?:find|search(?: for)?|look for|locate|retrieve|list|show|identify|discover)\b[^.!?]{0,90}\b(?:papers?|articles?|publications?|studies|literature|references?)\b/.test(q) ||
+  return Boolean(publicationSearchShorthand(message)) ||
+    /\b(?:find|search(?: for)?|look for|locate|retrieve|list|show|identify|discover)\b[^.!?]{0,90}\b(?:papers?|articles?|publications?|studies|literature|references?)\b/.test(q) ||
     /\b(?:papers?|articles?|publications?|studies)\s+(?:about|on|related to|concerning)\b/.test(q) ||
     /\b(?:literature|publication|bibliographic|scientific)\s+(?:search|review|survey|synthesis)\b/.test(q) ||
     /\b(?:recent|latest|newly published)\s+(?:papers?|publications?|studies)\b/.test(q);
+}
+function publicationDiscoveryMessage(message) {
+  const topic = publicationSearchShorthand(message);
+  return topic ? `Find papers on ${topic}` : message;
 }
 
 async function sendAgentMessage() {
   const input = document.getElementById("agent-user-input");
   const visibleMessage = input.value.trim();
   if (!visibleMessage || agentProcessing) return;
+
+  // An explicit new publication search outranks a pending media clarification.
+  // It is allowed even after the general-chat token allowance is exhausted.
+  const newPublicationSearch = isPublicationDiscoveryIntent(visibleMessage);
+  if (newPublicationSearch) pendingSourceClarification = null;
 
   // Resolve a pending publication clarification before detecting a new request.
   // A reply containing only a title is a choice, not a new media prompt.
@@ -2412,11 +2435,14 @@ async function sendAgentMessage() {
   }
   const model = document.getElementById("agent-model").value;
   let application = document.getElementById("agent-task").value;
-  const documentIds = [...selectedDocumentIds];
+  // Explicit 'Find ...' is an intentional search even when papers are selected
+  // or the Agent mode checkbox was turned off for ordinary conversation.
+  const documentIds = newPublicationSearch ? [] : [...selectedDocumentIds];
   const agentMode = document.getElementById("agent-mode").checked;
-  const agentDiscovery = agentMode && documentIds.length === 0 &&
-    isPublicationDiscoveryIntent(visibleMessage);
-  const routing = (pendingMediaPaper || resolvedClarification)
+  const agentDiscovery = newPublicationSearch;
+  const routing = newPublicationSearch
+    ? {intent: false, explicit: [], followup: false, referencedKind: null}
+    : (pendingMediaPaper || resolvedClarification)
     ? {intent: true, explicit: mediaReferencesInQuestion(visibleMessage), followup: false, referencedKind: null}
     : mediaRoutingIntent(visibleMessage);
   if (resolvedClarification) routing.explicit = mediaReferencesInQuestion(resolvedClarification.question);
@@ -2572,7 +2598,7 @@ async function sendAgentMessage() {
     } else if (documentIds.length > 0) {
       payload = await sendViaFlask(visibleMessage, documentIds, model, application, { agentMode: false });
     } else if (agentDiscovery) {
-      payload = await sendViaFlask(visibleMessage, [], model, application, { agentMode: true });
+      payload = await sendViaFlask(publicationDiscoveryMessage(visibleMessage), [], model, application, { agentMode: true });
       applyAgentSelection(payload);
       addAgentSteps(payload.agent_steps, payload.search_query);
     } else {
