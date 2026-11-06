@@ -385,7 +385,8 @@ let lastMediaContext = null;
 // Lightweight session-only dialog state for the media pathway.
 let mediaDialog = null;
 let lastRenderedMediaKey = null;
-let activeModelDisplay = "llama";
+let activeModelDisplay = "pending"; // pending | llama | fallback | paused | search-only
+let modelOperationResultShown = false;
 let mediaOperationTimer = null;
 let lastSearchQuery = "";
 let searchResultsPage = 0;
@@ -428,7 +429,9 @@ function formatSharedModelElapsed(ms) {
 let modelTimerInterval = null;
 function updateAgentModelTimer() {
   const el = document.getElementById("chat-model-elapsed");
-  if (modelOperationTimer) return;
+  // A completed answer is authoritative: do not replace its status/elapsed time
+  // with an unrelated background Gradio wake/retry timer.
+  if (modelOperationTimer || modelOperationResultShown || ["fallback", "paused", "search-only"].includes(activeModelDisplay)) return;
   if (el) el.textContent = formatSharedModelElapsed(sharedModelElapsedMs());
 
   if (!agentApp && !agentProcessing && getSharedModelTimerStart()) {
@@ -534,6 +537,7 @@ function finishSearchOperationStatus(message = "Processed", type = "status-ready
 }
 function startModelOperationStatus(mode = "llama") {
   const isMedia = mode === "media";
+  if (!isMedia) modelOperationResultShown = false;
   const startedAt = Date.now();
   const statusId = isMedia ? "media-analysis-status" : "chat-model-status";
   const elapsedId = isMedia ? "media-analysis-elapsed" : "chat-model-elapsed";
@@ -559,8 +563,43 @@ function finishModelOperationStatus(message = "Processed", type = "status-ready"
   } else {
     if (modelOperationTimer) clearInterval(modelOperationTimer);
     modelOperationTimer = null;
+    modelOperationResultShown = true;
     setChatModelStatus(message, type);
   }
+}
+// The CPU API reports which provider actually answered the request. A paused
+// GPU alone does not prove that a fallback answer succeeded.
+function finishResearchModelStatus(payload) {
+  // Use evidence from the completed response, not the HF runtime state alone.
+  // A paused Llama Space is not proof that a fallback request succeeded.
+  const strategies = [payload?.strategy, ...(Array.isArray(payload?.agent_steps)
+    ? payload.agent_steps.map(step => step?.output?.strategy) : [])]
+    .filter(Boolean).map(String).join("; ");
+  const diagnostics = typeof payload?.diagnostics === "string"
+    ? payload.diagnostics : JSON.stringify(payload?.diagnostics || {});
+  const diagnosticProvider = diagnostics.match(/(?:^|[;,\s])provider(?:_used)?[=:]\s*([^;,\s}]+)/i)?.[1] || "";
+  const provider = String(payload?.provider_used || diagnosticProvider).trim().toLowerCase();
+  const modelUsed = String(payload?.model_used || "").trim().toLowerCase();
+  const fallbackUsed = payload?.fallback_used === true || payload?.used_fallback === true ||
+    /(?:^|[_:\s])fallback(?::|[_\s]|$)/i.test(strategies) ||
+    /(?:^|[\s:])(?:deepseek|gpt|openai|azure)[-_\w]*fallback/i.test(strategies) ||
+    /^(?:deepseek|openai|azure|gpt[-_])/i.test(provider) ||
+    /^(?:deepseek|gpt[-_])/i.test(modelUsed);
+  // Preserve the request's elapsed time; stop the independent Gradio startup
+  // stopwatch so it cannot replace the completed-request status later.
+  finishAgentModelTimer();
+  if (fallbackUsed) {
+    activeModelDisplay = "fallback";
+    finishModelOperationStatus("Fallback model", "status-ready");
+  } else if (payload?.discovery_mode && !modelUsed && !provider &&
+             !(payload?.agent_steps || []).some(step => step?.tool === "waterscope_agent_run")) {
+    activeModelDisplay = "search-only";
+    finishModelOperationStatus("Search only", "status-ready");
+  } else {
+    activeModelDisplay = "llama";
+    finishModelOperationStatus("Llama loaded", "status-ready");
+  }
+  return fallbackUsed;
 }
 function clearPublicationResultsForAgentSearch() {
   activeMediaDetailsPaper = null;
@@ -729,7 +768,22 @@ let modelConnectionInProgress = false;
 let gradioClientModulePromise = null;
 
 function setLlamaConnectionStatus(message, type) {
-  if (!modelOperationTimer) setChatModelStatus(message, type);
+  // After a successful fallback request, retain "Fallback model" until a later
+  // actual Llama answer; Gradio connection retries are not model responses.
+  if (!modelOperationTimer && activeModelDisplay !== "fallback") setChatModelStatus(message, type);
+}
+function handlePausedLlamaSpace() {
+  finishAgentModelTimer();
+  if (activeModelDisplay !== "fallback") {
+    activeModelDisplay = "paused";
+    if (!agentProcessing) {
+      setLlamaConnectionStatus("Llama paused", "status-processing");
+      const elapsedEl = document.getElementById("chat-model-elapsed");
+      if (elapsedEl) elapsedEl.textContent = "—";
+    }
+  }
+  // Keep checking so a manual resume is noticed; never call Gradio while PAUSED.
+  scheduleModelRetry();
 }
 function modelStartupStatusMessage() {
   return sharedModelElapsedMs() >= MODEL_LONG_STARTUP_MS
@@ -785,7 +839,7 @@ async function getHfSpaceRuntimeState() {
 async function initializeGradioClient() {
   if (agentApp) {
     clearModelRetry();
-    setLlamaConnectionStatus("Connected", "status-ready");
+    setLlamaConnectionStatus("Llama loaded", "status-ready");
     return true;
   }
 
@@ -793,13 +847,18 @@ async function initializeGradioClient() {
   modelConnectionInProgress = true;
 
   try {
+    if (activeModelDisplay === "paused") activeModelDisplay = "pending";
     startAgentModelTimer();
     if (!agentProcessing) {
       setLlamaConnectionStatus(modelStartupStatusMessage(), "status-processing");
     }
 
     const runtimeBeforeConnect = await getHfSpaceRuntimeState();
-    if (runtimeBeforeConnect.stage === "RUNTIME_ERROR") {
+    if (runtimeBeforeConnect.stage === "PAUSED") {
+      handlePausedLlamaSpace();
+      return false;
+    }
+    if (["RUNTIME_ERROR", "BUILD_ERROR"].includes(runtimeBeforeConnect.stage)) {
       finishAgentModelTimer();
       if (!agentProcessing) setLlamaConnectionStatus("Unavailable", "status-error");
       console.error(
@@ -820,13 +879,18 @@ async function initializeGradioClient() {
     agentApp = await Client.connect(SPACE_ID);
     clearModelRetry();
     finishAgentModelTimer();
-    if (!agentProcessing) setLlamaConnectionStatus("Connected", "status-ready");
+    if (!agentProcessing && activeModelDisplay !== "fallback") {
+      activeModelDisplay = "llama";
+      setLlamaConnectionStatus("Llama loaded", "status-ready");
+    }
     return true;
   } catch (error) {
     console.error("Chat model connection error:", error);
 
     const runtimeAfterConnect = await getHfSpaceRuntimeState();
-    if (runtimeAfterConnect.stage === "RUNTIME_ERROR") {
+    if (runtimeAfterConnect.stage === "PAUSED") {
+      handlePausedLlamaSpace();
+    } else if (["RUNTIME_ERROR", "BUILD_ERROR"].includes(runtimeAfterConnect.stage)) {
       finishAgentModelTimer();
       if (!agentProcessing) setLlamaConnectionStatus("Unavailable", "status-error");
       console.error(
@@ -2391,7 +2455,9 @@ async function sendAgentMessage() {
       addAgentMessage(reply, "assistant");
       recordResearchExchange({question: visibleMessage, answer: reply,
         type: "research_chat", scope: "general", model, strategy: "direct_gradio"});
-      finishModelOperationStatus();
+      finishAgentModelTimer();
+      activeModelDisplay = "llama";
+      finishModelOperationStatus("Llama loaded", "status-ready");
       return;
     }
 
@@ -2403,13 +2469,13 @@ async function sendAgentMessage() {
       sources: (payload.selected_papers || payload.sources || selectedSourceRecords),
       model: payload.model_used || payload.model || model,
       strategy: payload.strategy || null});
-    if (String(payload.strategy || "").startsWith("deepseek_fallback:")) {
+    const usedFallback = finishResearchModelStatus(payload);
+    if (usedFallback) {
       addAgentMessage("Research answer generated using the fallback model because Llama was unavailable.", "assistant");
     }
     if (payload.agent_mode && !payload.discovery_mode && (payload.selected_papers || payload.sources)?.length) {
       addSelectedPapersPanel(payload.selected_papers || payload.sources);
     }
-    finishModelOperationStatus();
     if (agentDiscovery) finishSearchOperationStatus();
   } catch (error) {
     console.error("Agent request error:", error);
